@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENBA — 現場が、経営を超えていく。｜図面・見積・写真・書類をこれ一つで</title>
+<meta name="description" content="現場が、経営を超えていく。建築・電気工事の統合ワークスペース GENBA。">
+<meta name="theme-color" content="#16306e">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root{
+    --bg:#0a0f16; --bg2:#0c131c; --panel:#101a26cc; --panel2:#16222fcc;
+    --line:#22344a; --line2:#2e4458;
+    --text:#eef4fb; --muted:#8ea3b8; --accent:#ff8a3d; --accent-d:#e3712a;
+    --blue:#4fb0ff; --accent2:#2fd3a5; --warn:#ffc24b; --danger:#ff6b6b; --chip:#1c2c3e;
+    --grid:rgba(79,176,255,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+    color:var(--text);font-size:14px;line-height:1.6;
+    background-color:var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px),
+      radial-gradient(1200px 600px at 80% -10%, rgba(255,138,61,.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(79,176,255,.07), transparent 60%);
+    background-size:28px 28px,28px 28px,100% 100%,100% 100%;
+    background-attachment:fixed;
+  }
+  .mono{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-variant-numeric:tabular-nums}
+  /* ===== Header ===== */
+  header{position:relative;padding:18px 22px;
+    background:linear-gradient(120deg,#0c1a28 0%,#0e2436 55%,#12161c 100%);
+    border-bottom:2px solid var(--accent);
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    box-shadow:0 6px 24px rgba(0,0,0,.45)}
+  header::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(45deg,var(--accent) 0 10px,#1a1205 10px 20px)}
+  header h1{font-size:19px;margin:0;letter-spacing:.04em;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  header .tag{font-size:10.5px;color:#cdd9e6;background:var(--chip);padding:3px 10px;border-radius:3px;
+    border:1px solid var(--line2);letter-spacing:.08em;text-transform:uppercase}
+  /* ===== Nav ===== */
+  nav{display:flex;gap:7px;flex-wrap:wrap;padding:11px 22px;
+    background:rgba(10,16,22,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  nav button{background:var(--panel2);color:var(--text);border:1px solid var(--line2);
+    border-radius:4px;padding:9px 15px;cursor:pointer;font-size:12.5px;font-weight:600;letter-spacing:.02em;
+    transition:all .15s ease}
+  nav button:hover{border-color:var(--accent);color:#fff;transform:translateY(-1px)}
+  nav button.active{background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#160a02;
+    border-color:var(--accent);font-weight:800;box-shadow:0 4px 14px rgba(255,138,61,.35)}
+  main{padding:22px;max-width:1140px;margin:0 auto}
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* ===== Card ===== */
+  .card{position:relative;background:var(--panel);backdrop-filter:blur(6px);
+    border:1px solid var(--line2);border-radius:8px;padding:18px 18px 16px;margin-bottom:18px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  .card::before{content:"";position:absolute;left:0;top:14px;width:3px;height:18px;background:var(--accent);border-radius:0 2px 2px 0}
+  .card h2{margin:0 0 12px;font-size:15px;color:#fff;font-weight:800;letter-spacing:.03em;
+    padding-left:10px;display:flex;align-items:center;gap:8px}
+  .card h3{margin:14px 0 6px;font-size:13px;color:var(--accent2);font-weight:700}
+  label{display:block;font-size:11.5px;color:var(--muted);margin:10px 0 4px;letter-spacing:.02em}
+  input,textarea,select{width:100%;background:#0a121b;border:1px solid var(--line2);border-radius:5px;
+    color:var(--text);padding:9px 10px;font-size:13px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,138,61,.15)}
+  input[type=number]{font-variant-numeric:tabular-nums}
+  textarea{min-height:120px;resize:vertical;line-height:1.7}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:140px}
+  button.act{background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#160a02;border:none;
+    border-radius:5px;padding:10px 18px;cursor:pointer;font-weight:800;font-size:13px;letter-spacing:.02em;
+    box-shadow:0 4px 14px rgba(255,138,61,.3);transition:transform .12s,box-shadow .12s}
+  button.act:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,138,61,.45)}
+  button.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue);border-radius:5px;
+    padding:9px 15px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+  button.ghost:hover{background:rgba(79,176,255,.12)}
+  button.mini{background:var(--panel2);color:#bcccdc;border:1px solid var(--line2);border-radius:4px;
+    padding:5px 10px;cursor:pointer;font-size:11.5px;transition:all .15s}
+  button.mini:hover{border-color:var(--accent);color:#fff}
+  button.danger{color:var(--danger);border-color:var(--danger)}
+  button.danger:hover{background:rgba(255,107,107,.12)}
+  /* ===== Table ===== */
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left}
+  th{background:#172534;color:#a8bccf;font-weight:700;
+    white-space:nowrap;letter-spacing:.03em;font-size:11.5px;text-transform:uppercase}
+  tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
+  tbody tr:hover{background:rgba(79,176,255,.06)}
+  td input{padding:6px;border-radius:4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* ===== Category ===== */
+  .cat-block{margin-bottom:14px;border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+  .cat-head{background:linear-gradient(90deg,#16242f,#101a24);padding:9px 13px;display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--line)}
+  .cat-head .muted{font-size:10px;background:var(--accent);color:#160a02;padding:2px 7px;border-radius:3px;font-weight:800;letter-spacing:.05em}
+  .cat-head input{max-width:300px;font-weight:700;background:transparent;border:none;border-bottom:1px dashed var(--line2);color:#fff}
+  .cat-sub{margin-left:auto;color:var(--accent2);font-weight:800;font-variant-numeric:tabular-nums}
+  /* ===== Totals ===== */
+  .totbox{background:linear-gradient(160deg,#0e1a26,#0b141d);border:1px solid var(--line2);border-radius:8px;padding:16px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .totline{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dotted var(--line);font-variant-numeric:tabular-nums}
+  .totline span:first-child{color:var(--muted)}
+  .totline b,.totline span:last-child{color:var(--text)}
+  .totline.grand{font-size:22px;color:var(--accent);font-weight:900;border-bottom:none;padding-top:12px;margin-top:4px;
+    border-top:2px solid var(--line2);letter-spacing:.01em}
+  .totline.grand span:first-child{color:#fff}
+  /* ===== Misc ===== */
+  .muted{color:var(--muted)}
+  .hint{font-size:12px;color:#aebfd0;background:rgba(79,176,255,.06);border-left:3px solid var(--blue);
+    padding:9px 12px;border-radius:0 5px 5px 0;margin:9px 0}
+  .badge{font-size:9.5px;background:var(--warn);color:#1a1200;padding:2px 7px;border-radius:3px;margin-left:6px;
+    font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+  .suggest{background:#0a121b;border:1px solid var(--line2);border-radius:6px;padding:12px;margin-top:12px}
+  .suggest .item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dotted var(--line)}
+  .suggest .item:last-child{border-bottom:none}
+  .pill{font-size:10.5px;background:var(--chip);padding:2px 8px;border-radius:3px;color:#b6c6d6;border:1px solid var(--line2);
+    font-variant-numeric:tabular-nums}
+  /* dropzone hover state handled inline; add base polish */
+  #dropZone{transition:all .18s ease}
+  #dropZone:hover{border-color:var(--accent)!important;background:rgba(255,138,61,.04)!important}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  datalist{display:none}
+  /* ===== 図枠風コーナーマーク（建築図面ディテール）===== */
+  .card::after{content:"";position:absolute;right:9px;top:9px;width:13px;height:13px;
+    border-top:2px solid var(--line2);border-right:2px solid var(--line2);opacity:.7}
+  .card:hover::after{border-color:var(--accent);opacity:1;transition:all .2s}
+  /* ===== 処理中オーバーレイ ===== */
+  #busy{position:fixed;inset:0;background:rgba(5,9,14,.78);backdrop-filter:blur(4px);z-index:999;
+    display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+  #busy.on{display:flex}
+  .spinner{width:64px;height:64px;border-radius:50%;border:3px solid var(--line2);
+    border-top-color:var(--accent);border-right-color:var(--blue);animation:spin .9s linear infinite;position:relative}
+  .spinner::after{content:"⚡";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:24px;animation:spinrev .9s linear infinite;filter:drop-shadow(0 0 6px rgba(255,138,61,.8))}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes spinrev{to{transform:rotate(-360deg)}}
+  #busyMsg{color:#fff;font-weight:800;letter-spacing:.06em;font-size:15px}
+  #busySub{color:var(--muted);font-size:12px}
+  .busybar{width:220px;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+  .busybar::before{content:"";display:block;width:40%;height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));
+    animation:slide 1.2s ease-in-out infinite}
+  @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+  /* ===== 案件ランチャー（起動画面）===== */
+  #launcher{position:fixed;inset:0;z-index:900;display:none;flex-direction:column;align-items:center;
+    justify-content:center;padding:24px;overflow:auto;
+    background:
+      linear-gradient(rgba(8,13,20,.92),rgba(8,13,20,.96)),
+      repeating-linear-gradient(45deg,transparent 0 26px,rgba(255,138,61,.05) 26px 28px),
+      linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:100% 100%,100% 100%,28px 28px,28px 28px}
+  #launcher.on{display:flex}
+  .lx-logo{font-size:30px;font-weight:900;letter-spacing:.05em;color:#fff;margin-bottom:4px;
+    text-shadow:0 0 24px rgba(255,138,61,.4)}
+  .lx-sub{color:var(--muted);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:28px;
+    border-bottom:1px solid var(--line2);padding-bottom:14px}
+  .lx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;width:100%;max-width:860px}
+  .lx-tile{background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:16px 15px;cursor:pointer;
+    transition:all .16s ease;position:relative;overflow:hidden}
+  .lx-tile:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+  .lx-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue)}
+  .lx-tile.new::before{background:var(--accent)}
+  .lx-name{font-weight:800;color:#fff;font-size:14.5px;margin-bottom:6px}
+  .lx-meta{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .lx-skip{margin-top:26px;color:var(--muted);font-size:12.5px;cursor:pointer;border-bottom:1px dashed var(--line2);padding-bottom:2px}
+  .lx-skip:hover{color:var(--blue)}
+  .onlyprint{display:none}
+  /* ===== スマホ最適化（640px以下）===== */
+  @media (max-width:640px){
+    main{padding:12px}
+    header{padding:12px 14px;gap:8px}
+    header h1{font-size:16px}
+    header .tag{font-size:9.5px;padding:2px 7px}
+    /* タブ: 折返しをやめ横スクロール化。指で押せる44px確保 */
+    nav{flex-wrap:nowrap;overflow-x:auto;padding:8px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    nav::-webkit-scrollbar{display:none}
+    nav button{white-space:nowrap;min-height:44px;padding:10px 14px;font-size:13px;flex:0 0 auto}
+    /* フォームは縦積み */
+    .row{gap:8px}
+    .row>div{flex-basis:100%;min-width:0}
+    /* iOSのフォーカス時自動ズーム防止（16px未満だと拡大される） */
+    input,textarea,select{font-size:16px;padding:11px 12px}
+    button.act,button.ghost{min-height:46px;width:100%;font-size:15px}
+    button.mini{min-height:38px;padding:8px 12px}
+    .card{padding:14px 12px}
+    .totline{font-size:14px}
+    .totline.grand{font-size:19px}
+    .cat-head input{max-width:150px;font-size:13px}
+    td input{font-size:14px;padding:8px 6px}
+    #dropZone{padding:26px 10px}
+    .lx-grid{grid-template-columns:1fr}
+    .lx-tile{padding:18px 16px}
+    .lx-logo{font-size:24px}
+    #phGrid{grid-template-columns:1fr 1fr}
+    .cells{grid-template-columns:1fr 1fr}
+  }
+  @media print{
+    nav,header .tag,.noprint{display:none!important}
+    body{background:#fff;color:#000;background-image:none}
+    .card{border-color:#999;break-inside:avoid;box-shadow:none;background:#fff}
+    .view{display:none!important}
+    .view.active{display:block!important}
+    .onlyprint{display:block!important}
+    #phGrid{grid-template-columns:repeat(2,1fr)!important}
+    #phGrid img{height:150px!important}
+  }
+</style>
+</head>
+<body>
+<!-- 処理中オーバーレイ -->
+<div id="busy">
+  <div class="spinner"></div>
+  <div id="busyMsg">処理中...</div>
+  <div class="busybar"></div>
+  <div id="busySub">そのままお待ちください</div>
+</div>
+<!-- 案件ランチャー（起動画面） -->
+<div id="launcher">
+  <img src="logo.svg" alt="GENBA" style="width:84px;height:84px;margin-bottom:10px;filter:drop-shadow(0 4px 18px rgba(79,176,255,.5))">
+  <div class="lx-logo" style="letter-spacing:.22em">GENBA <span style="font-size:14px;color:var(--blue);letter-spacing:.25em;vertical-align:middle">現場</span></div>
+  <div style="color:#cdd9e6;font-size:15px;margin-bottom:6px;letter-spacing:.06em;font-weight:700"><b style="color:var(--accent)">現場が、経営を超えていく。</b></div>
+  <div class="lx-sub">本日の現場を選択してください</div>
+  <div class="lx-grid" id="lxGrid"></div>
+  <div class="lx-skip" onclick="hideLauncher()">案件を選ばずに開く（前回の続き）→</div>
+</div>
+<header>
+  <img src="logo.svg" alt="GENBA" style="width:40px;height:40px;filter:drop-shadow(0 2px 8px rgba(79,176,255,.45))">
+  <h1 style="display:flex;flex-direction:column;gap:1px;line-height:1.25">
+    <span style="letter-spacing:.18em">GENBA <span style="font-size:11px;color:var(--blue);letter-spacing:.2em;font-weight:700">現場</span></span>
+    <span class="muted" style="font-size:11px;letter-spacing:.08em;font-weight:600">現場が、経営を超えていく。</span>
+  </h1>
+  <span class="tag" id="hdrCase" style="border-color:var(--accent);color:#ffd9bd;cursor:pointer" onclick="showLauncher()" title="クリックで案件を切替">📁 （案件未選択）</span>
+  <span class="tag">有限会社 両磐電気 仕様</span>
+  <span class="tag">プロトタイプ v0.2</span>
+</header>
+
+<nav>
+  <button data-v="ai" class="active">① AI下書き</button>
+  <button data-v="estimate">② 見積作成</button>
+  <button data-v="master">③ 単価マスタ</button>
+  <button data-v="cable">④ 電線長補正</button>
+  <button data-v="bench">⑤ 概算人工チェック</button>
+  <button data-v="photo">⑥ 施工写真</button>
+  <button data-v="docs">⑦ 書類作成</button>
+  <button data-v="cases">💼 案件・保存</button>
+  <button data-v="about">ℹ️ これは何？</button>
+</nav>
+
+<main>
+  <!-- AI下書き -->
+  <section id="v-ai" class="view active">
+    <div class="card">
+      <h2>① 要件テキスト → 明細を自動拾い出し</h2>
+      <div class="hint">図面の注記・仕様メモ・現場で口頭でもらった内容などを貼り付け、「拾い出す」を押すと、単価マスタと照合して見積明細の候補を自動生成します。数量は「100m」「3個」「5箇所」のような表記を自動で読み取ります。</div>
+
+      <div id="dropZone" style="border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted);background:#0c1620;cursor:pointer;margin-bottom:10px">
+        📄 ここに <b>PDF / 画像（PNG・JPG）</b> をドラッグ＆ドロップ<br>
+        <span style="font-size:12px">またはクリックして選択 ／ テキスト付きPDFは自動で文字抽出します</span>
+        <input id="fileInput" type="file" accept=".pdf,.png,.jpg,.jpeg" style="display:none" multiple>
+      </div>
+      <div class="row noprint" style="margin-bottom:10px">
+        <button class="ghost" onclick="document.getElementById('camInput').click()">📷 カメラで図面を撮影して読み取る</button>
+        <input id="camInput" type="file" accept="image/*" capture="environment" style="display:none">
+        <span class="muted" style="font-size:11.5px;align-self:center">スマホ/タブレットならカメラが起動。紙図面を撮るだけでAIが拾い出します（要APIキー）</span>
+      </div>
+      <div class="row" style="margin:6px 0">
+        <div><label>拾い出し範囲（全部拾わず絞り込める）</label>
+          <select id="scopeMode">
+            <option value="all">全数拾い（新築向け）</option>
+            <option value="changes">変更・追加・撤去のみ（改修・リフォーム向け）</option>
+            <option value="lighting">照明器具のみ</option>
+            <option value="outlet">コンセント・スイッチのみ</option>
+            <option value="weak">通信・弱電・防災のみ</option>
+            <option value="power">動力・幹線・盤のみ</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin:6px 0"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="hwMode" style="width:auto"> ✍️ 手書き注記モード（印刷図面ではなく、手書きの追加/変更/削除指示だけを読み取る）
+      </label></div>
+      <div id="dropStatus" class="muted" style="font-size:12px;margin-bottom:8px"></div>
+
+      <label>要件・仕様テキスト（例を入れてあります。書き換えてOK／PDFを入れるとここに追記されます）</label>
+      <textarea id="aiInput">PF管22 露出 80m
+VVF2.0-2C 配線 120m
+アウトレットボックス 中形四角 12個
+プルボックス 300×300×200 2個
+LED照明器具 40W相当 取付 18台
+既設電灯設備 撤去 1式
+ケーブルラック 200幅 25m</textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="act" onclick="runDraft()">🔍 拾い出す</button>
+        <button class="ghost" onclick="document.getElementById('aiInput').value=''">クリア</button>
+      </div>
+      <div id="draftResult"></div>
+    </div>
+    <div class="card">
+      <h2>🤖 画像認識オプション（Gemini / Claude 対応）</h2>
+      <div class="hint">スキャン図面（画像PDF）の読み取りにはAPIキーが必要です。キーの種類で自動判定します：<b>Gemini(Google)＝「AIza…」</b> ／ <b>Claude(Anthropic)＝「sk-ant…」</b>。キーはこの端末のブラウザ内にのみ保存されます。<br>⚠️ <b>http://localhost で開いている場合のみ</b>API呼び出しが通ります（file:// は不可）。</div>
+      <label>プロバイダ（手動選択）</label>
+      <select id="provider">
+        <option value="auto">自動判定（AIza→Gemini / sk-ant→Claude）</option>
+        <option value="google">Gemini（Google）を使う</option>
+        <option value="anthropic">Claude（Anthropic）を使う</option>
+      </select>
+      <label>API キー</label>
+      <input id="apiKey" type="password" placeholder="APIキーを貼り付け">
+      <button class="mini" style="margin-top:8px" onclick="saveKey()">キーを保存</button>
+      <span id="keyStatus" class="muted" style="margin-left:8px"></span>
+    </div>
+  </section>
+
+  <!-- 見積作成 -->
+  <section id="v-estimate" class="view">
+    <div class="card noprint">
+      <h2>② 表紙情報</h2>
+      <div class="row">
+        <div><label>宛先</label><input id="f_to" value="株式会社 ○○ 御中"></div>
+        <div><label>作成日</label><input id="f_date"></div>
+      </div>
+      <div class="row">
+        <div><label>件名</label><input id="f_title" value="○○電気設備工事"></div>
+        <div><label>工事場所</label><input id="f_place" value="岩手県○○市"></div>
+      </div>
+      <div class="row">
+        <div><label>担当</label><input id="f_staff" value="担当　加藤　優太"></div>
+        <div><label>工事種別<br><span class="muted" style="font-size:11px">人工に割増係数が掛かります</span></label>
+          <select id="f_kind" onchange="recalc()">
+            <option value="1.0">新築（係数1.0）</option>
+            <option value="1.30">リフォーム（係数1.30）</option>
+            <option value="1.25">改修・更新（係数1.25）</option>
+            <option value="1.15">増設（係数1.15）</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint">工事種別の係数は労務費（人工）に乗算されます。リフォーム/改修は既設撤去・養生・通線困難・狭所作業で手間が増えるため割増。係数は自社実績で調整してください。</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <h2 style="margin:0">📋 見積明細（7工事区分）</h2>
+        <button class="mini noprint" onclick="addRow()">＋ 明細を追加</button>
+        <button class="mini noprint danger" onclick="clearRows()">🗑 明細を全クリア</button>
+        <button class="mini noprint" onclick="syncBu()">⚙ 歩掛をマスタから取得（労務費を反映）</button>
+        <span class="muted noprint" style="font-size:12px">※名称欄は単価マスタから自動補完</span>
+      </div>
+      <div id="catContainer"></div>
+    </div>
+
+    <div class="card">
+      <h2>💴 集計（消費税は10%切り捨て＝両磐電気仕様）</h2>
+      <div class="row">
+        <div>
+          <label>労務単価（円/人工）<br><span class="muted" style="font-size:11px">公共工事設計労務単価 令8 全国平均25,834。地域・職種で調整</span></label><input id="f_roumu" type="number" value="25834" oninput="renderEstimate()">
+          <label>想定人数（人）<br><span class="muted" style="font-size:11px">延べ人工÷人数＝概算工期(日)を表示</span></label><input id="f_crew" type="number" value="2" oninput="recalc()">
+          <label>表示方式</label>
+          <select id="f_dispmode" onchange="renderEstimate()">
+            <option value="combined">複合単価（材工込みの金額のみ）</option>
+            <option value="split">材工分離（材料費・労務費を分けて表示）</option>
+          </select>
+          <label>諸経費</label><input id="f_misc" type="number" value="0" oninput="recalc()">
+          <label>福利厚生費（労務費×料率を下で自動計算可）</label><input id="f_welfare" type="number" value="0" oninput="recalc()">
+          <label>法定福利費 料率（例0.18=18%。0なら手動）</label><input id="f_welrate" type="number" step="0.01" value="0" oninput="recalc()">
+          <label>値引き（マイナスで入力）</label><input id="f_discount" type="number" value="0" oninput="recalc()">
+          <label>消費税率</label><input id="f_taxrate" type="number" step="0.01" value="0.1" oninput="recalc()">
+        </div>
+        <div>
+          <div class="totbox" id="totbox"></div>
+        </div>
+      </div>
+      <div class="row noprint" style="margin-top:12px">
+        <button class="act" onclick="window.print()">🖨️ 印刷 / PDF出力</button>
+        <button class="ghost" onclick="saveAll()">💾 保存</button>
+        <button class="ghost" onclick="exportJSON()">⬇️ JSON書き出し</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 単価マスタ -->
+  <section id="v-master" class="view">
+    <div class="card">
+      <h2>③ 単価マスタ <span class="badge">サンプル価格</span></h2>
+      <div class="hint">⚠️ 初期データは<b>サンプル単価</b>です。岩手県複合単価表や自社の実単価に置き換えてください。<br><b>材料単価</b>(円/単位)と<b>歩掛</b>(人工/単位)を分けて入力します。労務費＝歩掛×労務単価×数量。複合単価＝材料単価＋歩掛×労務単価（自動計算・右列に表示）。労務単価は「②見積作成」で設定。<br>※以前のデータをお使いの場合は歩掛が0なので、<b>🔄標準項目を補充</b>または手動で歩掛を入れてください。</div>
+      <div class="row noprint">
+        <button class="mini" onclick="addMaster()">＋ 行を追加</button>
+        <button class="mini" onclick="mergeSample()">🔄 標準項目を補充</button>
+        <button class="mini danger" onclick="resetMaster()">♻ サンプルで初期化（歩掛入りで上書き）</button>
+        <button class="mini danger" onclick="resetMaster()">♻ サンプルで初期化</button>
+        <button class="mini" onclick="exportMaster()">⬇️ マスタを書き出し</button>
+        <label class="mini" style="display:inline-block;cursor:pointer;border:1px solid var(--line);padding:4px 8px;border-radius:6px">⬆️ マスタを読み込み
+          <input type="file" accept=".json" style="display:none" onchange="importMaster(event)"></label>
+      </div>
+      <div style="overflow-x:auto;margin-top:10px">
+        <table id="masterTable">
+          <thead><tr><th>名称</th><th>仕様</th><th>単位</th><th class="num">材料単価(円)</th><th class="num">歩掛(人工)</th><th class="num">複合単価</th><th>区分</th><th>キーワード</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 電線長補正 -->
+  <section id="v-cable" class="view">
+    <div class="card">
+      <h2>④ 電線長 高さ補正 計算</h2>
+      <div class="hint">平面図の配線長は<b>水平距離のみ</b>。実際は壁内・天井内を縦に走るため不足します。日本の住宅の階高 約3.0m を前提に、各器具の<b>立下り/立上り</b>を自動加算します（スイッチGL+1300→+1.7m、コンセントGL+300→+2.7m 等）。「②見積作成」の明細から器具数を自動集計します。</div>
+      <div class="row">
+        <div><label>標準階高 (m)</label><input id="c_fh" type="number" step="0.1" value="3.0" oninput="calcCable()"></div>
+        <div><label>余長率 (例:0.08=8%)</label><input id="c_slack" type="number" step="0.01" value="0.08" oninput="calcCable()"></div>
+        <div><label>① 平面配線ルート長 合計 (m)<br><span class="muted" style="font-size:11px">図面トレード値を手入力</span></label><input id="c_horiz" type="number" value="0" oninput="calcCable()"></div>
+      </div>
+      <div id="cableBreak" style="margin-top:12px"></div>
+      <div class="row noprint" style="margin-top:12px">
+        <button class="act" onclick="addCableLine()">＋ 推定電線長を見積明細に追加</button>
+        <span class="muted" style="font-size:12px;align-self:center">※VVF等の配線項目として「電灯設備」に追加します</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 概算人工チェック -->
+  <section id="v-bench" class="view">
+    <div class="card">
+      <h2>⑤ 概算人工チェック（規模から仕事量を想定）</h2>
+      <div class="hint">建物の用途と延床面積から「標準的な延べ人工」を概算し、②の拾い出し結果と突合します。拾い出しが標準を大きく下回る場合、配線長や器具の<b>拾い漏れ</b>が疑われます。原単位（人工/坪）は経験値の初期値です。自社実績に合わせて調整してください。</div>
+      <div class="row">
+        <div><label>建物用途</label>
+          <select id="b_type" onchange="calcBench()">
+            <option value="0.60">戸建 新築（木造）</option>
+            <option value="0.40">戸建 リフォーム・改修</option>
+            <option value="0.80">店舗・テナント内装</option>
+            <option value="0.65">事務所・オフィス</option>
+            <option value="0.90">飲食店（厨房設備多め）</option>
+          </select>
+        </div>
+        <div><label>延床面積（坪）<br><span class="muted" style="font-size:11px">㎡の場合は ÷3.31</span></label><input id="b_tsubo" type="number" value="35" oninput="calcBench()"></div>
+        <div><label>原単位 補正（×）<br><span class="muted" style="font-size:11px">難易度・地域で微調整</span></label><input id="b_adj" type="number" step="0.05" value="1.0" oninput="calcBench()"></div>
+      </div>
+      <div id="benchResult" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- 施工写真 -->
+  <section id="v-photo" class="view">
+    <div class="card noprint">
+      <h2>⑥ 施工写真の整理</h2>
+      <div class="hint">写真をドラッグ＆ドロップで取り込み、工種・コメント・撮影日を付けて整理します。画像はこの端末のブラウザDB（IndexedDB）に保存され、外部送信はされません。「写真台帳を出力」で印刷／PDF化できます。</div>
+      <div class="row">
+        <div><label>案件名（台帳の見出し）</label><input id="ph_project" placeholder="○○様邸 新築電気工事" oninput="savePhotoMeta()"></div>
+      </div>
+      <div id="phDrop" style="border:2px dashed var(--line2);border-radius:8px;padding:22px;text-align:center;color:var(--muted);background:#0a121b;cursor:pointer;margin-top:10px">
+        📷 ここに <b>施工写真</b>（JPG/PNG・複数可）をドラッグ＆ドロップ<br>
+        <span style="font-size:12px">またはクリックして選択</span>
+        <input id="phInput" type="file" accept="image/*" multiple style="display:none">
+      </div>
+      <div id="phStatus" class="muted" style="font-size:12px;margin-top:6px"></div>
+      <div class="row noprint" style="margin-top:10px">
+        <button class="act" onclick="window.print()">🖨 写真台帳を出力（印刷/PDF）</button>
+        <span class="muted" style="font-size:12px;align-self:center">枚数: <span id="phCount">0</span></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2 class="onlyprint" style="display:none">施工写真台帳 — <span id="phTitlePrint"></span></h2>
+      <div id="phGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
+    </div>
+  </section>
+
+  <!-- 書類作成 -->
+  <section id="v-docs" class="view">
+    <div class="card noprint">
+      <h2>⑦ 書類作成（報告書・日報・作業指示書）</h2>
+      <div class="hint">現在の案件データ（件名・場所・明細・人工・工期・写真枚数）から書類を自動生成します。生成後は自由に編集して「印刷/PDF」へ。APIキー設定済みならAIが文章を整えます（未設定でもテンプレートで動作）。</div>
+      <div class="row">
+        <div><label>書類の種類</label>
+          <select id="docType">
+            <option value="report">工事報告書（完了報告）</option>
+            <option value="daily">作業日報</option>
+            <option value="instruction">作業指示書</option>
+            <option value="safety">安全指示・KY記録</option>
+          </select>
+        </div>
+        <div><label>作成日</label><input id="docDate" type="date"></div>
+        <div><label>作業者・宛先など（任意）</label><input id="docWho" placeholder="例: 加藤／協力会社○○"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="act" onclick="genDoc(false)">📋 自動作成（テンプレート）</button>
+        <button class="ghost" onclick="genDoc(true)">🤖 AIで清書して作成（要APIキー）</button>
+        <button class="ghost" onclick="window.print()">🖨 印刷 / PDF</button>
+      </div>
+      <div id="docStatus" class="muted" style="font-size:12px;margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <h2 class="onlyprint" style="display:none" id="docPrintTitle"></h2>
+      <textarea id="docBody" class="noprint" style="min-height:420px;font-size:13.5px;line-height:1.9" placeholder="ここに書類が生成されます。自由に編集できます。" oninput="document.getElementById('docPrint').textContent=this.value"></textarea>
+      <div id="docPrint" class="onlyprint" style="white-space:pre-wrap;font-size:13px;line-height:1.9;color:#000"></div>
+    </div>
+  </section>
+
+  <!-- 案件・保存 -->
+  <section id="v-cases" class="view">
+    <div class="card">
+      <h2>💼 案件管理</h2>
+      <div class="hint">見積内容を「案件」として複数保存し、いつでも切り替えられます。現在編集中：<b><span id="curCaseName">（無題）</span></b></div>
+      <div class="row noprint">
+        <button class="act" onclick="saveCase()">💾 現在の内容を保存 / 上書き</button>
+        <button class="ghost" onclick="newCase()">＋ 新規案件</button>
+      </div>
+      <div id="caseList" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h2>🛡 バックアップ（全データ）</h2>
+      <div class="hint">全案件・単価マスタ・施工写真をまとめて1ファイルに書き出せます。端末を替える時や、万一のデータ消失に備えて定期的に保存してください。<b>これがあれば完全に復元できます。</b></div>
+      <div class="row noprint">
+        <button class="act" onclick="exportBackup()">⬇️ 全データをバックアップ（JSON）</button>
+        <label class="ghost" style="display:inline-flex;align-items:center;cursor:pointer">⬆️ バックアップから復元
+          <input type="file" accept=".json" style="display:none" onchange="importBackup(event)"></label>
+      </div>
+      <div id="backupStatus" class="muted" style="font-size:12px;margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="v-about" class="view">
+    <div class="card">
+      <h2>ℹ️ このMVPの位置づけ</h2>
+      <p>これは「現場の右腕」構想の<b>第一弾プロトタイプ</b>です。既存の施工管理アプリ（ANDPAD/KANNA/蔵衛門等）が手をつけていない「<b>記録 → 判断・書類化</b>」の自動化、その中でも<b>あなたの単価データが直接武器になる「見積自動生成」</b>を実証します。</p>
+      <h3>実装済み（このファイル単体で動作）</h3>
+      <ul>
+        <li>要件テキスト → 数量・単位の自動読取 → 単価マスタ照合 → 明細候補生成</li>
+        <li>両磐電気の集計ロジック（7区分・諸経費・福利厚生費・値引き・消費税10%切り捨て）を完全再現</li>
+        <li>単価マスタの編集・入出力（自社単価への差し替え）</li>
+        <li>印刷/PDF出力・ブラウザ内保存・JSON入出力</li>
+        <li>Claude API 連携フック（キー設定で高度化）</li>
+      </ul>
+      <h3>本番化に必要（私単独では不可・チーム/資金が必要）</h3>
+      <ul>
+        <li>図面PDF/画像からの自動拾い出し（AIビジョン）、写真→出来形判定</li>
+        <li>音声入力、オフライン同期、iOS/Androidネイティブ</li>
+        <li>J-COMSIA/電子納品の公式準拠、サポート体制、セキュリティ監査</li>
+      </ul>
+      <div class="hint">次のステップ候補：①この単価マスタに岩手県複合単価表を投入して精度検証 → ②図面画像からの自動拾い出し（Vision）を追加 → ③過去見積を学習させ「両磐電気らしい」項目構成を提案。</div>
+    </div>
+  </section>
+</main>
+
+<datalist id="masterList"></datalist>
+
+<script src="lib/pdf.min.js"></script>
+<script>
+// 同梱ライブラリが読めなかった場合はCDNから再取得（オンライン時のみ有効）
+if(!window.pdfjsLib){
+  var _s=document.createElement("script");
+  _s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+  _s.onload=function(){try{pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}catch(_){}};
+  document.head.appendChild(_s);
+}
+</script>
+<script>
+// ---------- 安全ストレージ（data:URL や localStorage 無効環境でも動作）----------
+var safeLS=(function(){
+  var mem={},ok=false;
+  try{window.localStorage.setItem("__t","1");window.localStorage.removeItem("__t");ok=true;}catch(e){ok=false;}
+  return {
+    getItem:function(k){if(ok){try{return window.localStorage.getItem(k);}catch(e){}}return (k in mem)?mem[k]:null;},
+    setItem:function(k,v){if(ok){try{window.localStorage.setItem(k,v);return;}catch(e){}}mem[k]=v;},
+    removeItem:function(k){if(ok){try{window.localStorage.removeItem(k);return;}catch(e){}}delete mem[k];},
+    get persistent(){return ok;}
+  };
+})();
+
+// ---------- 処理中オーバーレイ ----------
+function busy(msg,sub){
+  const b=document.getElementById("busy");if(!b)return;
+  document.getElementById("busyMsg").textContent=msg||"処理中...";
+  document.getElementById("busySub").textContent=sub||"そのままお待ちください";
+  b.classList.add("on");
+}
+function idle(){const b=document.getElementById("busy");if(b)b.classList.remove("on");}
+// タイムアウト付きfetch（AI応答が返らず固まるのを防ぐ・既定90秒）
+function fetchT(url,opts,ms){
+  const c=new AbortController();
+  const t=setTimeout(()=>c.abort(),ms||90000);
+  return fetch(url,Object.assign({},opts,{signal:c.signal}))
+    .finally(()=>clearTimeout(t));
+}
+
+// ---------- 図面ファイル取り込み（PDF/画像）----------
+// 同梱ライブラリを優先。worker はローカルファイル参照。
+if(window.pdfjsLib){
+  try{ pdfjsLib.GlobalWorkerOptions.workerSrc="lib/pdf.worker.min.js"; }catch(_){}
+}
+
+function dzStatus(msg){document.getElementById("dropStatus").innerHTML=msg;}
+
+async function handleFiles(files){
+  busy("ファイルを解析中...","PDFの種類を判定しています");
+  try{
+    for(const f of files){
+      const ext=f.name.split(".").pop().toLowerCase();
+      if(ext==="pdf"){ await handlePDF(f); }
+      else if(["png","jpg","jpeg"].includes(ext)){ await handleImage(f); }
+      else { dzStatus(`⚠️ 未対応の形式: ${f.name}`); }
+    }
+  }finally{ idle(); }
+}
+
+async function handlePDF(f){
+  if(!window.pdfjsLib){dzStatus("⚠️ PDFライブラリ未読込（オンライン環境で開いてください）");return;}
+  dzStatus(`⏳ ${f.name} を解析中...`);
+  try{
+    const buf=await f.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let text="";
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      text+=tc.items.map(i=>i.str).join(" ")+"\n";
+    }
+    text=text.replace(/[ \t]+/g," ").trim();
+    if(text.length>20){
+      const ta=document.getElementById("aiInput");
+      ta.value=(ta.value?ta.value+"\n":"")+`# ${f.name} より抽出\n`+text;
+      dzStatus(`✓ ${f.name}：テキスト ${text.length}字を抽出しました。「拾い出す」を押してください。`);
+    }else{
+      dzStatus(`⚠️ ${f.name} は文字データのないPDF（スキャン図面）のようです。画像認識にはAPIキーが必要です。`);
+      if(safeLS.getItem("rw_apikey")){ await pdfPageToVision(f); }
+    }
+  }catch(e){dzStatus("⚠️ PDF解析に失敗: "+e.message);}
+}
+
+async function handleImage(f){
+  if(!safeLS.getItem("rw_apikey")){
+    dzStatus(`⚠️ 画像（${f.name}）の読み取りには Claude APIキーが必要です（①下部で設定）。`);
+    return;
+  }
+  dzStatus(`⏳ ${f.name} をAIで読み取り中...`);
+  const b64=await fileToB64(f);
+  await visionExtract(b64,f.type,f.name);
+}
+
+async function pdfPageToVision(f){
+  // スキャンPDFの1ページ目を画像化してVisionへ
+  const buf=await f.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  const page=await pdf.getPage(1);
+  const vp=page.getViewport({scale:2});
+  const cv=document.createElement("canvas");cv.width=vp.width;cv.height=vp.height;
+  await page.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;
+  const b64=cv.toDataURL("image/png").split(",")[1];
+  await visionExtract(b64,"image/png",f.name+"(p1)");
+}
+
+function fileToB64(f){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.readAsDataURL(f);});}
+
+function buildPrompt(){
+  // 手書きモード優先
+  if(document.getElementById("hwMode") && document.getElementById("hwMode").checked) return LEGEND_PROMPT_HW;
+  const scope=(document.getElementById("scopeMode")||{}).value||"all";
+  const SUFFIX={
+    all:"",
+    changes:"\n\n【重要・絞り込み】図面全数ではなく、『新設・追加・変更・撤去』が指示された差分箇所のみを抽出してください。既設のまま流用する部分や変更のない既存設備は出力しないこと（改修・リフォームの差分拾い）。",
+    lighting:"\n\n【重要・絞り込み】照明器具（天井灯/ダウンライト/シーリング/誘導灯/非常灯/換気扇等）のみを抽出。コンセント・スイッチ・配線・弱電は出力しないこと。",
+    outlet:"\n\n【重要・絞り込み】コンセント類とスイッチ類のみを抽出。照明・配線・弱電・盤は出力しないこと。",
+    weak:"\n\n【重要・絞り込み】通信・弱電・防災（TV端子/電話/LAN情報/インターホン/火災感知器）のみを抽出。電灯設備は出力しないこと。",
+    power:"\n\n【重要・絞り込み】動力・幹線・分電盤・受変電関連のみを抽出。一般の電灯コンセントは出力しないこと。"
+  };
+  return LEGEND_PROMPT + (SUFFIX[scope]||"");
+}
+async function visionExtract(b64,mime,label){
+  const key=(safeLS.getItem("rw_apikey")||"").trim();
+  if(!key){dzStatus("⚠️ APIキーが未設定です（①下部で設定）");return;}
+  busy("AIが図面を読み取り中...","画像認識には数十秒かかることがあります");
+  const prov = safeLS.getItem("rw_provider")||"auto";
+  let isGoogle, isAnthropic;
+  if(prov==="google"){ isGoogle=true; isAnthropic=false; }
+  else if(prov==="anthropic"){ isGoogle=false; isAnthropic=true; }
+  else { isGoogle=key.startsWith("AIza"); isAnthropic=key.startsWith("sk-ant"); }
+  try{
+    let text=null;
+    if(isGoogle){
+      // ---- Gemini (Google) ----
+      const model="gemini-2.5-flash";
+      const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+      const resp=await fetchT(url,{
+        method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify({contents:[{parts:[
+          {inline_data:{mime_type:mime,data:b64}},
+          {text:buildPrompt()}
+        ]}]})
+      });
+      const j=await resp.json();
+      if(j.candidates&&j.candidates[0]&&j.candidates[0].content){
+        text=j.candidates[0].content.parts.map(p=>p.text||"").join("");
+      }else{dzStatus("⚠️ Gemini応答エラー: "+JSON.stringify(j).slice(0,250));return;}
+    }else if(isAnthropic){
+      // ---- Anthropic (Claude) ----
+      const resp=await fetchT("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model:"claude-opus-4-8",max_tokens:1500,messages:[{role:"user",content:[
+          {type:"image",source:{type:"base64",media_type:mime,data:b64}},
+          {type:"text",text:LEGEND_PROMPT}
+        ]}]})
+      });
+      const j=await resp.json();
+      if(j.content&&j.content[0]){text=j.content[0].text;}
+      else{dzStatus("⚠️ Claude応答エラー: "+JSON.stringify(j).slice(0,250));return;}
+    }else{
+      dzStatus("⚠️ キーの種類を判別できません。Geminiは『AIza...』、Claudeは『sk-ant...』で始まります。");return;
+    }
+    if(text){
+      const ta=document.getElementById("aiInput");
+      ta.value=(ta.value?ta.value+"\n":"")+`# ${label} よりAI抽出\n`+text;
+      dzStatus(`✓ ${label}：AI（${isGoogle?'Gemini':'Claude'}）が読み取りました。「🔍 拾い出す」を押してください。`);
+    }
+  }catch(e){dzStatus("⚠️ API呼び出し失敗: "+e.message+"（キー・通信をご確認ください）");}
+}
+
+(function initDrop(){
+  const dz=document.getElementById("dropZone");const fi=document.getElementById("fileInput");
+  dz.addEventListener("click",()=>fi.click());
+  fi.addEventListener("change",e=>handleFiles([...e.target.files]));
+  const cam=document.getElementById("camInput");
+  if(cam)cam.addEventListener("change",e=>handleFiles([...e.target.files]));
+  ["dragenter","dragover"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor="var(--accent)";dz.style.color="var(--accent)";}));
+  ["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor="var(--line)";dz.style.color="var(--muted)";}));
+  dz.addEventListener("drop",e=>{if(e.dataTransfer.files.length)handleFiles([...e.dataTransfer.files]);});
+})();
+</script>
+
+<script>
+// ---------- 標準凡例ナレッジ（JIS C 0303 準拠・Vision認識用）----------
+const LEGEND_PROMPT = `これは日本の電気設備工事の図面（JIS C 0303 構内電気設備の配線用図記号 準拠）です。
+凡例（記号と添字）を厳密に解釈し、配置されている器具シンボルを漏れなく数えてください。
+
+【記号の基本】
+- 照明: 白丸○=一般照明 / ○DL=ダウンライト / ○CL=シーリング / 横長長方形=直管(蛍光/LED) / 黒丸●=非常用照明 / 白丸+矢印=誘導灯
+- コンセント: 円+縦2本が基本。壁付は片側黒塗り。添字 数字=口数(2,3) / E=接地極付 / ET=接地端子付 / WP=防雨形 / EX=防爆 / AC=エアコン用 / LK=抜止
+- スイッチ: 黒丸●が基本。添字 3=3路 / 4=4路 / H=ほたる(位置表示灯) / L=確認表示灯 / D=遅延 / A=自動点滅 / P=プル
+- 通信弱電防災: 丸+T=電話 / 丸+X=LAN情報 / 三角▼=TV端子 / 長方形+M/S/D=インターホン親機/子機/ドアホン / 丸+S=熱感知器 / 丸+三=煙感知器 / 長方形+斜線=分電盤
+- 配線: 実線=天井隠ぺい / 破線=床隠ぺい / 点線=露出 / ↗=立上り ↙=引下げ
+
+【出力形式】説明・前置きは一切不要。1行1項目で『名称 仕様 数量単位』。例:
+2口コンセント 壁付 8個
+ダウンライト LED 6個
+ほたるスイッチ 単極 5個
+3路スイッチ 階段 2個
+天井灯 LED 9個
+分電盤 住宅用 1面
+最後に図面名(例:1階電気設備図)と階数がわかれば併記。`;
+
+// ---------- 手書き注記モード用プロンプト ----------
+const LEGEND_PROMPT_HW = `これは日本の電気設備工事の図面で、印刷された図面の上に【手書き】の注記・修正指示が書き込まれています（JIS C 0303準拠）。
+あなたの任務は「手書き部分」を読み取り、その意図を解釈して材料・施工項目に落とすことです。
+
+【手順】
+1. 画面内の文字を「印刷文字」と「手書き文字」に区別する（手書きは線が不均一・傾き・色違い・吹き出しや矢印・丸囲み・取消線などが特徴）。
+2. 手書き注記の意図を分類する：
+   - 追加(ADD): 「＋」「追加」「ここにCV」「コンセント増」など → 新規計上
+   - 変更(CHG): 「→防水に変更」「2.0に変更」「位置変更」など → 仕様変更
+   - 削除(DEL): 取消線・「撤去」「不要」「×」 → 撤去または計上除外
+   - 数量(QTY): 「×3」「3ヶ所」「@2」など → 数量指定
+   - メモ(NOTE): 寸法・施主要望など補足
+3. 印刷図面の通常拾い出しは行わず、手書きで指示された項目のみを出力する。
+
+【出力形式】説明・前置き不要。1行1項目。先頭に区分タグ：
+[追加] 2口コンセント 防水 2個
+[変更] VVF 1.6→2.0 該当回路
+[削除] 既設照明 撤去 1式
+[数量] ダウンライト 3個
+[メモ] 天井高2700 指示
+判読が怪しい箇所は末尾に (要確認) と付記。手書きが見当たらなければ「手書き注記なし」とだけ出力。`;
+
+// ---------- 電線長 高さ補正ロジック ----------
+const FLOOR_HEIGHT = 3.0;      // 標準階高(m)
+const SLACK_RATE   = 0.08;     // 余長率(8%)
+// 器具種別ごとの縦方向(立下り/立上り)加算(m)
+const DROP = { switch:1.7, outlet:2.7, ceiling:0.4, panel:1.2, weak:2.7, other:1.0 };
+// 名称/キーワードから器具種別を推定
+function classifyDevice(name,kw){
+  const s=((name||"")+" "+(kw||"")).toLowerCase();
+  if(/スイッチ|switch|3路|4路|ほたる/.test(s)) return "switch";
+  if(/コンセント|outlet|receptacle/.test(s)) return "outlet";
+  if(/分電盤|盤|ブレーカー|panel/.test(s)) return "panel";
+  if(/tv|テレビ|電話|lan|情報|インターホン|端子|弱電/.test(s)) return "weak";
+  if(/照明|灯|ダウンライト|シーリング|led|換気扇|感知器|スピーカー|ceiling|light/.test(s)) return "ceiling";
+  return "other";
+}
+
+// ---------- データ ----------
+const DEFAULT_CATS = ["電灯設備","動力設備","受変電・幹線設備","通信・弱電設備","消防・防災設備","共通仮設・諸工事","撤去・その他"];
+// price=材料単価(円/単位), bu=歩掛(人工/単位)。労務費=bu×労務単価×数量。複合単価=材料単価+bu×労務単価
+const SAMPLE_MASTER = [
+  {name:"PF管",spec:"φ22 露出",unit:"m",price:180,bu:0.02,cat:"電灯設備",kw:"pf管 pf 22 配管"},
+  {name:"PF管",spec:"φ16 隠蔽",unit:"m",price:150,bu:0.02,cat:"電灯設備",kw:"pf管 16 隠蔽"},
+  {name:"ねじなし電線管",spec:"E19",unit:"m",price:380,bu:0.05,cat:"電灯設備",kw:"電線管 e19 ねじなし"},
+  {name:"VVFケーブル配線",spec:"2.0-2C",unit:"m",price:130,bu:0.012,cat:"電灯設備",kw:"vvf 2.0 2c 配線 ケーブル"},
+  {name:"VVFケーブル配線",spec:"1.6-2C",unit:"m",price:100,bu:0.01,cat:"電灯設備",kw:"vvf 1.6 2c 配線"},
+  {name:"CVTケーブル配線",spec:"22sq-3C",unit:"m",price:1800,bu:0.06,cat:"受変電・幹線設備",kw:"cvt 22 幹線 ケーブル"},
+  {name:"アウトレットボックス",spec:"中形四角",unit:"個",price:380,bu:0.05,cat:"電灯設備",kw:"アウトレットボックス outlet ボックス 四角"},
+  {name:"プルボックス",spec:"300×300×200",unit:"個",price:4800,bu:0.4,cat:"受変電・幹線設備",kw:"プルボックス pull box"},
+  {name:"ジャンクションボックス",spec:"防水",unit:"個",price:900,bu:0.08,cat:"電灯設備",kw:"ジャンクション jbox 接続"},
+  {name:"ケーブルラック",spec:"幅200 鋼製",unit:"m",price:2500,bu:0.15,cat:"受変電・幹線設備",kw:"ケーブルラック ラック 200"},
+  {name:"LED照明器具取付",spec:"40W相当",unit:"台",price:5000,bu:0.12,cat:"電灯設備",kw:"led 照明 器具 取付 ライト"},
+  {name:"天井灯",spec:"LED シーリング",unit:"台",price:4800,bu:0.10,cat:"電灯設備",kw:"天井灯 シーリング cl 照明"},
+  {name:"ダウンライト",spec:"LED JIS",unit:"台",price:3000,bu:0.18,cat:"電灯設備",kw:"ダウンライト dl"},
+  {name:"人感センサーダウンライト",spec:"LED JIS",unit:"台",price:5500,bu:0.20,cat:"電灯設備",kw:"人感 センサー ダウンライト 感知"},
+  {name:"玄関灯",spec:"LED 防雨",unit:"台",price:4500,bu:0.15,cat:"電灯設備",kw:"玄関灯 ポーチ"},
+  {name:"勝手口灯",spec:"LED 防雨",unit:"台",price:4200,bu:0.15,cat:"電灯設備",kw:"勝手口灯 ポーチ 防雨"},
+  {name:"トイレ換気扇",spec:"パイプ用",unit:"台",price:5000,bu:0.30,cat:"電灯設備",kw:"トイレ換気扇 換気扇 パイプファン"},
+  {name:"浴室換気乾燥機",spec:"1室換気",unit:"台",price:35000,bu:0.80,cat:"電灯設備",kw:"浴室換気乾燥機 浴乾 換気乾燥"},
+  {name:"テレビ端子",spec:"直列ユニット",unit:"個",price:2200,bu:0.10,cat:"通信・弱電設備",kw:"テレビ端子 tv 端子 直列"},
+  {name:"電話・情報配管",spec:"PF管共",unit:"箇所",price:1500,bu:0.10,cat:"通信・弱電設備",kw:"電話配管 情報 lan 配管 電話"},
+  {name:"インターホン親機",spec:"録画付",unit:"台",price:24000,bu:0.30,cat:"通信・弱電設備",kw:"インターホン 親機 ドアホン"},
+  {name:"インターホン子機",spec:"ドアホン",unit:"台",price:6000,bu:0.20,cat:"通信・弱電設備",kw:"インターホン 子機 ドアホン 玄関"},
+  {name:"スイッチ取付",spec:"片切",unit:"個",price:350,bu:0.08,cat:"電灯設備",kw:"スイッチ switch 片切"},
+  {name:"コンセント取付",spec:"2P15A",unit:"個",price:450,bu:0.09,cat:"電灯設備",kw:"コンセント outlet 2p"},
+  {name:"分電盤取付",spec:"主幹50A 12回路",unit:"面",price:38000,bu:0.60,cat:"受変電・幹線設備",kw:"分電盤 盤 ブレーカー"},
+  {name:"安全ブレーカ",spec:"三菱 BL-1C 2P1E20A",unit:"台",price:5060,bu:0.10,cat:"受変電・幹線設備",kw:"安全ブレーカ bl-1c 分岐 ブレーカー"},
+  {name:"住宅用ブレーカ",spec:"三菱 BH-C1 2P1E20A",unit:"台",price:3030,bu:0.08,cat:"受変電・幹線設備",kw:"住宅用 bh-c1 分岐 ブレーカー"},
+  {name:"ノーヒューズ遮断器",spec:"三菱 NF30-KC 2P30A",unit:"台",price:5920,bu:0.12,cat:"受変電・幹線設備",kw:"nf30 ノーヒューズ nfb ブレーカー 30a"},
+  {name:"ノーヒューズ遮断器",spec:"三菱 NF50-KC 3P50A",unit:"台",price:8330,bu:0.15,cat:"受変電・幹線設備",kw:"nf50 ノーヒューズ nfb ブレーカー 50a"},
+  {name:"ノーヒューズ遮断器",spec:"三菱 NF100-KC 3P100A",unit:"台",price:25500,bu:0.25,cat:"受変電・幹線設備",kw:"nf100 ノーヒューズ nfb ブレーカー 100a"},
+  {name:"ノーヒューズ遮断器",spec:"三菱 NF63-SVF 3P63A",unit:"台",price:11800,bu:0.18,cat:"受変電・幹線設備",kw:"nf63 ノーヒューズ nfb ブレーカー 63a"},
+  {name:"ノーヒューズ遮断器",spec:"三菱 NF125-SVF 3P125A",unit:"台",price:14400,bu:0.30,cat:"受変電・幹線設備",kw:"nf125 ノーヒューズ nfb ブレーカー 125a"},
+  {name:"漏電遮断器",spec:"三菱 NV30-KC 3P30A 30mA",unit:"台",price:16600,bu:0.18,cat:"受変電・幹線設備",kw:"nv30 漏電 elb ブレーカー 漏電遮断器"},
+  {name:"漏電遮断器",spec:"三菱 NV100-KC 3P100A",unit:"台",price:32700,bu:0.30,cat:"受変電・幹線設備",kw:"nv100 漏電 elb ブレーカー 漏電遮断器"},
+  {name:"漏電遮断器(住宅主幹)",spec:"三菱 NV30-FAU 2P30A",unit:"台",price:11100,bu:0.15,cat:"受変電・幹線設備",kw:"nv30-fau 主幹 漏電 elb 住宅"},
+  {name:"単3中性線欠相保護付漏電遮断器",spec:"三菱 NV50-NKC 3P50A",unit:"台",price:18300,bu:0.20,cat:"受変電・幹線設備",kw:"nv50-nkc 欠相 主幹 漏電 単3"},
+  {name:"サーキットプロテクタ",spec:"三菱 CP30-BA 2P30A",unit:"台",price:8170,bu:0.10,cat:"受変電・幹線設備",kw:"cp30 サーキットプロテクタ プロテクタ"},
+  {name:"自動火災報知設備 感知器",spec:"煙式",unit:"個",price:3500,bu:0.30,cat:"消防・防災設備",kw:"感知器 火災報知 煙 自火報"},
+  {name:"非常用照明器具",spec:"内蔵形",unit:"台",price:7000,bu:0.25,cat:"消防・防災設備",kw:"非常用 誘導灯 非常灯"},
+  {name:"既設電灯設備撤去",spec:"",unit:"式",price:0,bu:1.5,cat:"撤去・その他",kw:"撤去 既設 解体"},
+  {name:"電線撤去",spec:"VVF系",unit:"m",price:0,bu:0.005,cat:"撤去・その他",kw:"撤去 電線 ケーブル撤去"},
+  {name:"運搬費",spec:"",unit:"式",price:0,bu:1.0,cat:"共通仮設・諸工事",kw:"運搬 搬入 搬出"},
+  {name:"墨出し・現場管理",spec:"",unit:"式",price:0,bu:2.0,cat:"共通仮設・諸工事",kw:"墨出し 管理 共通仮設"},
+];
+const DEFAULT_ROUMU = 25834; // 公共工事設計労務単価 令和8年 全国全職種加重平均(円/人工)
+
+let master = [];
+let cats = [];
+let rows = []; // {cat,name,spec,unit,qty,price}
+
+// ---------- 初期化 ----------
+function load(){
+  const m = safeLS.getItem("rw_master");
+  master = m ? JSON.parse(m) : JSON.parse(JSON.stringify(SAMPLE_MASTER));
+  const c = safeLS.getItem("rw_cats");
+  cats = c ? JSON.parse(c) : [...DEFAULT_CATS];
+  const r = safeLS.getItem("rw_rows");
+  rows = r ? JSON.parse(r) : [];
+  const head = safeLS.getItem("rw_head");
+  if(head){const h=JSON.parse(head);for(const k in h){const el=document.getElementById(k);if(el)el.value=h[k];}}
+  const k = safeLS.getItem("rw_apikey");
+  if(k){document.getElementById("apiKey").value=k;document.getElementById("keyStatus").textContent="✓ 保存済み";}
+  const pv=safeLS.getItem("rw_provider");if(pv)document.getElementById("provider").value=pv;
+  const php=safeLS.getItem("rw_phproject");if(php){const el=document.getElementById("ph_project");if(el){el.value=php;document.getElementById("phTitlePrint").textContent=php;}}
+  if(!document.getElementById("f_date").value) document.getElementById("f_date").value = wareki(new Date());
+  renderMaster(); renderEstimate(); renderDatalist(); renderCases(); updateHdrCase();
+  showLauncher(); // 起動時は必ず「今日の現場」を選ぶ
+  if(!safeLS.persistent){
+    dzStatus("ℹ️ この環境では保存（localStorage）が無効のため、入力はメモリ上のみ保持されます。データを残すには index.html を Chrome 等で直接開いてください。");
+  }
+}
+
+function wareki(d){
+  const y=d.getFullYear()-2018; // 令和
+  return `令和 ${y}年 ${d.getMonth()+1}月 ${d.getDate()}日`;
+}
+function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP");}
+
+// ---------- ナビ ----------
+document.querySelectorAll("nav button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    document.getElementById("v-"+b.dataset.v).classList.add("active");
+    if(b.dataset.v==="cable")calcCable();
+    if(b.dataset.v==="bench")calcBench();
+    if(b.dataset.v==="photo")renderPhotos();
+    if(b.dataset.v==="cases")renderCases();
+    if(b.dataset.v==="docs"&&!document.getElementById("docDate").value)document.getElementById("docDate").value=new Date().toISOString().slice(0,10);
+  };
+});
+
+// ---------- 単価マスタ ----------
+function renderMaster(){
+  const tb=document.querySelector("#masterTable tbody");tb.innerHTML="";
+  master.forEach((m,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><input value="${esc(m.name)}" onchange="upM(${i},'name',this.value)"></td>
+      <td><input value="${esc(m.spec||'')}" onchange="upM(${i},'spec',this.value)"></td>
+      <td><input value="${esc(m.unit||'')}" style="width:50px" onchange="upM(${i},'unit',this.value)"></td>
+      <td class="num"><input type="number" value="${m.price}" style="text-align:right;width:90px" onchange="upM(${i},'price',+this.value)"></td>
+      <td class="num"><input type="number" step="0.01" value="${m.bu||0}" style="text-align:right;width:70px" onchange="upM(${i},'bu',+this.value)"></td>
+      <td class="num">${yen((m.price||0)+(m.bu||0)*roumu())}</td>
+      <td><input value="${esc(m.cat||'')}" onchange="upM(${i},'cat',this.value)"></td>
+      <td><input value="${esc(m.kw||'')}" onchange="upM(${i},'kw',this.value)"></td>
+      <td class="noprint"><button class="mini danger" onclick="delM(${i})">×</button></td>`;
+    tb.appendChild(tr);
+  });
+  renderDatalist();
+}
+function roumu(){const el=document.getElementById("f_roumu");return el?(+el.value||DEFAULT_ROUMU):DEFAULT_ROUMU;}
+function upM(i,k,v){master[i][k]=v;persist();renderMaster();}
+function delM(i){master.splice(i,1);renderMaster();persist();}
+function addMaster(){master.push({name:"新規項目",spec:"",unit:"式",price:0,bu:0,cat:cats[0],kw:""});renderMaster();persist();}
+function resetMaster(){
+  if(confirm("単価マスタをサンプル（歩掛入り）で上書き初期化します。自社で編集した単価は消えます。よろしいですか？")){
+    master=JSON.parse(JSON.stringify(SAMPLE_MASTER));
+    renderMaster();persist();
+    alert("マスタを初期化しました。次に②で『⚙ 歩掛をマスタから取得』を押すと労務費が反映されます。");
+  }
+}
+function mergeSample(){
+  let added=0;
+  SAMPLE_MASTER.forEach(s=>{
+    const exists=master.some(m=>m.name===s.name && (m.spec||"")===(s.spec||""));
+    if(!exists){master.push(JSON.parse(JSON.stringify(s)));added++;}
+  });
+  renderMaster();persist();
+  alert(added>0?`標準項目を ${added}件 補充しました`:"不足している標準項目はありませんでした");
+}
+function renderDatalist(){
+  const dl=document.getElementById("masterList");
+  dl.innerHTML=master.map(m=>`<option value="${esc(m.name)}${m.spec?(' '+esc(m.spec)):''}">`).join("");
+}
+
+// ---------- 見積明細 ----------
+function rowMat(r){return (+r.qty||0)*(+r.price||0);}                 // 材料費
+function rowLab(r){return (+r.qty||0)*(+r.bu||0)*roumu();}            // 労務費
+function rowAmt(r){return rowMat(r)+rowLab(r);}                       // 金額(複合)
+function dispMode(){const el=document.getElementById("f_dispmode");return el?el.value:"combined";}
+function renderEstimate(){
+  const cont=document.getElementById("catContainer");cont.innerHTML="";
+  const split=dispMode()==="split";
+  cats.forEach((cat,ci)=>{
+    const block=document.createElement("div");block.className="cat-block";
+    const catRows=rows.map((r,idx)=>({r,idx})).filter(o=>o.r.cat===cat);
+    const sub=catRows.reduce((s,o)=>s+rowAmt(o.r),0);
+    const head = split
+      ? `<th style="min-width:150px">名称</th><th>仕様</th><th class="num">数量</th><th>単位</th><th class="num">材料単価</th><th class="num">歩掛</th><th class="num">材料費</th><th class="num">労務費</th><th class="num">金額</th><th class="noprint"></th>`
+      : `<th style="min-width:160px">名称</th><th>仕様</th><th class="num">数量</th><th>単位</th><th class="num">複合単価</th><th class="num">金額</th><th class="noprint"></th>`;
+    const colspan = split?10:7;
+    block.innerHTML=`
+      <div class="cat-head">
+        <span class="muted">区分${ci+1}</span>
+        <input value="${esc(cat)}" onchange="renameCat(${ci},this.value)">
+        <span class="cat-sub">${yen(sub)}</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table><thead><tr>${head}</tr></thead><tbody>
+      ${catRows.map(o=>rowHTML(o.r,o.idx,split)).join("")||`<tr><td colspan="${colspan}" class="muted" style="text-align:center">明細なし</td></tr>`}
+      </tbody></table></div>`;
+    cont.appendChild(block);
+  });
+  recalc();
+}
+function rowHTML(r,idx,split){
+  const nameCell=`<td><input list="masterList" value="${esc(r.name)}" onchange="pickName(${idx},this.value)"></td>
+    <td><input value="${esc(r.spec||'')}" onchange="upR(${idx},'spec',this.value)"></td>
+    <td class="num"><input type="number" value="${r.qty}" style="width:60px;text-align:right" onchange="upR(${idx},'qty',+this.value)"></td>
+    <td><input value="${esc(r.unit||'')}" style="width:42px" onchange="upR(${idx},'unit',this.value)"></td>`;
+  const del=`<td class="noprint"><button class="mini danger" onclick="delR(${idx})">×</button></td>`;
+  if(split){
+    return `<tr>${nameCell}
+      <td class="num"><input type="number" value="${r.price}" style="width:80px;text-align:right" onchange="upR(${idx},'price',+this.value)"></td>
+      <td class="num"><input type="number" step="0.01" value="${r.bu||0}" style="width:60px;text-align:right" onchange="upR(${idx},'bu',+this.value)"></td>
+      <td class="num">${yen(rowMat(r))}</td>
+      <td class="num">${yen(rowLab(r))}</td>
+      <td class="num">${yen(rowAmt(r))}</td>${del}</tr>`;
+  }
+  return `<tr>${nameCell}
+    <td class="num">${yen((+r.price||0)+(+r.bu||0)*roumu())}</td>
+    <td class="num">${yen(rowAmt(r))}</td>${del}</tr>`;
+}
+function upR(i,k,v){rows[i][k]=v;persist();renderEstimate();}
+function delR(i){rows.splice(i,1);persist();renderEstimate();}
+function addRow(cat){rows.push({cat:cat||cats[0],name:"",spec:"",unit:"式",qty:1,price:0,bu:0});persist();renderEstimate();}
+function clearRows(){if(confirm("見積明細をすべて削除します。よろしいですか？")){rows=[];persist();renderEstimate();}}
+function syncBu(){
+  let hit=0,miss=0;
+  rows.forEach(r=>{
+    const m=master.find(x=>x.name===r.name && (x.spec||"")===(r.spec||""))
+          || master.find(x=>x.name===r.name)
+          || master.find(x=>r.name && r.name.startsWith(x.name));
+    if(m){r.bu=m.bu||0; if(!r.price)r.price=m.price; hit++;} else {miss++;}
+  });
+  persist();renderEstimate();
+  alert(`歩掛を取得: ${hit}件反映 / ${miss}件はマスタ未一致（手動で歩掛入力 or マスタに追加）`);
+}
+function renameCat(ci,v){const old=cats[ci];rows.forEach(r=>{if(r.cat===old)r.cat=v;});cats[ci]=v;persist();renderEstimate();}
+function pickName(i,v){
+  // マスタ照合で仕様/単位/単価を自動補完
+  const hit=master.find(m=>(m.name+(m.spec?(' '+m.spec):''))===v)||master.find(m=>v.startsWith(m.name));
+  rows[i].name=v;
+  if(hit){if(hit.spec)rows[i].spec=hit.spec;rows[i].unit=hit.unit;rows[i].price=hit.price;rows[i].bu=hit.bu||0;}
+  persist();renderEstimate();
+}
+
+// ---------- 集計（両磐電気ロジック）----------
+function recalc(){
+  const matTotal=rows.reduce((s,r)=>s+rowMat(r),0);   // 材料費計
+  const labBase=rows.reduce((s,r)=>s+rowLab(r),0);    // 労務費(基準)
+  const kind=+(document.getElementById("f_kind")||{}).value||1.0; // 工事種別割増
+  const labTotal=Math.round(labBase*kind);            // 労務費計(割増後)
+  const koji=matTotal+labTotal;                       // 工事費計(直接工事費)
+  const ninku=labTotal/roumu();                       // 延べ人工数(割増後)
+  const crew=+(document.getElementById("f_crew")||{}).value||2;
+  const days=ninku>0?Math.ceil(ninku/crew):0;          // 概算工期(日)
+  const misc=+document.getElementById("f_misc").value||0;
+  const welrate=+document.getElementById("f_welrate").value||0;
+  let wel=+document.getElementById("f_welfare").value||0;
+  if(welrate>0){wel=Math.round(labTotal*welrate);}    // 法定福利費を労務費×料率で自動計算
+  const disc=+document.getElementById("f_discount").value||0;
+  const taxrate=+document.getElementById("f_taxrate").value||0;
+  const zeinuki=koji+misc+wel+disc;
+  const tax=Math.floor(zeinuki*taxrate); // 切り捨て
+  const zeikomi=zeinuki+tax;
+  document.getElementById("totbox").innerHTML=`
+    <div class="totline"><span>材料費 計</span><span>${yen(matTotal)}</span></div>
+    <div class="totline"><span>労務費 計 <span class="muted" style="font-size:11px">(${ninku.toFixed(1)}人工 @${roumu().toLocaleString()}${kind!==1?` ×種別${kind}`:''})</span></span><span>${yen(labTotal)}</span></div>
+    <div class="totline"><span>概算工期</span><span>${ninku.toFixed(1)}人工 ÷ ${crew}人 ≒ <b>${days}日</b></span></div>
+    <div class="totline"><span>工事費計（材＋工）</span><b>${yen(koji)}</b></div>
+    <div class="totline"><span>諸経費</span><span>${yen(misc)}</span></div>
+    <div class="totline"><span>福利厚生費${welrate>0?`（労務費×${Math.round(welrate*100)}%・自動）`:''}</span><span>${yen(wel)}</span></div>
+    <div class="totline"><span>値引き</span><span>${yen(disc)}</span></div>
+    <div class="totline"><span>合計（税抜）</span><b>${yen(zeinuki)}</b></div>
+    <div class="totline"><span>消費税（${Math.round(taxrate*100)}%・切捨）</span><span>${yen(tax)}</span></div>
+    <div class="totline grand"><span>御見積金額</span><span>${yen(zeikomi)}</span></div>`;
+}
+
+// ---------- 書類作成（報告書・日報・指示書）----------
+function caseContext(){
+  const g=id=>((document.getElementById(id)||{}).value||"");
+  const labBase=rows.reduce((s,r)=>s+rowLab(r),0);
+  const kind=+(document.getElementById("f_kind")||{}).value||1;
+  const ninku=(labBase*kind)/roumu();
+  const crew=+(document.getElementById("f_crew")||{}).value||2;
+  const days=ninku>0?Math.ceil(ninku/crew):0;
+  const byCat={};
+  rows.forEach(r=>{if(!r.name)return;(byCat[r.cat]=byCat[r.cat]||[]).push(`${r.name}${r.spec?`（${r.spec}）`:""} ${r.qty}${r.unit||""}`);});
+  const lines=Object.entries(byCat).map(([c,items])=>`■${c}\n　・`+items.join("\n　・")).join("\n");
+  return {title:g("f_title"),place:g("f_place"),to:g("f_to"),staff:g("f_staff"),
+    ninku:ninku.toFixed(1),crew,days,detail:lines||"（明細未入力）",
+    kindName:(document.getElementById("f_kind")||{}).selectedOptions?document.getElementById("f_kind").selectedOptions[0].textContent.split("（")[0]:"新築"};
+}
+function docTemplate(type,ctx,date,who){
+  const head=`件名：${ctx.title}\n工事場所：${ctx.place}\n工事種別：${ctx.kindName}\n作成日：${date}\n担当：${ctx.staff}${who?`\n関係者：${who}`:""}\n`;
+  if(type==="report")return `【工事報告書】\n\n${head}\n1. 工事概要\n下記のとおり施工を完了しましたのでご報告いたします。\n\n2. 施工内容\n${ctx.detail}\n\n3. 施工体制・工程\n・作業人員：${ctx.crew}名体制（延べ約${ctx.ninku}人工）\n・実働日数：約${ctx.days}日\n\n4. 検査・確認事項\n・絶縁抵抗測定：良\n・導通確認：良\n・外観・取付状態：良\n\n5. 特記事項\n・特になし\n\n以上、ご確認のほどよろしくお願いいたします。`;
+  if(type==="daily")return `【作業日報】\n\n日付：${date}\n現場：${ctx.title}（${ctx.place}）\n作業員：${who||ctx.staff}（${ctx.crew}名）\n\n■本日の作業内容\n${ctx.detail}\n\n■進捗状況\n・予定どおり／遅れ（　）\n\n■使用材料（主なもの）\n・上記明細のとおり\n\n■安全事項\n・KY実施済／指差呼称徹底／脚立作業時の転倒注意\n\n■明日の予定\n・\n\n■連絡事項\n・`;
+  if(type==="instruction")return `【作業指示書】\n\n${head}\n■作業内容（指示事項）\n${ctx.detail}\n\n■工程目安\n・${ctx.crew}名体制／約${ctx.days}日（延べ${ctx.ninku}人工）\n\n■品質・施工上の注意\n・図面最新版を確認のこと（変更指示は赤書きを優先）\n・器具取付高さ：スイッチGL+1300／コンセントGL+300 を標準とする\n・結線後は絶縁・導通確認を実施し記録すること\n\n■安全上の注意\n・作業前KYの実施、保護具（ヘルメット・安全帯・絶縁手袋）着用\n・活線近接作業は必ず停電確認・検電後に実施\n・脚立/足場作業時は転倒・墜落防止措置\n\n■持参工具・材料\n・電工工具一式、検電器、絶縁抵抗計、上記明細材料\n\n指示者：${ctx.staff}\n受領者：＿＿＿＿＿＿＿＿`;
+  return `【安全指示・KY記録】\n\n日付：${date}\n現場：${ctx.title}（${ctx.place}）\n参加者：${who||ctx.staff}\n\n■本日の作業\n${ctx.detail}\n\n■危険ポイント（KY）\n1. 感電 → 検電・停電確認の徹底、絶縁保護具の着用\n2. 墜落・転落 → 脚立の天板作業禁止、足元確認\n3. 挟まれ・切創 → 電動工具の取扱注意、手袋着用\n\n■本日の行動目標\n「＿＿＿＿＿＿＿＿＿＿ ヨシ！」\n\n確認者：${ctx.staff}`;
+}
+function syncDocPrint(){const ta=document.getElementById("docBody"),d=document.getElementById("docPrint");if(ta&&d)d.textContent=ta.value;}
+async function genDoc(useAI){
+  const type=document.getElementById("docType").value;
+  const date=document.getElementById("docDate").value||new Date().toISOString().slice(0,10);
+  const who=document.getElementById("docWho").value;
+  const ctx=caseContext();
+  const base=docTemplate(type,ctx,date,who);
+  const ta=document.getElementById("docBody");
+  document.getElementById("docPrintTitle").textContent=base.split("\n")[0].replace(/[【】]/g,"");
+  if(!useAI){ta.value=base;syncDocPrint();document.getElementById("docStatus").textContent="✓ テンプレートから作成しました（自由に編集できます）";return;}
+  const key=(safeLS.getItem("rw_apikey")||"").trim();
+  if(!key){document.getElementById("docStatus").textContent="⚠️ APIキー未設定のためテンプレートで作成しました";ta.value=base;syncDocPrint();return;}
+  document.getElementById("docStatus").textContent="🤖 AIが清書中...";
+  busy("AIが書類を清書中...","文章を実務文書に整えています");
+  try{
+    const prompt=`以下は日本の電気工事業の${{report:"工事報告書",daily:"作業日報",instruction:"作業指示書",safety:"安全指示・KY記録"}[type]}の下書きです。実務文書として自然で簡潔な日本語に整え、抜けている定型項目があれば補ってください。書式（見出し・箇条書き）は維持。出力は文書本文のみ。\n\n${base}`;
+    const text=await aiText(prompt,key);
+    ta.value=text||base;syncDocPrint();
+    document.getElementById("docStatus").textContent=text?"✓ AIが清書しました":"⚠️ AI応答なし。テンプレートを表示";
+  }catch(e){ta.value=base;syncDocPrint();document.getElementById("docStatus").textContent="⚠️ AI失敗("+e.message+")。テンプレートを表示";}
+  finally{idle();}
+}
+async function aiText(prompt,key){
+  const prov=safeLS.getItem("rw_provider")||"auto";
+  const isGoogle=prov==="google"||(prov==="auto"&&key.startsWith("AIza"));
+  if(isGoogle){
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+    const r=await fetchT(url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    const j=await r.json();
+    return j.candidates&&j.candidates[0]?j.candidates[0].content.parts.map(p=>p.text||"").join(""):null;
+  }
+  const r=await fetchT("https://api.anthropic.com/v1/messages",{method:"POST",
+    headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:"claude-opus-4-8",max_tokens:2000,messages:[{role:"user",content:prompt}]})});
+  const j=await r.json();
+  return j.content&&j.content[0]?j.content[0].text:null;
+}
+
+// ---------- 案件管理 ＆ バックアップ ----------
+const HEAD_KEYS=["f_to","f_date","f_title","f_place","f_staff","f_misc","f_welfare","f_discount","f_taxrate","f_roumu","f_dispmode","f_welrate","f_crew","f_kind"];
+function getHead(){const h={};HEAD_KEYS.forEach(k=>{const el=document.getElementById(k);if(el)h[k]=el.value;});return h;}
+function setHead(h){if(!h)return;HEAD_KEYS.forEach(k=>{const el=document.getElementById(k);if(el&&h[k]!==undefined)el.value=h[k];});}
+function getCases(){try{return JSON.parse(safeLS.getItem("rw_cases")||"[]");}catch(_){return [];}}
+function setCases(c){safeLS.setItem("rw_cases",JSON.stringify(c));}
+let curCaseId=safeLS.getItem("rw_curcase")||null;
+function caseName(){return (document.getElementById("f_title")||{}).value||"（無題）";}
+function saveCase(silent){
+  const cs=getCases();
+  const snap={id:curCaseId||("c"+Date.now()),name:caseName(),savedAt:new Date().toISOString(),
+    data:{head:getHead(),cats:JSON.parse(JSON.stringify(cats)),rows:JSON.parse(JSON.stringify(rows))}};
+  const i=cs.findIndex(x=>x.id===snap.id);
+  if(i>=0)cs[i]=snap; else cs.push(snap);
+  setCases(cs);curCaseId=snap.id;safeLS.setItem("rw_curcase",curCaseId);
+  renderCases();updateHdrCase();
+  if(!silent)alert("案件「"+snap.name+"」を保存しました");
+}
+// ---------- 案件ランチャー（起動画面）----------
+function updateHdrCase(){const el=document.getElementById("hdrCase");if(el)el.textContent="📁 "+caseName();}
+async function renderLauncher(){
+  const cs=getCases().sort((a,b)=>(b.savedAt||"").localeCompare(a.savedAt||""));
+  let photoCounts={};
+  try{(await phAll()).forEach(p=>{const k=p.caseId||"_none";photoCounts[k]=(photoCounts[k]||0)+1;});}catch(_){}
+  const g=document.getElementById("lxGrid");
+  g.innerHTML=`<div class="lx-tile new" onclick="lxNew()">
+      <div class="lx-name">＋ 新規案件を開始</div>
+      <div class="lx-meta">今日から始まる現場はこちら</div>
+    </div>`+
+    cs.map(c=>{
+      const n=(c.data&&c.data.rows)?c.data.rows.length:0;
+      const ph=photoCounts[c.id]||0;
+      return `<div class="lx-tile" onclick="lxOpen('${c.id}')">
+        <div class="lx-name">${esc(c.name)}</div>
+        <div class="lx-meta">最終更新 ${(c.savedAt||"").slice(5,16).replace("T"," ")}<br>明細 ${n}件 ／ 写真 ${ph}枚</div>
+      </div>`;
+    }).join("");
+}
+function showLauncher(){renderLauncher();document.getElementById("launcher").classList.add("on");}
+function hideLauncher(){document.getElementById("launcher").classList.remove("on");updateHdrCase();}
+function lxOpen(id){openCase(id);hideLauncher();}
+function lxNew(){
+  const name=prompt("案件名（現場名）を入力してください","○○様邸 電気工事");
+  if(name===null)return;
+  rows=[];cats=[...DEFAULT_CATS];curCaseId=null;
+  setHead({f_to:"株式会社 ○○ 御中",f_title:name||"新規案件",f_place:"",f_staff:"担当　加藤　優太",
+    f_misc:"0",f_welfare:"0",f_discount:"0",f_taxrate:"0.1",f_roumu:"25834",f_welrate:"0",f_crew:"2",f_kind:"1.0"});
+  persist();renderEstimate();
+  saveCase(true);
+  hideLauncher();
+  document.querySelector('nav button[data-v="ai"]').click();
+}
+function newCase(){
+  if(!confirm("新規案件を開始します。現在の見積内容は消えます（保存済みなら残ります）。よろしいですか？"))return;
+  rows=[];cats=[...DEFAULT_CATS];curCaseId=null;safeLS.removeItem("rw_curcase");
+  setHead({f_to:"株式会社 ○○ 御中",f_title:"○○電気設備工事",f_place:"岩手県○○市",f_staff:"担当　加藤　優太",
+    f_misc:"0",f_welfare:"0",f_discount:"0",f_taxrate:"0.1",f_roumu:"25834",f_welrate:"0",f_crew:"2",f_kind:"1.0"});
+  persist();renderEstimate();renderCases();
+}
+function openCase(id){
+  const c=getCases().find(x=>x.id===id);if(!c)return;
+  cats=JSON.parse(JSON.stringify(c.data.cats||DEFAULT_CATS));
+  rows=JSON.parse(JSON.stringify(c.data.rows||[]));
+  setHead(c.data.head);curCaseId=id;safeLS.setItem("rw_curcase",id);
+  persist();renderEstimate();renderCases();
+  document.querySelector('nav button[data-v="estimate"]').click();
+}
+function deleteCase(id){
+  if(!confirm("この案件を削除します。よろしいですか？"))return;
+  setCases(getCases().filter(x=>x.id!==id));
+  if(curCaseId===id){curCaseId=null;safeLS.removeItem("rw_curcase");}
+  renderCases();
+}
+function renderCases(){
+  const cs=getCases().sort((a,b)=>(b.savedAt||"").localeCompare(a.savedAt||""));
+  const cn=document.getElementById("curCaseName");if(cn)cn.textContent=caseName();
+  updateHdrCase();
+  const el=document.getElementById("caseList");if(!el)return;
+  el.innerHTML=cs.length?`<table><thead><tr><th>案件名</th><th>保存日時</th><th>明細</th><th class="noprint"></th></tr></thead><tbody>`+
+    cs.map(c=>{
+      const cur=c.id===curCaseId?' style="color:var(--accent);font-weight:800"':'';
+      const n=(c.data&&c.data.rows)?c.data.rows.length:0;
+      return `<tr><td${cur}>${esc(c.name)}${c.id===curCaseId?' ◀ 編集中':''}</td>
+        <td class="muted">${(c.savedAt||'').slice(0,16).replace('T',' ')}</td>
+        <td class="num">${n}件</td>
+        <td class="noprint"><button class="mini" onclick="openCase('${c.id}')">開く</button>
+        <button class="mini danger" onclick="deleteCase('${c.id}')">削除</button></td></tr>`;
+    }).join("")+`</tbody></table>`
+    :`<div class="muted" style="text-align:center;padding:14px">保存された案件はありません。「現在の内容を保存」で登録できます</div>`;
+}
+async function exportBackup(){
+  document.getElementById("backupStatus").textContent="写真を収集中...";
+  let photos=[];try{photos=await phAll();}catch(_){}
+  const backup={_app:"genba-no-migite",_ver:1,exportedAt:new Date().toISOString(),
+    cases:getCases(),master:master,current:{head:getHead(),cats,rows,curCaseId},photos:photos,
+    phproject:safeLS.getItem("rw_phproject")||""};
+  const blob=new Blob([JSON.stringify(backup)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="現場の右腕_バックアップ_"+new Date().toISOString().slice(0,10)+".json";a.click();
+  document.getElementById("backupStatus").textContent=`✓ 書き出し完了（案件${backup.cases.length}件・写真${photos.length}枚・単価${master.length}件）`;
+}
+async function importBackup(e){
+  const f=e.target.files[0];if(!f)return;
+  if(!confirm("バックアップから復元します。現在の案件・単価マスタは上書きされます。よろしいですか？"))return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const b=JSON.parse(r.result);
+      if(b.cases)setCases(b.cases);
+      if(b.master){master=b.master;safeLS.setItem("rw_master",JSON.stringify(master));}
+      if(b.current){cats=b.current.cats||DEFAULT_CATS;rows=b.current.rows||[];setHead(b.current.head);
+        if(b.current.curCaseId){curCaseId=b.current.curCaseId;safeLS.setItem("rw_curcase",curCaseId);}}
+      if(b.phproject)safeLS.setItem("rw_phproject",b.phproject);
+      if(Array.isArray(b.photos)&&b.photos.length){
+        for(const p of b.photos){try{await phAdd(p);}catch(_){}}
+      }
+      persist();renderMaster();renderEstimate();renderCases();
+      document.getElementById("backupStatus").textContent=`✓ 復元完了（案件${(b.cases||[]).length}件・写真${(b.photos||[]).length}枚）`;
+      alert("復元しました");
+    }catch(err){document.getElementById("backupStatus").textContent="⚠️ 復元失敗: "+err.message;}
+  };
+  r.readAsText(f);
+}
+
+// ---------- 施工写真（IndexedDB）----------
+let phDB=null;
+function phOpen(){
+  return new Promise((res,rej)=>{
+    if(phDB)return res(phDB);
+    const r=indexedDB.open("rw_photos",1);
+    r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains("photos"))db.createObjectStore("photos",{keyPath:"id"});};
+    r.onsuccess=e=>{phDB=e.target.result;res(phDB);};
+    r.onerror=e=>rej(e);
+  });
+}
+function phTx(mode){return phOpen().then(db=>db.transaction("photos",mode).objectStore("photos"));}
+async function phAdd(rec){const st=await phTx("readwrite");return new Promise(r=>{st.add(rec).onsuccess=()=>r();});}
+async function phAll(){const st=await phTx("readonly");return new Promise(r=>{const out=[];st.openCursor().onsuccess=e=>{const c=e.target.result;if(c){out.push(c.value);c.continue();}else r(out.sort((a,b)=>a.id-b.id));};});}
+async function phUpdate(id,patch){const st=await phTx("readwrite");return new Promise(r=>{st.get(id).onsuccess=e=>{const v=e.target.result;if(v){Object.assign(v,patch);st.put(v).onsuccess=()=>r();}else r();};});}
+async function phDelete(id){const st=await phTx("readwrite");return new Promise(r=>{st.delete(id).onsuccess=()=>r();});}
+
+function resizeImage(file,maxW){
+  return new Promise(res=>{
+    const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const sc=Math.min(1,maxW/img.width);
+      const cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;
+      cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+      URL.revokeObjectURL(url);
+      res(cv.toDataURL("image/jpeg",0.82));
+    };
+    img.src=url;
+  });
+}
+async function phHandleFiles(files){
+  let n=0;
+  for(const f of files){
+    if(!f.type.startsWith("image/"))continue;
+    document.getElementById("phStatus").textContent=`取込中... ${f.name}`;
+    const data=await resizeImage(f,1280);
+    await phAdd({id:Date.now()+Math.floor(Math.random()*1000),data,koshu:"",memo:"",date:new Date().toISOString().slice(0,10),name:f.name,caseId:curCaseId||null});
+    n++;
+  }
+  document.getElementById("phStatus").textContent=`✓ ${n}枚を追加しました`;
+  renderPhotos();
+}
+async function renderPhotos(){
+  const all=await phAll();
+  const list=all.filter(p=>(p.caseId||null)===(curCaseId||null)); // 現在の案件の写真のみ表示
+  document.getElementById("phCount").textContent=list.length+(all.length>list.length?` （他案件に${all.length-list.length}枚）`:"");
+  const grid=document.getElementById("phGrid");
+  grid.innerHTML=list.map(p=>`
+    <div style="border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:#0b141d">
+      <img src="${p.data}" style="width:100%;height:170px;object-fit:cover;display:block">
+      <div style="padding:8px">
+        <input value="${esc(p.koshu||'')}" placeholder="工種（例:配線/器具付/盤）" onchange="phUpdate(${p.id},{koshu:this.value})" style="margin-bottom:4px">
+        <input value="${esc(p.memo||'')}" placeholder="コメント（撮影箇所・内容）" onchange="phUpdate(${p.id},{memo:this.value})" style="margin-bottom:4px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="date" value="${p.date||''}" onchange="phUpdate(${p.id},{date:this.value})" style="flex:1">
+          <button class="mini danger noprint" onclick="phDelete(${p.id}).then(renderPhotos)">×</button>
+        </div>
+      </div>
+    </div>`).join("")||`<div class="muted" style="grid-column:1/-1;text-align:center;padding:20px">写真がありません。上の枠にドロップしてください</div>`;
+}
+function savePhotoMeta(){safeLS.setItem("rw_phproject",document.getElementById("ph_project").value);document.getElementById("phTitlePrint").textContent=document.getElementById("ph_project").value;}
+(function initPhotoDrop(){
+  const dz=document.getElementById("phDrop"),fi=document.getElementById("phInput");
+  if(!dz)return;
+  dz.addEventListener("click",()=>fi.click());
+  fi.addEventListener("change",e=>phHandleFiles([...e.target.files]));
+  ["dragenter","dragover"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor="var(--accent)";}));
+  ["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor="var(--line2)";}));
+  dz.addEventListener("drop",e=>{if(e.dataTransfer.files.length)phHandleFiles([...e.dataTransfer.files]);});
+})();
+
+// ---------- 概算人工チェック ----------
+function calcBench(){
+  const rate=+document.getElementById("b_type").value||0.6;   // 人工/坪
+  const tsubo=+document.getElementById("b_tsubo").value||0;
+  const adj=+document.getElementById("b_adj").value||1;
+  const std=tsubo*rate*adj;                                   // 標準延べ人工(中央値)
+  const lo=std*0.85, hi=std*1.15;
+  // 現在の拾い出し延べ人工
+  const cur=rows.reduce((s,r)=>s+((+r.bu||0)*(+r.qty||0)),0);
+  const rm=roumu();
+  let verdict,color;
+  if(std<=0){verdict="延床面積を入力してください";color="var(--muted)";}
+  else if(cur < lo*0.6){verdict="⚠️ 拾い出しが標準を大幅に下回ります。配線長・器具の拾い漏れが濃厚です";color="var(--danger)";}
+  else if(cur < lo){verdict="△ 標準よりやや少なめ。配線長や付帯作業の計上を確認してください";color="var(--warn)";}
+  else if(cur > hi*1.3){verdict="△ 標準より多め。重複計上や数量過大がないか確認を";color="var(--warn)";}
+  else {verdict="✓ 拾い出しは標準的な範囲内です";color="var(--accent2)";}
+  document.getElementById("benchResult").innerHTML=`
+    <div class="totbox">
+      <div class="totline"><span>標準 延べ人工（目安レンジ）</span><b>${lo.toFixed(1)} 〜 ${hi.toFixed(1)} 人工</b></div>
+      <div class="totline"><span>標準 労務費（@${rm.toLocaleString()}）</span><span>${yen(lo*rm)} 〜 ${yen(hi*rm)}</span></div>
+      <div class="totline"><span>② 現在の拾い出し 延べ人工</span><b>${cur.toFixed(1)} 人工</b></div>
+      <div class="totline grand" style="color:${color};font-size:15px"><span>判定</span><span style="text-align:right;max-width:60%">${verdict}</span></div>
+    </div>
+    <div class="hint" style="margin-top:10px">原単位の目安（人工/坪）：戸建新築 約0.6 ／ リフォーム 約0.4 ／ 店舗 約0.8 ／ 事務所 約0.65 ／ 飲食 約0.9。例）35坪の戸建新築 ≒ 21人工 ≒ 労務費 約54万円。<b>自社の過去実績で原単位を上書きすると精度が上がります。</b></div>
+    <div class="hint" style="margin-top:8px;border-left-color:var(--accent2)">使い方：標準レンジに対し拾い出しが少なければ、②へ戻って配線長（④で算出）や未計上の器具を追加 → 再チェック。</div>`;
+}
+
+// ---------- 電線長 高さ補正 計算 ----------
+let lastCable=0;
+function calcCable(){
+  const fh=+document.getElementById("c_fh").value||3.0;
+  const slack=+document.getElementById("c_slack").value||0;
+  const horiz=+document.getElementById("c_horiz").value||0;
+  // 明細から器具種別ごとの数量を集計
+  const cnt={switch:0,outlet:0,ceiling:0,panel:0,weak:0,other:0};
+  rows.forEach(r=>{
+    const t=classifyDevice(r.name,"");
+    cnt[t]+=(+r.qty||0);
+  });
+  // 種別ごとの縦方向(階高に比例補正：DROPは階高3.0m基準なので fh/3.0 で簡易スケール)
+  const k=fh/3.0;
+  const labels={switch:"スイッチ類",outlet:"コンセント類",ceiling:"天井器具(照明/換気/感知器)",panel:"分電盤",weak:"弱電(TV/電話/LAN)",other:"その他"};
+  let vert=0,rowsHTML="";
+  for(const t in cnt){
+    if(cnt[t]<=0)continue;
+    const drop=DROP[t]*k;
+    const sub=cnt[t]*drop;
+    vert+=sub;
+    rowsHTML+=`<tr><td>${labels[t]}</td><td class="num">${cnt[t]}</td><td class="num">${drop.toFixed(2)} m</td><td class="num">${sub.toFixed(1)} m</td></tr>`;
+  }
+  const base=horiz+vert;
+  const total=base*(1+slack);
+  lastCable=Math.ceil(total);
+  document.getElementById("cableBreak").innerHTML=`
+    <table>
+      <thead><tr><th>器具種別</th><th class="num">数量</th><th class="num">縦方向/個</th><th class="num">縦方向計</th></tr></thead>
+      <tbody>${rowsHTML||'<tr><td colspan="4" class="muted" style="text-align:center">明細に器具がありません。先に②で拾い出してください</td></tr>'}</tbody>
+    </table>
+    <div class="totbox" style="margin-top:12px">
+      <div class="totline"><span>① 平面配線ルート長（水平）</span><b>${horiz.toFixed(1)} m</b></div>
+      <div class="totline"><span>② 縦方向 立上り/立下り 合計</span><b>${vert.toFixed(1)} m</b></div>
+      <div class="totline"><span>小計（①+②）</span><span>${base.toFixed(1)} m</span></div>
+      <div class="totline"><span>余長（${Math.round(slack*100)}%）</span><span>${(base*slack).toFixed(1)} m</span></div>
+      <div class="totline grand"><span>推定電線長</span><span>${lastCable} m</span></div>
+    </div>
+    <div class="hint" style="margin-top:10px">⚠️ ①の水平ルート長は図面から手入力（次段階で配線トレースを自動化）。縦方向はJIS標準取付高さ（スイッチGL+1300/コンセントGL+300）から自動算出しています。</div>`;
+}
+function addCableLine(){
+  if(lastCable<=0){alert("先に明細の拾い出しと平面ルート長の入力を行ってください");return;}
+  rows.push({cat:cats[0],name:"VVFケーブル配線",spec:"2.0-2C 高さ補正込",unit:"m",qty:lastCable,price:130,bu:0.012});
+  persist();renderEstimate();
+  document.querySelector('nav button[data-v="estimate"]').click();
+}
+
+// ---------- AI下書き ----------
+function parseQty(line){
+  // 単位付きの数字を優先（末尾側を採用）。φ22 等の寸法や日付は拾わない
+  const re=/([0-9]+(?:\.[0-9]+)?)\s*(m|ｍ|個|台|面|箇所|か所|本|式|枚|セット|回路|灯)/gi;
+  let m,last=null;
+  while((m=re.exec(line))!==null){
+    const n=parseFloat(m[1]);
+    if(n>0 && n<10000) last=m; // 日付やコード(>=10000)は除外
+  }
+  if(last){
+    let u=last[2].replace("ｍ","m");
+    if(u==="灯")u="台"; // 「9灯」→台
+    return{qty:parseFloat(last[1]),unit:u};
+  }
+  return{qty:1,unit:""};
+}
+function scoreMatch(line,m){
+  const hay=(line).toLowerCase().replace(/\s/g,"");
+  const terms=((m.name+" "+(m.spec||"")+" "+(m.kw||"")).toLowerCase()).split(/[\s,、]+/).filter(Boolean);
+  let sc=0;
+  terms.forEach(t=>{if(t.length>=2&&hay.includes(t))sc+=t.length;});
+  // 仕様数値の一致（2.0, 22, 200 など）
+  return sc;
+}
+function runDraft(){
+  const lines=document.getElementById("aiInput").value.split(/\n/).map(s=>s.trim())
+    .filter(Boolean)
+    .filter(s=>!s.startsWith("#"))                 // コメント/見出し行を除外
+    .filter(s=>!/電気設備図|^図面|階$/.test(s));   // 図面名・階表記の行を除外
+  const res=[];
+  lines.forEach(line=>{
+    let best=null,bestSc=0;
+    master.forEach(m=>{const sc=scoreMatch(line,m);if(sc>bestSc){bestSc=sc;best=m;}});
+    const {qty,unit}=parseQty(line);
+    res.push({line,best,bestSc,qty,unit:unit||(best?best.unit:"式")});
+  });
+  const box=document.getElementById("draftResult");
+  box.innerHTML=`<div class="suggest"><h3 style="margin:0 0 8px">照合結果（${res.length}件）</h3>`+
+    res.map((o,i)=>{
+      if(o.best&&o.bestSc>0){
+        return `<div class="item">
+          <input type="checkbox" id="ck${i}" checked style="width:auto">
+          <div style="flex:1">
+            <b>${esc(o.best.name)}</b> <span class="pill">${esc(o.best.spec||'')}</span>
+            <span class="pill">${o.qty}${esc(o.unit)}</span>
+            <span class="pill">@${o.best.price.toLocaleString()}</span>
+            <span class="pill">${esc(o.best.cat)}</span><br>
+            <span class="muted" style="font-size:11px">元: ${esc(o.line)}</span>
+          </div></div>`;
+      }else{
+        return `<div class="item">
+          <input type="checkbox" id="ck${i}" style="width:auto">
+          <div style="flex:1"><span style="color:var(--warn)">該当なし（マスタに未登録）</span>
+          <span class="pill">${o.qty}${esc(o.unit)}</span><br>
+          <span class="muted" style="font-size:11px">元: ${esc(o.line)}</span></div></div>`;
+      }
+    }).join("")+
+    `</div><button class="act" style="margin-top:10px" onclick='applyDraft(${JSON.stringify(res).replace(/'/g,"&#39;")})'>✓ チェックした項目を見積に追加</button>`;
+}
+function applyDraft(res){
+  res.forEach((o,i)=>{
+    const ck=document.getElementById("ck"+i);if(!ck||!ck.checked)return;
+    if(o.best&&o.bestSc>0){
+      rows.push({cat:o.best.cat,name:o.best.name,spec:o.best.spec||"",unit:o.unit||o.best.unit,qty:o.qty,price:o.best.price,bu:o.best.bu||0});
+    }else{
+      rows.push({cat:cats[cats.length-1],name:o.line,spec:"",unit:o.unit||"式",qty:o.qty,price:0});
+    }
+  });
+  persist();renderEstimate();
+  document.querySelector('nav button[data-v="estimate"]').click();
+}
+
+// ---------- 保存・入出力 ----------
+function persist(){
+  safeLS.setItem("rw_master",JSON.stringify(master));
+  safeLS.setItem("rw_cats",JSON.stringify(cats));
+  safeLS.setItem("rw_rows",JSON.stringify(rows));
+  const head={};["f_to","f_date","f_title","f_place","f_staff","f_misc","f_welfare","f_discount","f_taxrate","f_roumu","f_dispmode","f_welrate","f_crew","f_kind"].forEach(k=>{const el=document.getElementById(k);if(el)head[k]=el.value;});
+  safeLS.setItem("rw_head",JSON.stringify(head));
+}
+function saveAll(){persist();alert("保存しました（この端末のブラウザ内）");}
+function saveKey(){const k=document.getElementById("apiKey").value.trim();safeLS.setItem("rw_apikey",k);safeLS.setItem("rw_provider",document.getElementById("provider").value);const pn={auto:"自動",google:"Gemini",anthropic:"Claude"}[document.getElementById("provider").value];document.getElementById("keyStatus").textContent=k?("✓ 保存済み（"+pn+"）"):"（未設定）";}
+function exportJSON(){
+  const data={head:JSON.parse(safeLS.getItem("rw_head")||"{}"),cats,rows};
+  dl(JSON.stringify(data,null,2),"見積_"+Date.now()+".json");
+}
+function exportMaster(){dl(JSON.stringify(master,null,2),"単価マスタ.json");}
+function importMaster(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{master=JSON.parse(r.result);renderMaster();persist();alert("単価マスタを読み込みました");}catch(_){alert("JSONの形式が不正です");}};
+  r.readAsText(f);
+}
+function dl(text,name){const b=new Blob([text],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();}
+function esc(s){return (s==null?"":(""+s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+["f_to","f_date","f_title","f_place","f_staff"].forEach(()=>{});
+document.addEventListener("input",e=>{if(e.target.closest("#v-estimate"))persist();});
+
+load();
+</script>
+</body>
+</html>
