@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GENBA — マインドマップ配線図UI</title>
+<style>
+  :root{
+    --ai:#16306e;
+    --blue:#4fb0ff;
+    --orange:#ff8a3d;
+    --bg:#0a0f16;
+    --line:rgba(79,176,255,0.35);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    font-family:"Hiragino Sans","Yu Gothic",sans-serif;
+    color:#eaf2ff;
+    overflow:hidden;
+  }
+  #stage{
+    position:relative;
+    width:100%;
+    height:100%;
+    max-width:390px;
+    margin:0 auto;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:28px 28px;
+    background-color:var(--bg);
+    overflow:hidden;
+  }
+  /* header */
+  .topbar{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;align-items:center;gap:10px;
+    padding:14px 16px 10px;
+    z-index:20;
+    background:linear-gradient(180deg, rgba(10,15,22,0.95), rgba(10,15,22,0));
+  }
+  .logo-hex{width:34px;height:34px;flex:none;}
+  .brand{
+    font-size:15px;font-weight:700;letter-spacing:2px;color:#fff;
+  }
+  .brand small{
+    display:block;font-size:9px;font-weight:400;letter-spacing:1px;color:var(--blue);margin-top:1px;
+  }
+  .backbtn{
+    margin-left:auto;
+    display:none;
+    align-items:center;justify-content:center;
+    width:48px;height:48px;
+    border-radius:50%;
+    background:rgba(22,48,110,0.6);
+    border:1px solid var(--blue);
+    color:#fff;font-size:20px;
+    cursor:pointer;
+  }
+  .backbtn.show{display:flex;}
+
+  /* svg wiring layer */
+  svg#wires{
+    position:absolute;inset:0;width:100%;height:100%;
+    pointer-events:none;
+    z-index:1;
+  }
+  .wire{
+    fill:none;
+    stroke:var(--blue);
+    stroke-width:2;
+    stroke-dasharray:4 4;
+    opacity:0.55;
+    animation:dash 6s linear infinite;
+  }
+  .wire.sub{
+    stroke:var(--orange);
+  }
+  @keyframes dash{ to{ stroke-dashoffset:-40; } }
+
+  /* nodes layer */
+  .layer{
+    position:absolute;inset:0;
+    z-index:5;
+    transition:opacity 0.35s ease, transform 0.35s ease;
+  }
+  .layer.hidden{
+    opacity:0;
+    pointer-events:none;
+    transform:scale(0.9);
+  }
+
+  .node{
+    position:absolute;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;
+    user-select:none;
+    transform:translate(-50%,-50%);
+  }
+  .node .hex{
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    filter:drop-shadow(0 0 6px rgba(79,176,255,0.25));
+  }
+  .node .label{
+    margin-top:6px;
+    font-size:11px;
+    font-weight:600;
+    color:#dceaff;
+    white-space:nowrap;
+    text-align:center;
+  }
+  .node .sub-label{
+    font-size:9px;
+    color:var(--blue);
+    margin-top:1px;
+  }
+  .node:active .hex{ filter:brightness(1.3); }
+
+  /* center node (案件) */
+  .node.center .hex{ width:104px;height:104px; }
+  .node.center .label{ font-size:13px; font-weight:700; }
+
+  /* function nodes */
+  .node.func .hex{ width:76px;height:76px; }
+
+  /* child nodes */
+  .node.child .hex{ width:64px;height:64px; }
+  .node.child .label{ font-size:10px; }
+
+  .pulse{
+    position:absolute;
+    top:50%;left:50%;
+    width:10px;height:10px;
+    margin:-5px 0 0 -5px;
+    border-radius:50%;
+    background:var(--orange);
+    box-shadow:0 0 8px var(--orange);
+  }
+
+  .badge{
+    position:absolute;
+    top:-4px;right:-4px;
+    background:var(--orange);
+    color:#20120a;
+    font-size:9px;font-weight:700;
+    padding:2px 5px;
+    border-radius:8px;
+    line-height:1.2;
+  }
+
+  .breadcrumb{
+    position:absolute;
+    top:60px;left:0;right:0;
+    text-align:center;
+    z-index:20;
+    font-size:11px;
+    color:var(--blue);
+    letter-spacing:1px;
+    pointer-events:none;
+  }
+
+  .hint{
+    position:absolute;
+    bottom:14px;left:0;right:0;
+    text-align:center;
+    font-size:10px;
+    color:#5c7699;
+    z-index:20;
+    pointer-events:none;
+  }
+
+  /* detail panel for leaf taps */
+  .detail-sheet{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    background:linear-gradient(180deg, rgba(22,48,110,0.97), rgba(10,15,22,0.99));
+    border-top:2px solid var(--blue);
+    border-radius:18px 18px 0 0;
+    padding:18px 20px 26px;
+    transform:translateY(100%);
+    transition:transform 0.3s ease;
+    z-index:30;
+    box-shadow:0 -8px 24px rgba(0,0,0,0.5);
+  }
+  .detail-sheet.show{ transform:translateY(0); }
+  .detail-sheet h3{
+    margin:0 0 6px;font-size:15px;color:#fff;
+    display:flex;align-items:center;gap:8px;
+  }
+  .detail-sheet p{
+    margin:0 0 14px;font-size:12px;color:#a9c4e8;line-height:1.6;
+  }
+  .detail-sheet .actbtn{
+    display:block;width:100%;
+    padding:14px;
+    min-height:48px;
+    background:var(--orange);
+    color:#241207;
+    font-weight:700;font-size:14px;
+    border:none;border-radius:10px;
+    text-align:center;
+  }
+  .sheet-close{
+    position:absolute;top:10px;right:14px;
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    color:#9db6db;font-size:18px;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- header -->
+  <div class="topbar">
+    <svg class="logo-hex" viewBox="0 0 100 100">
+      <polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#4fb0ff" stroke-width="4"/>
+      <polygon points="50,16 82,33 82,67 50,84 18,67 18,33" fill="none" stroke="#ff8a3d" stroke-width="3"/>
+      <line x1="50" y1="38" x2="50" y2="62" stroke="#eaf2ff" stroke-width="5" stroke-linecap="round"/>
+      <line x1="38" y1="50" x2="62" y2="50" stroke="#eaf2ff" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <div class="brand">GENBA<small>現場が、経営を超えていく。</small></div>
+    <div class="backbtn" id="backBtn" onclick="goBack()">←</div>
+  </div>
+
+  <div class="breadcrumb" id="breadcrumb">案件マインドマップ</div>
+
+  <!-- wiring svg, redrawn per layer via JS -->
+  <svg id="wires"></svg>
+
+  <!-- LAYER 0: root -->
+  <div class="layer" id="layer0">
+    <div class="node center" style="top:50%;left:50%;" onclick="void(0)">
+      <div class="hex">
+        <svg width="104" height="104" viewBox="0 0 100 100">
+          <polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="#16306e" stroke="#4fb0ff" stroke-width="3"/>
+          <polygon points="50,16 82,33 82,67 50,84 18,67 18,33" fill="none" stroke="#ff8a3d" stroke-width="2"/>
+          <text x="50" y="46" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">案件</text>
+          <text x="50" y="62" text-anchor="middle" fill="#9fd0ff" font-size="9">田中邸 新築</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="node func" style="top:16%;left:20%;" onclick="enterFunc('estimate')">
+      <div class="hex">
+        <svg width="76" height="76" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="30">📐</text>
+        </svg>
+        <div class="badge">3</div>
+      </div>
+      <div class="label">見積</div>
+    </div>
+
+    <div class="node func" style="top:14%;left:78%;" onclick="enterFunc('photo')">
+      <div class="hex">
+        <svg width="76" height="76" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="30">📷</text>
+        </svg>
+      </div>
+      <div class="label">写真</div>
+    </div>
+
+    <div class="node func" style="top:52%;left:90%;" onclick="enterFunc('doc')">
+      <div class="hex">
+        <svg width="76" height="76" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="30">📄</text>
+        </svg>
+        <div class="badge">2</div>
+      </div>
+      <div class="label">書類</div>
+    </div>
+
+    <div class="node func" style="top:86%;left:70%;" onclick="enterFunc('attend')">
+      <div class="hex">
+        <svg width="76" height="76" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="30">🕒</text>
+        </svg>
+      </div>
+      <div class="label">勤怠</div>
+    </div>
+
+    <div class="node func" style="top:88%;left:22%;" onclick="enterFunc('material')">
+      <div class="hex">
+        <svg width="76" height="76" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="30">🧱</text>
+        </svg>
+      </div>
+      <div class="label">材料</div>
+    </div>
+
+    <div class="node func" style="top:50%;left:8%;" onclick="enterFunc('note')">
+      <div class="hex">
+        <svg width="76" height="76" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="30">📝</text>
+        </svg>
+      </div>
+      <div class="label">現場メモ</div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: 見積 children -->
+  <div class="layer hidden" id="layer-estimate">
+    <div class="node func" style="top:50%;left:50%;" onclick="goBack()">
+      <div class="hex">
+        <svg width="88" height="88" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#16306e" stroke="#ff8a3d" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="34">📐</text>
+        </svg>
+      </div>
+      <div class="label">見積</div>
+    </div>
+
+    <div class="node child" style="top:18%;left:50%;" onclick="openDetail('図面から積算','図面PDFをアップロードすると自動でAIが拾い出し、材料・数量を積算します。')">
+      <div class="hex">
+        <svg width="64" height="64" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="26">🗺️</text>
+        </svg>
+      </div>
+      <div class="label">図面</div>
+      <div class="sub-label">AI自動積算</div>
+    </div>
+
+    <div class="node child" style="top:80%;left:22%;" onclick="openDetail('音声で入力','「壁の照明を3灯」など話すだけで見積項目を自動生成します。')">
+      <div class="hex">
+        <svg width="64" height="64" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="26">🎙️</text>
+        </svg>
+      </div>
+      <div class="label">音声</div>
+      <div class="sub-label">話すだけ</div>
+    </div>
+
+    <div class="node child" style="top:80%;left:78%;" onclick="openDetail('手入力','品目・数量・単価を直接入力して見積書を作成します。')">
+      <div class="hex">
+        <svg width="64" height="64" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="26">⌨️</text>
+        </svg>
+      </div>
+      <div class="label">手入力</div>
+      <div class="sub-label">直接編集</div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: 写真 -->
+  <div class="layer hidden" id="layer-photo">
+    <div class="node func" style="top:50%;left:50%;" onclick="goBack()">
+      <div class="hex">
+        <svg width="88" height="88" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#16306e" stroke="#ff8a3d" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="34">📷</text>
+        </svg>
+      </div>
+      <div class="label">写真</div>
+    </div>
+    <div class="node child" style="top:20%;left:30%;" onclick="openDetail('施工前','着工前の現況写真を記録します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🏗️</text></svg></div>
+      <div class="label">施工前</div>
+    </div>
+    <div class="node child" style="top:20%;left:70%;" onclick="openDetail('施工中','進捗確認用の記録写真を都度アップロードします。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🔧</text></svg></div>
+      <div class="label">施工中</div>
+    </div>
+    <div class="node child" style="top:82%;left:50%;" onclick="openDetail('完了報告','完了写真をまとめてお客様へ共有します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">✅</text></svg></div>
+      <div class="label">完了報告</div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: 書類 -->
+  <div class="layer hidden" id="layer-doc">
+    <div class="node func" style="top:50%;left:50%;" onclick="goBack()">
+      <div class="hex">
+        <svg width="88" height="88" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#16306e" stroke="#ff8a3d" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="34">📄</text>
+        </svg>
+      </div>
+      <div class="label">書類</div>
+    </div>
+    <div class="node child" style="top:18%;left:50%;" onclick="openDetail('契約書','電子契約書テンプレートから作成します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">📑</text></svg></div>
+      <div class="label">契約書</div>
+    </div>
+    <div class="node child" style="top:80%;left:22%;" onclick="openDetail('請求書','見積からワンタップで請求書を発行します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🧾</text></svg></div>
+      <div class="label">請求書</div>
+    </div>
+    <div class="node child" style="top:80%;left:78%;" onclick="openDetail('安全書類','グリーンサイト連携の安全書類を自動作成します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🦺</text></svg></div>
+      <div class="label">安全書類</div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: 勤怠 -->
+  <div class="layer hidden" id="layer-attend">
+    <div class="node func" style="top:50%;left:50%;" onclick="goBack()">
+      <div class="hex">
+        <svg width="88" height="88" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#16306e" stroke="#ff8a3d" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="34">🕒</text>
+        </svg>
+      </div>
+      <div class="label">勤怠</div>
+    </div>
+    <div class="node child" style="top:20%;left:30%;" onclick="openDetail('出勤打刻','現場に到着したらワンタップで打刻します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🌅</text></svg></div>
+      <div class="label">出勤</div>
+    </div>
+    <div class="node child" style="top:20%;left:70%;" onclick="openDetail('退勤打刻','作業終了時にワンタップで退勤を記録します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🌇</text></svg></div>
+      <div class="label">退勤</div>
+    </div>
+    <div class="node child" style="top:82%;left:50%;" onclick="openDetail('月次集計','職人ごとの稼働時間を自動で集計します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">📊</text></svg></div>
+      <div class="label">月次集計</div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: 材料 -->
+  <div class="layer hidden" id="layer-material">
+    <div class="node func" style="top:50%;left:50%;" onclick="goBack()">
+      <div class="hex">
+        <svg width="88" height="88" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#16306e" stroke="#ff8a3d" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="34">🧱</text>
+        </svg>
+      </div>
+      <div class="label">材料</div>
+    </div>
+    <div class="node child" style="top:18%;left:50%;" onclick="openDetail('在庫確認','倉庫の材料在庫をリアルタイムで確認します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">📦</text></svg></div>
+      <div class="label">在庫確認</div>
+    </div>
+    <div class="node child" style="top:80%;left:22%;" onclick="openDetail('発注','不足材料をワンタップで発注します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">🚚</text></svg></div>
+      <div class="label">発注</div>
+    </div>
+    <div class="node child" style="top:80%;left:78%;" onclick="openDetail('単価表','ブレーカー等メーカー定価表を参照します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">💴</text></svg></div>
+      <div class="label">単価表</div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: 現場メモ -->
+  <div class="layer hidden" id="layer-note">
+    <div class="node func" style="top:50%;left:50%;" onclick="goBack()">
+      <div class="hex">
+        <svg width="88" height="88" viewBox="0 0 100 100">
+          <polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#16306e" stroke="#ff8a3d" stroke-width="3"/>
+          <text x="50" y="58" text-anchor="middle" font-size="34">📝</text>
+        </svg>
+      </div>
+      <div class="label">現場メモ</div>
+    </div>
+    <div class="node child" style="top:20%;left:30%;" onclick="openDetail('テキストメモ','気づいた点をすぐにメモできます。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">✏️</text></svg></div>
+      <div class="label">テキスト</div>
+    </div>
+    <div class="node child" style="top:20%;left:70%;" onclick="openDetail('図面に書き込み','図面上に直接手書きで注記できます。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">✍️</text></svg></div>
+      <div class="label">図面注記</div>
+    </div>
+    <div class="node child" style="top:82%;left:50%;" onclick="openDetail('共有','社内チャットへメモを即共有します。')">
+      <div class="hex"><svg width="64" height="64" viewBox="0 0 100 100"><polygon points="50,6 91,28 91,72 50,94 9,72 9,28" fill="#0e1c3f" stroke="#4fb0ff" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-size="26">📤</text></svg></div>
+      <div class="label">共有</div>
+    </div>
+  </div>
+
+  <!-- detail sheet -->
+  <div class="detail-sheet" id="detailSheet">
+    <div class="sheet-close" onclick="closeDetail()">✕</div>
+    <h3 id="detailTitle">タイトル</h3>
+    <p id="detailBody">説明文</p>
+    <button class="actbtn" onclick="closeDetail()">この項目を開く</button>
+  </div>
+
+  <div class="hint" id="hint">タップして潜る / 戻るボタンで浮上</div>
+</div>
+
+<script>
+const stage = document.getElementById('stage');
+const wiresSvg = document.getElementById('wires');
+const backBtn = document.getElementById('backBtn');
+const breadcrumb = document.getElementById('breadcrumb');
+let currentLayer = 'layer0';
+const rootLabels = {
+  'layer-estimate':'案件 ▸ 見積',
+  'layer-photo':'案件 ▸ 写真',
+  'layer-doc':'案件 ▸ 書類',
+  'layer-attend':'案件 ▸ 勤怠',
+  'layer-material':'案件 ▸ 材料',
+  'layer-note':'案件 ▸ 現場メモ'
+};
+
+function pct(el, prop){
+  const v = el.style[prop];
+  return parseFloat(v)/100;
+}
+
+function drawWires(layerId){
+  wiresSvg.innerHTML = '';
+  const w = stage.clientWidth, h = stage.clientHeight;
+  wiresSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  const layer = document.getElementById(layerId);
+  if(!layer) return;
+  const nodes = layer.querySelectorAll('.node');
+  if(nodes.length === 0) return;
+  // first node = hub (center or function-back node)
+  const hub = nodes[0];
+  const hx = pct(hub,'left') * w, hy = pct(hub,'top') * h;
+  nodes.forEach((n, i) => {
+    if(i === 0) return;
+    const nx = pct(n,'left') * w, ny = pct(n,'top') * h;
+    const midY = (hy + ny) / 2;
+    const path = `M ${hx} ${hy} L ${hx} ${midY} L ${nx} ${midY} L ${nx} ${ny}`;
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', path);
+    p.setAttribute('class', layerId === 'layer0' ? 'wire' : 'wire sub');
+    wiresSvg.appendChild(p);
+  });
+}
+
+function showLayer(id){
+  document.querySelectorAll('.layer').forEach(l => l.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  currentLayer = id;
+  drawWires(id);
+  if(id === 'layer0'){
+    backBtn.classList.remove('show');
+    breadcrumb.textContent = '案件マインドマップ';
+  } else {
+    backBtn.classList.add('show');
+    breadcrumb.textContent = rootLabels[id] || '';
+  }
+}
+
+function enterFunc(key){
+  showLayer('layer-' + key);
+}
+function goBack(){
+  showLayer('layer0');
+}
+
+function openDetail(title, body){
+  document.getElementById('detailTitle').textContent = title;
+  document.getElementById('detailBody').textContent = body;
+  document.getElementById('detailSheet').classList.add('show');
+}
+function closeDetail(){
+  document.getElementById('detailSheet').classList.remove('show');
+}
+
+window.addEventListener('resize', () => drawWires(currentLayer));
+window.addEventListener('load', () => drawWires('layer0'));
+</script>
+</body>
+</html>

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GENBA — 現場の右腕（ドリルダウン型）</title>
+<style>
+  :root{
+    --ai:#16306e;
+    --blue:#4fb0ff;
+    --orange:#ff8a3d;
+    --bg:#0a0f16;
+    --card:#111826;
+    --card2:#141d2d;
+    --line:rgba(79,176,255,0.18);
+    --text:#eaf2ff;
+    --sub:#8ea3c2;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/28px 28px,
+      var(--bg);
+    color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:390px;
+    min-height:100vh;
+    max-width:100vw;
+    position:relative;
+    overflow-x:hidden;
+    background:linear-gradient(180deg, rgba(22,48,110,0.25), rgba(10,15,22,0.0) 220px);
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(10,15,22,0.86);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:10px 14px 12px;
+  }
+  .nav-row{
+    display:flex;
+    align-items:center;
+    min-height:32px;
+    gap:6px;
+  }
+  .back-btn{
+    display:none;
+    align-items:center;
+    gap:4px;
+    color:var(--blue);
+    font-size:15px;
+    font-weight:600;
+    background:none;
+    border:none;
+    padding:8px 6px 8px 0;
+    min-height:44px;
+    cursor:pointer;
+  }
+  .back-btn.show{display:flex;}
+  .back-btn svg{width:18px;height:18px;}
+  .brand-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+  }
+  .logo-hex{width:30px;height:30px;flex-shrink:0;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.1;}
+  .brand-text .name{font-size:15px;font-weight:800;letter-spacing:0.06em;color:var(--text);}
+  .brand-text .catch{font-size:9px;color:var(--sub);letter-spacing:0.03em;}
+  .level-title{
+    font-size:19px;
+    font-weight:800;
+    margin-top:6px;
+    color:var(--text);
+  }
+  .level-sub{
+    font-size:12px;
+    color:var(--sub);
+    margin-top:2px;
+  }
+
+  /* ---------- Screens ---------- */
+  .screen{
+    display:none;
+    padding:16px 14px 100px;
+    animation:fadeIn .22s ease;
+  }
+  .screen.active{display:block;}
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateX(8px);}
+    to{opacity:1; transform:translateX(0);}
+  }
+
+  /* ---------- Level 1: Project cards ---------- */
+  .project-card{
+    background:linear-gradient(145deg, var(--card2), var(--card));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 14px 12px;
+    margin-bottom:14px;
+    cursor:pointer;
+    position:relative;
+    min-height:48px;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .project-card:active{transform:scale(0.98); border-color:var(--blue);}
+  .project-card .status-tag{
+    position:absolute;
+    top:14px;
+    right:14px;
+    font-size:10px;
+    font-weight:700;
+    padding:3px 9px;
+    border-radius:20px;
+    letter-spacing:0.03em;
+  }
+  .status-tag.進行中{background:rgba(79,176,255,0.15); color:var(--blue); border:1px solid rgba(79,176,255,0.4);}
+  .status-tag.要確認{background:rgba(255,138,61,0.15); color:var(--orange); border:1px solid rgba(255,138,61,0.4);}
+  .status-tag.完了{background:rgba(120,220,150,0.15); color:#78dc96; border:1px solid rgba(120,220,150,0.4);}
+  .project-card .pname{
+    font-size:16px;
+    font-weight:800;
+    padding-right:70px;
+    margin-bottom:2px;
+  }
+  .project-card .ploc{
+    font-size:11px;
+    color:var(--sub);
+    margin-bottom:12px;
+  }
+  .mini-kpis{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+  }
+  .mini-kpi{
+    background:rgba(0,0,0,0.25);
+    border-radius:8px;
+    padding:6px 4px;
+    text-align:center;
+  }
+  .mini-kpi .v{
+    font-size:13px;
+    font-weight:800;
+    color:var(--blue);
+    font-variant-numeric:tabular-nums;
+  }
+  .mini-kpi .l{
+    font-size:8.5px;
+    color:var(--sub);
+    margin-top:1px;
+  }
+  .add-project-card{
+    border:1.5px dashed rgba(79,176,255,0.35);
+    border-radius:14px;
+    padding:16px;
+    text-align:center;
+    color:var(--sub);
+    font-size:13px;
+    min-height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+
+  /* ---------- Level 2: Project dashboard ---------- */
+  .big-number-block{
+    background:linear-gradient(145deg, rgba(22,48,110,0.55), rgba(20,29,45,0.7));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:20px 18px;
+    margin-bottom:14px;
+    cursor:pointer;
+    min-height:48px;
+    transition:transform .12s ease;
+  }
+  .big-number-block:active{transform:scale(0.985);}
+  .big-number-block .bn-label{
+    font-size:12px;
+    color:var(--sub);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .big-number-block .bn-label .chev{color:var(--blue); font-size:14px;}
+  .big-number-block .bn-value{
+    font-size:34px;
+    font-weight:900;
+    color:var(--text);
+    margin-top:4px;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-0.01em;
+  }
+  .big-number-block .bn-value .unit{font-size:15px; color:var(--sub); font-weight:600; margin-left:4px;}
+  .big-number-block .bn-delta{
+    font-size:11px;
+    margin-top:6px;
+    font-weight:700;
+  }
+  .bn-delta.up{color:var(--orange);}
+  .bn-delta.ok{color:#78dc96;}
+
+  .progress-wrap{
+    margin-top:10px;
+  }
+  .progress-bar{
+    width:100%;
+    height:8px;
+    background:rgba(255,255,255,0.08);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .progress-bar > div{
+    height:100%;
+    background:linear-gradient(90deg, var(--blue), var(--orange));
+    border-radius:6px;
+  }
+
+  .kpi-grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .kpi-card2{
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    cursor:pointer;
+    min-height:48px;
+  }
+  .kpi-card2:active{border-color:var(--blue);}
+  .kpi-card2 .k-label{font-size:11px; color:var(--sub); display:flex; justify-content:space-between;}
+  .kpi-card2 .k-value{font-size:22px; font-weight:800; margin-top:4px; font-variant-numeric:tabular-nums;}
+  .kpi-card2 .k-value.orange{color:var(--orange);}
+  .kpi-card2 .k-value.blue{color:var(--blue);}
+
+  .section-label{
+    font-size:12px;
+    font-weight:700;
+    color:var(--sub);
+    letter-spacing:0.04em;
+    margin:18px 0 8px 2px;
+    text-transform:uppercase;
+  }
+
+  /* ---------- Level 3: Detail list ---------- */
+  .detail-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    cursor:pointer;
+    min-height:48px;
+  }
+  .detail-row:active{border-color:var(--blue);}
+  .detail-row .dr-left{flex:1;}
+  .detail-row .dr-title{font-size:14px; font-weight:700;}
+  .detail-row .dr-sub{font-size:11px; color:var(--sub); margin-top:2px;}
+  .detail-row .dr-right{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .detail-row .dr-value{
+    font-size:15px;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+    color:var(--text);
+  }
+  .detail-row .dr-chev{color:var(--blue); font-size:16px;}
+  .detail-row .dr-flag{
+    font-size:9px;
+    font-weight:700;
+    color:var(--orange);
+    background:rgba(255,138,61,0.15);
+    border:1px solid rgba(255,138,61,0.4);
+    padding:2px 6px;
+    border-radius:10px;
+  }
+
+  .summary-strip{
+    display:flex;
+    justify-content:space-between;
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:14px;
+  }
+  .summary-strip .s-item{text-align:center; flex:1;}
+  .summary-strip .s-v{font-size:16px; font-weight:800; color:var(--blue);}
+  .summary-strip .s-l{font-size:9.5px; color:var(--sub); margin-top:2px;}
+
+  /* ---------- Level 4: Edit form ---------- */
+  .edit-card{
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .field{
+    margin-bottom:14px;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    color:var(--sub);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:rgba(0,0,0,0.3);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 12px;
+    color:var(--text);
+    font-size:15px;
+    min-height:48px;
+    font-family:inherit;
+  }
+  .field textarea{min-height:70px; resize:none;}
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none;
+    border-color:var(--blue);
+  }
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .btn-row{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+  }
+  .btn{
+    flex:1;
+    min-height:50px;
+    border-radius:12px;
+    border:none;
+    font-size:15px;
+    font-weight:800;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .btn.primary{background:linear-gradient(135deg, var(--blue), #2f8fe0); color:#0a0f16;}
+  .btn.primary:active{opacity:0.85;}
+  .btn.secondary{background:rgba(255,255,255,0.06); color:var(--sub); border:1px solid var(--line);}
+  .btn.danger{background:rgba(255,90,90,0.12); color:#ff8a8a; border:1px solid rgba(255,90,90,0.35);}
+
+  .photo-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+    margin-top:8px;
+  }
+  .photo-thumb{
+    aspect-ratio:1;
+    border-radius:8px;
+    background:linear-gradient(145deg,#1c2740,#0d1420);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    color:var(--sub);
+  }
+
+  /* ---------- Tab bar ---------- */
+  .tabbar{
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:390px;
+    max-width:100vw;
+    background:rgba(10,15,22,0.92);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    display:flex;
+    z-index:60;
+  }
+  .tab-item{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    padding:9px 0 12px;
+    min-height:48px;
+    color:var(--sub);
+    font-size:10px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .tab-item.active{color:var(--blue);}
+  .tab-item svg{width:20px;height:20px;}
+
+  ::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="nav-row">
+      <button class="back-btn" id="backBtn" onclick="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span id="backLabel">案件一覧</span>
+      </button>
+      <div class="brand-row" id="brandRow">
+        <svg class="logo-hex" viewBox="0 0 100 100">
+          <polygon points="50,4 91,27 91,73 50,96 9,73 9,27" fill="none" stroke="#4fb0ff" stroke-width="4"/>
+          <polygon points="50,16 80,33 80,67 50,84 20,67 20,33" fill="none" stroke="#4fb0ff" stroke-width="2.5" opacity="0.7"/>
+          <rect x="46" y="30" width="8" height="40" fill="#ff8a3d"/>
+          <rect x="30" y="46" width="40" height="8" fill="#ff8a3d"/>
+        </svg>
+        <div class="brand-text">
+          <span class="name">GENBA</span>
+          <span class="catch">現場が、経営を超えていく。</span>
+        </div>
+      </div>
+    </div>
+    <div id="levelTitle" style="display:none;">
+      <div class="level-title" id="levelTitleText"></div>
+      <div class="level-sub" id="levelSubText"></div>
+    </div>
+  </header>
+
+  <!-- ============ LEVEL 1: 案件一覧（カードの束） ============ -->
+  <div class="screen active" id="screen-1">
+    <div class="project-card" onclick="openProject('a')">
+      <span class="status-tag 進行中">進行中</span>
+      <div class="pname">代々木マンション改修</div>
+      <div class="ploc">東京都渋谷区 ／ 元請：山田建設</div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="v">¥842万</div><div class="l">見積額</div></div>
+        <div class="mini-kpi"><div class="v">128人工</div><div class="l">工数</div></div>
+        <div class="mini-kpi"><div class="v">64枚</div><div class="l">写真</div></div>
+        <div class="mini-kpi"><div class="v">42日</div><div class="l">工期</div></div>
+      </div>
+    </div>
+
+    <div class="project-card" onclick="openProject('b')">
+      <span class="status-tag 要確認">要確認</span>
+      <div class="pname">中野戸建て新築工事</div>
+      <div class="ploc">東京都中野区 ／ 元請：直請け</div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="v">¥2,310万</div><div class="l">見積額</div></div>
+        <div class="mini-kpi"><div class="v">304人工</div><div class="l">工数</div></div>
+        <div class="mini-kpi"><div class="v">211枚</div><div class="l">写真</div></div>
+        <div class="mini-kpi"><div class="v">98日</div><div class="l">工期</div></div>
+      </div>
+    </div>
+
+    <div class="project-card" onclick="openProject('c')">
+      <span class="status-tag 完了">完了</span>
+      <div class="pname">板橋倉庫外壁塗装</div>
+      <div class="ploc">東京都板橋区 ／ 元請：田中塗装店</div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="v">¥356万</div><div class="l">見積額</div></div>
+        <div class="mini-kpi"><div class="v">52人工</div><div class="l">工数</div></div>
+        <div class="mini-kpi"><div class="v">89枚</div><div class="l">写真</div></div>
+        <div class="mini-kpi"><div class="v">18日</div><div class="l">工期</div></div>
+      </div>
+    </div>
+
+    <div class="add-project-card">＋ 新規案件を追加</div>
+  </div>
+
+  <!-- ============ LEVEL 2: 案件ダッシュボード ============ -->
+  <div class="screen" id="screen-2">
+    <div class="big-number-block" onclick="openDetail('estimate')">
+      <div class="bn-label"><span>見積総額</span><span class="chev">›</span></div>
+      <div class="bn-value" id="dashEstimate">¥8,420,000</div>
+      <div class="bn-delta up" id="dashEstimateDelta">前回比 +6.2%（追加工事分）</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div style="width:68%;"></div></div>
+      </div>
+    </div>
+
+    <div class="kpi-grid2">
+      <div class="kpi-card2" onclick="openDetail('labor')">
+        <div class="k-label"><span>人工</span><span>›</span></div>
+        <div class="k-value blue" id="dashLabor">128人工</div>
+      </div>
+      <div class="kpi-card2" onclick="openDetail('photo')">
+        <div class="k-label"><span>写真</span><span>›</span></div>
+        <div class="k-value blue" id="dashPhoto">64枚</div>
+      </div>
+      <div class="kpi-card2" onclick="openDetail('schedule')">
+        <div class="k-label"><span>工期</span><span>›</span></div>
+        <div class="k-value" id="dashSchedule">42日</div>
+      </div>
+      <div class="kpi-card2" onclick="openDetail('profit')">
+        <div class="k-label"><span>粗利率</span><span>›</span></div>
+        <div class="k-value orange" id="dashProfit">21.4%</div>
+      </div>
+    </div>
+
+    <div class="section-label">経営サマリー</div>
+    <div class="summary-strip">
+      <div class="s-item"><div class="s-v" id="dashProgress">68%</div><div class="s-l">進捗率</div></div>
+      <div class="s-item"><div class="s-v" id="dashRemainDays">14日</div><div class="s-l">残工期</div></div>
+      <div class="s-item"><div class="s-v" id="dashUnpaid">¥120万</div><div class="s-l">未請求額</div></div>
+    </div>
+
+    <div class="section-label">現場サマリー</div>
+    <div class="detail-row" onclick="openDetail('estimate')">
+      <div class="dr-left">
+        <div class="dr-title">見積内訳を見る</div>
+        <div class="dr-sub">工種別・材料費／労務費</div>
+      </div>
+      <div class="dr-right"><span class="dr-chev">›</span></div>
+    </div>
+    <div class="detail-row" onclick="openDetail('labor')">
+      <div class="dr-left">
+        <div class="dr-title">職人別 稼働記録</div>
+        <div class="dr-sub">日報・出面表</div>
+      </div>
+      <div class="dr-right"><span class="dr-chev">›</span></div>
+    </div>
+    <div class="detail-row" onclick="openDetail('photo')">
+      <div class="dr-left">
+        <div class="dr-title">現場写真フォルダ</div>
+        <div class="dr-sub">工程別アルバム</div>
+      </div>
+      <div class="dr-right"><span class="dr-chev">›</span></div>
+    </div>
+  </div>
+
+  <!-- ============ LEVEL 3: 明細（各KPIごとに切替） ============ -->
+  <div class="screen" id="screen-3">
+    <div id="detailBody"></div>
+  </div>
+
+  <!-- ============ LEVEL 4: 編集フォーム ============ -->
+  <div class="screen" id="screen-4">
+    <div id="editBody"></div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      案件
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+      経営
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 16l4-4 4 4 6-6"/></svg>
+      写真
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      設定
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ----- ダミーデータ ----- */
+const projects = {
+  a: {
+    name:"代々木マンション改修", status:"進行中",
+    estimate:"¥8,420,000", estimateDelta:"前回比 +6.2%（追加工事分）",
+    labor:"128人工", photo:"64枚", schedule:"42日", profit:"21.4%",
+    progress:"68%", remainDays:"14日", unpaid:"¥120万",
+    estimateItems:[
+      {title:"仮設工事", sub:"足場・養生シート", value:"¥1,120,000", flag:false},
+      {title:"内装解体工事", sub:"床・壁・天井撤去", value:"¥1,860,000", flag:true},
+      {title:"電気設備工事", sub:"配線・分電盤更新", value:"¥2,340,000", flag:false},
+      {title:"給排水衛生工事", sub:"配管更新・器具交換", value:"¥1,580,000", flag:false},
+      {title:"内装仕上げ工事", sub:"クロス・フローリング", value:"¥1,520,000", flag:false},
+    ],
+    laborItems:[
+      {title:"鈴木 一郎（大工）", sub:"7/1〜7/28 稼働", value:"24人工", flag:false},
+      {title:"佐藤 健（電気）", sub:"7/5〜7/20 稼働", value:"18人工", flag:false},
+      {title:"高橋 誠（配管）", sub:"7/8〜7/22 稼働", value:"16人工", flag:true},
+      {title:"田中 悟（内装）", sub:"7/12〜8/5 稼働", value:"32人工", flag:false},
+      {title:"渡辺 学（応援）", sub:"7/1〜7/10 稼働", value:"38人工", flag:false},
+    ],
+    photoItems:[
+      {title:"着工前 現況確認", sub:"6/28撮影 ／ 12枚", value:"", flag:false},
+      {title:"解体工程", sub:"7/2〜7/6撮影 ／ 20枚", value:"", flag:false},
+      {title:"配管・配線施工", sub:"7/8〜7/15撮影 ／ 18枚", value:"", flag:true},
+      {title:"仕上げ検査", sub:"7/20撮影 ／ 14枚", value:"", flag:false},
+    ],
+    scheduleItems:[
+      {title:"仮設・解体", sub:"7/1〜7/8", value:"完了", flag:false},
+      {title:"設備配管配線", sub:"7/9〜7/20", value:"進行中", flag:true},
+      {title:"内装仕上げ", sub:"7/21〜8/5", value:"未着手", flag:false},
+      {title:"検査・引渡し", sub:"8/6〜8/12", value:"未着手", flag:false},
+    ],
+    profitItems:[
+      {title:"材料費", sub:"見積比率 38%", value:"¥3,200,000", flag:false},
+      {title:"労務費", sub:"見積比率 32%", value:"¥2,694,000", flag:false},
+      {title:"外注費", sub:"見積比率 9%", value:"¥758,000", flag:true},
+      {title:"諸経費", sub:"見積比率 4%", value:"¥337,000", flag:false},
+      {title:"粗利", sub:"見積比率 21.4%", value:"¥1,431,000", flag:false},
+    ]
+  },
+  b: {
+    name:"中野戸建て新築工事", status:"要確認",
+    estimate:"¥23,100,000", estimateDelta:"前回比 +12.8%（仕様変更）",
+    labor:"304人工", photo:"211枚", schedule:"98日", profit:"16.8%",
+    progress:"34%", remainDays:"65日", unpaid:"¥540万",
+    estimateItems:[
+      {title:"基礎工事", sub:"地盤改良・配筋", value:"¥3,120,000", flag:false},
+      {title:"躯体工事", sub:"木造軸組・上棟", value:"¥5,860,000", flag:false},
+      {title:"屋根・外壁工事", sub:"瓦・サイディング", value:"¥4,340,000", flag:true},
+      {title:"設備一式", sub:"電気・給排水・空調", value:"¥5,580,000", flag:false},
+      {title:"内装・建具工事", sub:"クロス・造作家具", value:"¥4,200,000", flag:false},
+    ],
+    laborItems:[
+      {title:"伊藤 大工班", sub:"6/1〜8/10 稼働", value:"120人工", flag:false},
+      {title:"中村 電気班", sub:"6/20〜7/25 稼働", value:"46人工", flag:false},
+      {title:"小林 屋根班", sub:"7/1〜7/15 稼働", value:"38人工", flag:true},
+      {title:"加藤 内装班", sub:"8/1〜9/10 稼働", value:"100人工", flag:false},
+    ],
+    photoItems:[
+      {title:"地鎮祭・着工前", sub:"5/28撮影 ／ 18枚", value:"", flag:false},
+      {title:"基礎配筋検査", sub:"6/5撮影 ／ 32枚", value:"", flag:true},
+      {title:"上棟式", sub:"6/22撮影 ／ 60枚", value:"", flag:false},
+      {title:"屋根防水施工", sub:"7/3撮影 ／ 45枚", value:"", flag:false},
+      {title:"中間検査", sub:"7/18撮影 ／ 56枚", value:"", flag:false},
+    ],
+    scheduleItems:[
+      {title:"基礎工事", sub:"6/1〜6/15", value:"完了", flag:false},
+      {title:"躯体・上棟", sub:"6/16〜7/10", value:"完了", flag:false},
+      {title:"屋根・外壁", sub:"7/11〜8/5", value:"進行中", flag:true},
+      {title:"設備・内装", sub:"8/6〜9/20", value:"未着手", flag:false},
+    ],
+    profitItems:[
+      {title:"材料費", sub:"見積比率 42%", value:"¥9,702,000", flag:false},
+      {title:"労務費", sub:"見積比率 30%", value:"¥6,930,000", flag:false},
+      {title:"外注費", sub:"見積比率 8%", value:"¥1,848,000", flag:true},
+      {title:"諸経費", sub:"見積比率 3.2%", value:"¥739,000", flag:false},
+      {title:"粗利", sub:"見積比率 16.8%", value:"¥3,881,000", flag:false},
+    ]
+  },
+  c: {
+    name:"板橋倉庫外壁塗装", status:"完了",
+    estimate:"¥3,560,000", estimateDelta:"前回比 ±0%（変更なし）",
+    labor:"52人工", photo:"89枚", schedule:"18日", profit:"27.1%",
+    progress:"100%", remainDays:"0日", unpaid:"¥0",
+    estimateItems:[
+      {title:"足場仮設工事", sub:"外部足場・飛散防止", value:"¥620,000", flag:false},
+      {title:"高圧洗浄・下地補修", sub:"クラック補修含む", value:"¥480,000", flag:false},
+      {title:"外壁塗装工事", sub:"シリコン系 3回塗り", value:"¥1,860,000", flag:false},
+      {title:"付帯部塗装", sub:"軒天・雨樋", value:"¥600,000", flag:false},
+    ],
+    laborItems:[
+      {title:"山本 塗装班", sub:"5/10〜5/28 稼働", value:"40人工", flag:false},
+      {title:"松本 足場班", sub:"5/8〜5/12 稼働", value:"12人工", flag:false},
+    ],
+    photoItems:[
+      {title:"施工前 現況", sub:"5/8撮影 ／ 15枚", value:"", flag:false},
+      {title:"下地補修工程", sub:"5/12撮影 ／ 22枚", value:"", flag:false},
+      {title:"塗装工程（各回）", sub:"5/15〜5/24撮影 ／ 40枚", value:"", flag:false},
+      {title:"完了検査", sub:"5/28撮影 ／ 12枚", value:"", flag:false},
+    ],
+    scheduleItems:[
+      {title:"足場仮設", sub:"5/8〜5/12", value:"完了", flag:false},
+      {title:"下地補修", sub:"5/12〜5/16", value:"完了", flag:false},
+      {title:"塗装工事", sub:"5/17〜5/26", value:"完了", flag:false},
+      {title:"検査・足場解体", sub:"5/27〜5/28", value:"完了", flag:false},
+    ],
+    profitItems:[
+      {title:"材料費", sub:"見積比率 33%", value:"¥1,175,000", flag:false},
+      {title:"労務費", sub:"見積比率 28%", value:"¥997,000", flag:false},
+      {title:"外注費", sub:"見積比率 8%", value:"¥285,000", flag:false},
+      {title:"諸経費", sub:"見積比率 3.9%", value:"¥139,000", flag:false},
+      {title:"粗利", sub:"見積比率 27.1%", value:"¥965,000", flag:false},
+    ]
+  }
+};
+
+const detailMeta = {
+  estimate:{title:"見積内訳", key:"estimateItems", listLabel:"工種"},
+  labor:{title:"職人別 稼働記録", key:"laborItems", listLabel:"職人"},
+  photo:{title:"現場写真フォルダ", key:"photoItems", listLabel:"アルバム"},
+  schedule:{title:"工程スケジュール", key:"scheduleItems", listLabel:"工程"},
+  profit:{title:"粗利内訳", key:"profitItems", listLabel:"費目"},
+};
+
+let state = { projectId:null, detailType:null, rowIndex:null };
+let history = ['1'];
+
+function navTo(screenNum, backLabel){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screenNum).classList.add('active');
+  const backBtn = document.getElementById('backBtn');
+  const brandRow = document.getElementById('brandRow');
+  const levelTitle = document.getElementById('levelTitle');
+  if(screenNum === '1'){
+    backBtn.classList.remove('show');
+    brandRow.style.display='flex';
+    levelTitle.style.display='none';
+  }else{
+    backBtn.classList.add('show');
+    document.getElementById('backLabel').textContent = backLabel;
+    brandRow.style.display='none';
+    levelTitle.style.display='block';
+  }
+  window.scrollTo(0,0);
+}
+
+function openProject(id){
+  state.projectId = id;
+  const p = projects[id];
+  document.getElementById('levelTitleText').textContent = p.name;
+  document.getElementById('levelSubText').textContent = "案件ダッシュボード ／ ステータス: " + p.status;
+
+  document.getElementById('dashEstimate').textContent = p.estimate;
+  document.getElementById('dashEstimateDelta').textContent = p.estimateDelta;
+  document.getElementById('dashLabor').textContent = p.labor;
+  document.getElementById('dashPhoto').textContent = p.photo;
+  document.getElementById('dashSchedule').textContent = p.schedule;
+  document.getElementById('dashProfit').textContent = p.profit;
+  document.getElementById('dashProgress').textContent = p.progress;
+  document.getElementById('dashRemainDays').textContent = p.remainDays;
+  document.getElementById('dashUnpaid').textContent = p.unpaid;
+
+  history = ['1','2'];
+  navTo('2', '案件一覧');
+}
+
+function openDetail(type){
+  state.detailType = type;
+  const p = projects[state.projectId];
+  const meta = detailMeta[type];
+  document.getElementById('levelTitleText').textContent = meta.title;
+  document.getElementById('levelSubText').textContent = p.name;
+
+  const items = p[meta.key];
+  let html = '<div class="summary-strip">'
+    + '<div class="s-item"><div class="s-v">'+items.length+'件</div><div class="s-l">'+meta.listLabel+'数</div></div>'
+    + '<div class="s-item"><div class="s-v">'+(items.filter(i=>i.flag).length)+'件</div><div class="s-l">要確認</div></div>'
+    + '<div class="s-item"><div class="s-v">'+p.estimate+'</div><div class="s-l">案件見積総額</div></div>'
+    + '</div>';
+
+  items.forEach((it, idx)=>{
+    html += '<div class="detail-row" onclick="openEdit('+idx+')">'
+      + '<div class="dr-left"><div class="dr-title">'+it.title+'</div><div class="dr-sub">'+it.sub+'</div></div>'
+      + '<div class="dr-right">'
+      + (it.flag ? '<span class="dr-flag">要確認</span>' : '')
+      + (it.value ? '<span class="dr-value">'+it.value+'</span>' : '')
+      + '<span class="dr-chev">›</span></div>'
+      + '</div>';
+  });
+
+  document.getElementById('detailBody').innerHTML = html;
+  history = ['1','2','3'];
+  navTo('3', p.name);
+}
+
+function openEdit(idx){
+  state.rowIndex = idx;
+  const p = projects[state.projectId];
+  const meta = detailMeta[state.detailType];
+  const it = p[meta.key][idx];
+
+  document.getElementById('levelTitleText').textContent = it.title;
+  document.getElementById('levelSubText').textContent = meta.title + " ／ 明細編集";
+
+  let html = '<div class="edit-card">'
+    + '<div class="field"><label>項目名</label><input type="text" value="'+it.title+'"></div>'
+    + '<div class="field"><label>詳細メモ</label><textarea>'+it.sub+'</textarea></div>'
+    + '<div class="two-col">'
+    + '<div class="field"><label>金額／数量</label><input type="text" value="'+(it.value||'')+'"></div>'
+    + '<div class="field"><label>ステータス</label><select>'
+    + '<option'+(it.flag?' selected':'')+'>要確認</option>'
+    + '<option'+(!it.flag?' selected':'')+'>問題なし</option>'
+    + '<option>承認待ち</option>'
+    + '</select></div>'
+    + '</div>';
+
+  if(state.detailType === 'photo'){
+    html += '<div class="field"><label>関連写真</label><div class="photo-strip">'
+      + '<div class="photo-thumb">📷</div><div class="photo-thumb">📷</div>'
+      + '<div class="photo-thumb">📷</div><div class="photo-thumb">＋</div>'
+      + '</div></div>';
+  }
+
+  html += '</div>'
+    + '<div class="btn-row">'
+    + '<button class="btn secondary" onclick="goBack()">キャンセル</button>'
+    + '<button class="btn primary" onclick="saveEdit()">保存する</button>'
+    + '</div>'
+    + '<div class="btn-row"><button class="btn danger" onclick="goBack()">この項目を削除</button></div>';
+
+  document.getElementById('editBody').innerHTML = html;
+  history = ['1','2','3','4'];
+  navTo('4', meta.title);
+}
+
+function saveEdit(){
+  // ダミー保存: 明細画面へ戻る
+  openDetail(state.detailType);
+}
+
+function goBack(){
+  history.pop();
+  const prev = history[history.length-1];
+  if(prev === '1'){
+    navTo('1');
+  }else if(prev === '2'){
+    const p = projects[state.projectId];
+    document.getElementById('levelTitleText').textContent = p.name;
+    document.getElementById('levelSubText').textContent = "案件ダッシュボード ／ ステータス: " + p.status;
+    navTo('2', '案件一覧');
+  }else if(prev === '3'){
+    openDetailKeepHistory();
+  }
+}
+
+function openDetailKeepHistory(){
+  const p = projects[state.projectId];
+  const meta = detailMeta[state.detailType];
+  document.getElementById('levelTitleText').textContent = meta.title;
+  document.getElementById('levelSubText').textContent = p.name;
+  navTo('3', p.name);
+}
+</script>
+</body>
+</html>

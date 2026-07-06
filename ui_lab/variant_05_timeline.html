@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>GENBA | 現場が、経営を超えていく。</title>
+<style>
+  :root{
+    --ai:#16306e;
+    --blue:#4fb0ff;
+    --orange:#ff8a3d;
+    --bg:#0a0f16;
+    --grid:28px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:#eaf2ff;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
+  body{
+    background-image:
+      linear-gradient(rgba(79,176,255,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,176,255,0.08) 1px, transparent 1px);
+    background-size: var(--grid) var(--grid);
+    min-height:100vh;
+  }
+  .app{
+    max-width:390px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+    background:linear-gradient(180deg, rgba(22,48,110,0.35), rgba(10,15,22,0.1) 200px);
+  }
+
+  /* header */
+  header{
+    padding:18px 20px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid rgba(79,176,255,0.2);
+    position:sticky;
+    top:0;
+    background:rgba(10,15,22,0.85);
+    backdrop-filter:blur(6px);
+    z-index:5;
+  }
+  .logo{width:38px;height:38px;flex:none;}
+  header .brand{display:flex;flex-direction:column;}
+  header .brand .name{font-size:16px;font-weight:700;letter-spacing:0.08em;color:#fff;}
+  header .brand .catch{font-size:10.5px;color:var(--blue);letter-spacing:0.04em;margin-top:2px;}
+
+  .today-bar{
+    padding:14px 20px 4px;
+  }
+  .today-bar .date{font-size:12px;color:#9db4d6;}
+  .today-bar h1{
+    font-size:19px;
+    margin:4px 0 2px;
+    color:#fff;
+    font-weight:700;
+  }
+  .today-bar .sub{font-size:12px;color:#7d93b8;}
+
+  .progress-summary{
+    margin:14px 20px 0;
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(79,176,255,0.08);
+    border:1px solid rgba(79,176,255,0.25);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .progress-summary .label{font-size:11.5px;color:#9db4d6;}
+  .progress-summary .count{font-size:20px;font-weight:700;color:var(--orange);}
+  .progress-summary .count span{font-size:12px;color:#7d93b8;font-weight:400;}
+  .bar-track{
+    width:100%;
+    height:6px;
+    background:rgba(255,255,255,0.08);
+    border-radius:4px;
+    margin-top:10px;
+    overflow:hidden;
+    position:absolute;
+    left:14px;right:14px;bottom:10px;
+  }
+  .progress-summary{position:relative;padding-bottom:24px;}
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--blue),var(--orange));
+    border-radius:4px;
+    transition:width .6s ease;
+  }
+
+  /* timeline */
+  .timeline{
+    padding:24px 20px 100px;
+    position:relative;
+  }
+  .rail{
+    position:absolute;
+    left:39px;
+    top:24px;
+    bottom:100px;
+    width:2px;
+    background:linear-gradient(180deg, var(--blue) 0%, rgba(79,176,255,0.15) 60%, rgba(255,255,255,0.06) 100%);
+  }
+
+  .node{
+    position:relative;
+    display:flex;
+    gap:16px;
+    margin-bottom:6px;
+    cursor:pointer;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .node-dot-wrap{
+    width:40px;
+    flex:none;
+    display:flex;
+    justify-content:center;
+    position:relative;
+  }
+  .node-dot{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    font-weight:700;
+    border:2px solid rgba(255,255,255,0.15);
+    background:#111a26;
+    color:#5a6b85;
+    z-index:2;
+    transition:all .25s ease;
+  }
+  .node.done .node-dot{
+    background:linear-gradient(135deg,var(--blue),#2a7fd6);
+    border-color:var(--blue);
+    color:#fff;
+    box-shadow:0 0 0 4px rgba(79,176,255,0.12);
+  }
+  .node.current .node-dot{
+    background:linear-gradient(135deg,var(--orange),#e0651a);
+    border-color:var(--orange);
+    color:#fff;
+    animation:pulse 1.6s infinite;
+  }
+  .node.future .node-dot{
+    opacity:0.55;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(255,138,61,0.55);}
+    70%{box-shadow:0 0 0 12px rgba(255,138,61,0);}
+    100%{box-shadow:0 0 0 0 rgba(255,138,61,0);}
+  }
+
+  .node-body{
+    flex:1;
+    min-height:48px;
+    padding:8px 14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.03);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    margin-bottom:22px;
+    transition:background .2s ease, border-color .2s ease, transform .15s ease;
+  }
+  .node:active .node-body{transform:scale(0.98);}
+  .node.current .node-body{
+    border-color:rgba(255,138,61,0.5);
+    background:rgba(255,138,61,0.08);
+  }
+  .node.done .node-body{
+    border-color:rgba(79,176,255,0.25);
+  }
+  .node.future .node-body{opacity:0.5;}
+
+  .node-time{font-size:10.5px;color:#7d93b8;letter-spacing:0.04em;}
+  .node-title{font-size:15px;font-weight:700;color:#fff;margin-top:2px;}
+  .node.future .node-title{color:#9aa8bf;}
+  .node-desc{font-size:11.5px;color:#8ba0c0;margin-top:2px;}
+  .node-status{
+    font-size:10px;
+    margin-top:4px;
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:20px;
+    width:fit-content;
+  }
+  .node.done .node-status{background:rgba(79,176,255,0.18);color:var(--blue);}
+  .node.current .node-status{background:rgba(255,138,61,0.2);color:var(--orange);}
+  .node.future .node-status{background:rgba(255,255,255,0.06);color:#6b7a92;}
+
+  /* bottom cta */
+  .bottom-cta{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:0;
+    width:100%;
+    max-width:390px;
+    padding:14px 20px 22px;
+    background:linear-gradient(180deg, rgba(10,15,22,0) 0%, rgba(10,15,22,0.95) 30%);
+    z-index:4;
+  }
+  .cta-btn{
+    width:100%;
+    height:52px;
+    border-radius:14px;
+    border:none;
+    background:linear-gradient(135deg,var(--orange),#e0651a);
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    box-shadow:0 8px 24px rgba(255,138,61,0.35);
+  }
+  .cta-btn:active{filter:brightness(0.95);}
+
+  /* slide panel */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+    z-index:9;
+  }
+  .overlay.show{opacity:1;pointer-events:auto;}
+
+  .panel{
+    position:fixed;
+    top:0;
+    right:0;
+    width:88%;
+    max-width:360px;
+    height:100%;
+    background:#0d1420;
+    border-left:1px solid rgba(79,176,255,0.25);
+    transform:translateX(100%);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1);
+    z-index:10;
+    display:flex;
+    flex-direction:column;
+    box-shadow:-10px 0 40px rgba(0,0,0,0.5);
+  }
+  .panel.show{transform:translateX(0);}
+  .panel-head{
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .panel-head .ptitle{font-size:16px;font-weight:700;color:#fff;}
+  .panel-head .ptime{font-size:11px;color:var(--blue);margin-top:2px;}
+  .close-btn{
+    width:36px;height:36px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.06);
+    border:none;
+    color:#cdd8ea;
+    font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .panel-body{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{font-size:11.5px;color:#8ba0c0;display:block;margin-bottom:6px;}
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px;
+    padding:12px 14px;
+    color:#fff;
+    font-size:14px;
+    min-height:48px;
+  }
+  .field textarea{min-height:80px;resize:vertical;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    padding:10px 14px;
+    min-height:44px;
+    display:flex;align-items:center;
+    border-radius:20px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.12);
+    font-size:12.5px;
+    color:#cdd8ea;
+  }
+  .chip.active{
+    background:rgba(255,138,61,0.18);
+    border-color:var(--orange);
+    color:var(--orange);
+    font-weight:700;
+  }
+  .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .photo-slot{
+    aspect-ratio:1;
+    border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    border:1px dashed rgba(255,255,255,0.2);
+    display:flex;align-items:center;justify-content:center;
+    color:#5a6b85;
+    font-size:22px;
+  }
+  .panel-foot{
+    padding:16px 20px 24px;
+    border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .confirm-btn{
+    width:100%;
+    height:52px;
+    border-radius:14px;
+    border:none;
+    background:linear-gradient(135deg,var(--blue),#2a7fd6);
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+  }
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:100px;
+    transform:translateX(-50%) translateY(20px);
+    background:#16306e;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:30px;
+    font-size:13px;
+    opacity:0;
+    transition:all .3s ease;
+    z-index:20;
+    white-space:nowrap;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,4 92,27 92,73 50,96 8,73 8,27" fill="none" stroke="#4fb0ff" stroke-width="4"/>
+      <polygon points="50,16 80,33 80,67 50,84 20,67 20,33" fill="none" stroke="#ff8a3d" stroke-width="3"/>
+      <rect x="46" y="30" width="8" height="40" fill="#eaf2ff"/>
+      <rect x="30" y="46" width="40" height="8" fill="#eaf2ff"/>
+    </svg>
+    <div class="brand">
+      <div class="name">GENBA</div>
+      <div class="catch">現場が、経営を超えていく。</div>
+    </div>
+  </header>
+
+  <div class="today-bar">
+    <div class="date">2026年7月6日（月）</div>
+    <h1>今日の現場ストーリー</h1>
+    <div class="sub">株式会社丸勝工務店 / 新築戸建てB棟</div>
+  </div>
+
+  <div class="progress-summary">
+    <div>
+      <div class="label">本日の進捗</div>
+      <div class="count">3<span>/6 工程完了</span></div>
+    </div>
+    <div style="text-align:right;">
+      <div class="label">次の工程</div>
+      <div style="font-size:13px;color:var(--orange);font-weight:700;">拾い出し確認</div>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:50%;"></div></div>
+  </div>
+
+  <div class="timeline">
+    <div class="rail"></div>
+
+    <div class="node done" data-id="site">
+      <div class="node-dot-wrap"><div class="node-dot">✓</div></div>
+      <div class="node-body">
+        <div class="node-time">07:40</div>
+        <div class="node-title">現場選択</div>
+        <div class="node-desc">B棟／新築戸建て 上棟工事</div>
+        <div class="node-status">完了</div>
+      </div>
+    </div>
+
+    <div class="node done" data-id="drawing">
+      <div class="node-dot-wrap"><div class="node-dot">✓</div></div>
+      <div class="node-body">
+        <div class="node-time">08:10</div>
+        <div class="node-title">図面読取</div>
+        <div class="node-desc">配線図.pdf を自動解析済み</div>
+        <div class="node-status">完了</div>
+      </div>
+    </div>
+
+    <div class="node done" data-id="qty">
+      <div class="node-dot-wrap"><div class="node-dot">✓</div></div>
+      <div class="node-body">
+        <div class="node-time">09:05</div>
+        <div class="node-title">拾い出し</div>
+        <div class="node-desc">配線・器具・配管を自動集計</div>
+        <div class="node-status">完了</div>
+      </div>
+    </div>
+
+    <div class="node current" data-id="check">
+      <div class="node-dot-wrap"><div class="node-dot">4</div></div>
+      <div class="node-body">
+        <div class="node-time">10:30</div>
+        <div class="node-title">拾い出し確認</div>
+        <div class="node-desc">数量・単価のズレをチェック中</div>
+        <div class="node-status">進行中</div>
+      </div>
+    </div>
+
+    <div class="node future" data-id="estimate">
+      <div class="node-dot-wrap"><div class="node-dot">5</div></div>
+      <div class="node-body">
+        <div class="node-time">13:00</div>
+        <div class="node-title">見積確定</div>
+        <div class="node-desc">金額を確定し提出準備</div>
+        <div class="node-status">未着手</div>
+      </div>
+    </div>
+
+    <div class="node future" data-id="photo">
+      <div class="node-dot-wrap"><div class="node-dot">6</div></div>
+      <div class="node-body">
+        <div class="node-time">16:00</div>
+        <div class="node-title">写真</div>
+        <div class="node-desc">施工箇所の記録撮影</div>
+        <div class="node-status">未着手</div>
+      </div>
+    </div>
+
+    <div class="node future" data-id="report">
+      <div class="node-dot-wrap"><div class="node-dot">7</div></div>
+      <div class="node-body">
+        <div class="node-time">17:30</div>
+        <div class="node-title">日報</div>
+        <div class="node-desc">本日の作業内容を記録</div>
+        <div class="node-status">未着手</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-cta">
+    <button class="cta-btn" id="continueBtn">→ 現在の工程を続ける</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <div>
+      <div class="ptitle" id="panelTitle">拾い出し確認</div>
+      <div class="ptime" id="panelTime">10:30 予定</div>
+    </div>
+    <button class="close-btn" id="closeBtn">✕</button>
+  </div>
+  <div class="panel-body" id="panelBody">
+    <!-- filled by JS -->
+  </div>
+  <div class="panel-foot">
+    <button class="confirm-btn" id="confirmBtn">この工程を完了する</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">工程を更新しました</div>
+
+<script>
+  const data = {
+    site:{title:"現場選択", time:"07:40 完了", body:`
+      <div class="field"><label>現場名</label><input value="B棟／新築戸建て 上棟工事" readonly></div>
+      <div class="field"><label>元請け</label><input value="株式会社丸勝工務店" readonly></div>
+      <div class="field"><label>担当</label><input value="山田 太郎" readonly></div>
+    `},
+    drawing:{title:"図面読取", time:"08:10 完了", body:`
+      <div class="field"><label>読取ファイル</label><input value="配線図_B棟_rev3.pdf" readonly></div>
+      <div class="field"><label>検出項目数</label><input value="87件" readonly></div>
+      <div class="field"><label>メモ</label><textarea readonly>自動抽出精度：高。手動修正1件のみ。</textarea></div>
+    `},
+    qty:{title:"拾い出し", time:"09:05 完了", body:`
+      <div class="field"><label>配線</label><input value="240m"></div>
+      <div class="field"><label>器具点数</label><input value="63点"></div>
+      <div class="field"><label>配管</label><input value="52m"></div>
+    `},
+    check:{title:"拾い出し確認", time:"10:30 進行中", body:`
+      <div class="field"><label>数量ズレの有無</label>
+        <div class="chip-row">
+          <div class="chip active">なし</div>
+          <div class="chip">あり（要修正）</div>
+        </div>
+      </div>
+      <div class="field"><label>単価チェック</label>
+        <div class="chip-row">
+          <div class="chip active">最新単価反映済</div>
+          <div class="chip">要更新</div>
+        </div>
+      </div>
+      <div class="field"><label>確認メモ</label><textarea placeholder="気づいた点を入力"></textarea></div>
+    `},
+    estimate:{title:"見積確定", time:"13:00 予定", body:`
+      <div class="field"><label>見積金額</label><input placeholder="¥ 未入力" ></div>
+      <div class="field"><label>提出先</label><input placeholder="元請け担当者名"></div>
+      <div class="field"><label>提出方法</label>
+        <div class="chip-row">
+          <div class="chip">メール</div>
+          <div class="chip">郵送</div>
+          <div class="chip">持参</div>
+        </div>
+      </div>
+    `},
+    photo:{title:"写真", time:"16:00 予定", body:`
+      <div class="field"><label>施工箇所の撮影</label>
+        <div class="photo-grid">
+          <div class="photo-slot">＋</div>
+          <div class="photo-slot">＋</div>
+          <div class="photo-slot">＋</div>
+        </div>
+      </div>
+      <div class="field"><label>撮影メモ</label><textarea placeholder="撮影箇所の説明"></textarea></div>
+    `},
+    report:{title:"日報", time:"17:30 予定", body:`
+      <div class="field"><label>本日の作業内容</label><textarea placeholder="作業内容を入力"></textarea></div>
+      <div class="field"><label>明日の予定</label><textarea placeholder="翌日の作業予定"></textarea></div>
+      <div class="field"><label>天候</label>
+        <div class="chip-row">
+          <div class="chip active">晴れ</div>
+          <div class="chip">曇り</div>
+          <div class="chip">雨</div>
+        </div>
+      </div>
+    `}
+  };
+
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('panel');
+  const panelTitle = document.getElementById('panelTitle');
+  const panelTime = document.getElementById('panelTime');
+  const panelBody = document.getElementById('panelBody');
+  const toast = document.getElementById('toast');
+
+  function openPanel(id){
+    const d = data[id];
+    if(!d) return;
+    panelTitle.textContent = d.title;
+    panelTime.textContent = d.time;
+    panelBody.innerHTML = d.body;
+    overlay.classList.add('show');
+    panel.classList.add('show');
+
+    panelBody.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        const siblings = chip.parentElement.querySelectorAll('.chip');
+        siblings.forEach(s=>s.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+  }
+
+  function closePanel(){
+    overlay.classList.remove('show');
+    panel.classList.remove('show');
+  }
+
+  document.querySelectorAll('.node').forEach(node=>{
+    node.addEventListener('click', ()=>{
+      openPanel(node.dataset.id);
+    });
+  });
+
+  overlay.addEventListener('click', closePanel);
+  document.getElementById('closeBtn').addEventListener('click', closePanel);
+
+  document.getElementById('confirmBtn').addEventListener('click', ()=>{
+    closePanel();
+    showToast('工程を更新しました');
+  });
+
+  document.getElementById('continueBtn').addEventListener('click', ()=>{
+    openPanel('check');
+  });
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1800);
+  }
+</script>
+</body>
+</html>

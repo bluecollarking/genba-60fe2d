@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GENBA | 決定木ドリルダウン</title>
+<style>
+  :root{
+    --ai:#16306e;
+    --blue:#4fb0ff;
+    --orange:#ff8a3d;
+    --bg:#0a0f16;
+    --grid:28px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    background:var(--bg);
+    color:#eaf2ff;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    height:100%;
+  }
+  body{
+    background-image:
+      linear-gradient(rgba(79,176,255,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,176,255,0.08) 1px, transparent 1px);
+    background-size: var(--grid) var(--grid);
+    display:flex;
+    justify-content:center;
+  }
+  .phone{
+    width:390px;
+    max-width:100vw;
+    min-height:100vh;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:18px 16px 10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-bottom:1px solid rgba(79,176,255,0.25);
+    background:linear-gradient(180deg, rgba(22,48,110,0.55), rgba(10,15,22,0));
+  }
+  .logo{width:34px;height:34px;flex-shrink:0;}
+  .brand{
+    display:flex;
+    flex-direction:column;
+    line-height:1.1;
+  }
+  .brand .name{font-size:18px;font-weight:700;letter-spacing:0.08em;color:#fff;}
+  .brand .catch{font-size:10px;color:var(--blue);letter-spacing:0.03em;}
+
+  .breadcrumb{
+    padding:10px 16px;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+    font-size:13px;
+    background:rgba(22,48,110,0.35);
+    border-bottom:1px solid rgba(79,176,255,0.18);
+    min-height:48px;
+  }
+  .crumb{
+    display:inline-flex;
+    align-items:center;
+    min-height:32px;
+    padding:6px 10px;
+    border-radius:8px;
+    color:#cfe4ff;
+    background:transparent;
+    border:none;
+    font-size:13px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .crumb.active{
+    color:#fff;
+    font-weight:700;
+    background:rgba(79,176,255,0.18);
+  }
+  .crumb:not(.active):active{
+    background:rgba(79,176,255,0.12);
+  }
+  .sep{color:rgba(234,242,255,0.35);font-size:12px;}
+
+  main{
+    flex:1;
+    padding:20px 16px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .step-title{
+    font-size:15px;
+    color:#9fc4ff;
+    font-weight:700;
+    margin-bottom:2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .step-title .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--orange);
+    display:inline-block;
+  }
+
+  .card-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .card-grid.single-col{grid-template-columns:1fr;}
+
+  .choice-card{
+    min-height:110px;
+    border-radius:16px;
+    border:1px solid rgba(79,176,255,0.3);
+    background:linear-gradient(160deg, rgba(22,48,110,0.55), rgba(10,15,22,0.6));
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:flex-end;
+    gap:6px;
+    padding:14px;
+    cursor:pointer;
+    font-family:inherit;
+    color:#fff;
+    text-align:left;
+    position:relative;
+    overflow:hidden;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .choice-card:active{
+    transform:scale(0.96);
+    border-color:var(--blue);
+    background:linear-gradient(160deg, rgba(79,176,255,0.28), rgba(10,15,22,0.6));
+  }
+  .choice-card .icon{
+    font-size:26px;
+    line-height:1;
+  }
+  .choice-card .label{
+    font-size:15px;
+    font-weight:700;
+  }
+  .choice-card .sub{
+    font-size:11px;
+    color:#9fc4ff;
+  }
+  .choice-card .arrow{
+    position:absolute;
+    top:10px;right:12px;
+    color:rgba(255,255,255,0.35);
+    font-size:14px;
+  }
+  .choice-card.leaf{
+    border-color:rgba(255,138,61,0.45);
+  }
+  .choice-card.leaf:active{
+    border-color:var(--orange);
+    background:linear-gradient(160deg, rgba(255,138,61,0.25), rgba(10,15,22,0.6));
+  }
+
+  /* form (leaf) view */
+  .form-box{
+    border-radius:16px;
+    border:1px solid rgba(79,176,255,0.3);
+    background:rgba(22,48,110,0.3);
+    padding:18px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    color:#9fc4ff;
+    margin-bottom:6px;
+  }
+  .field input, .field textarea, .field select{
+    width:100%;
+    min-height:48px;
+    border-radius:10px;
+    border:1px solid rgba(79,176,255,0.35);
+    background:rgba(10,15,22,0.6);
+    color:#fff;
+    font-size:14px;
+    padding:12px;
+    font-family:inherit;
+  }
+  .field textarea{min-height:80px;resize:none;}
+  .field.row{
+    display:flex;
+    gap:10px;
+  }
+  .field.row > div{flex:1;}
+
+  .photo-mock{
+    height:150px;
+    border-radius:12px;
+    border:2px dashed rgba(79,176,255,0.4);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#9fc4ff;
+    font-size:13px;
+    background:repeating-linear-gradient(45deg, rgba(79,176,255,0.06) 0 10px, transparent 10px 20px);
+  }
+
+  .btn-primary{
+    min-height:52px;
+    border-radius:12px;
+    border:none;
+    background:linear-gradient(135deg, var(--blue), #2b8fe0);
+    color:#06182f;
+    font-size:15px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .btn-primary:active{filter:brightness(0.92);}
+
+  .btn-ghost{
+    min-height:48px;
+    border-radius:12px;
+    border:1px solid rgba(79,176,255,0.35);
+    background:transparent;
+    color:#cfe4ff;
+    font-size:14px;
+    font-family:inherit;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--orange);
+    color:#2a1400;
+    font-weight:700;
+    font-size:13px;
+    padding:12px 20px;
+    border-radius:30px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:50;
+    white-space:nowrap;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(-8px);
+  }
+
+  .hint{
+    font-size:11px;
+    color:rgba(234,242,255,0.4);
+    text-align:center;
+    margin-top:auto;
+    padding-top:16px;
+  }
+
+  .screen{
+    display:none;
+    flex-direction:column;
+    gap:14px;
+    animation:fadeIn .18s ease;
+  }
+  .screen.active{display:flex;}
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(6px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="24,3 43,13.5 43,34.5 24,45 5,34.5 5,13.5" fill="none" stroke="#4fb0ff" stroke-width="2"/>
+      <polygon points="24,9 37,16.5 37,31.5 24,39 11,31.5 11,16.5" fill="none" stroke="#4fb0ff" stroke-width="1.4" opacity="0.6"/>
+      <line x1="24" y1="17" x2="24" y2="31" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round"/>
+      <line x1="17" y1="24" x2="31" y2="24" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="brand">
+      <span class="name">GENBA</span>
+      <span class="catch">現場が、経営を超えていく。</span>
+    </div>
+  </header>
+
+  <div class="breadcrumb" id="breadcrumb"></div>
+
+  <main id="main">
+
+    <!-- Screen 0: 案件選択 -->
+    <section class="screen active" data-screen="site">
+      <div class="step-title"><span class="dot"></span>案件を選択</div>
+      <div class="card-grid single-col">
+        <button class="choice-card" onclick="go('project',{project:'田中様邸 新築工事'})">
+          <span class="icon">🏠</span>
+          <span class="label">田中様邸 新築工事</span>
+          <span class="sub">進行中・見積作成中</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card" onclick="go('project',{project:'佐藤ビル 外壁改修'})">
+          <span class="icon">🏢</span>
+          <span class="label">佐藤ビル 外壁改修</span>
+          <span class="sub">進行中・施工中</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card" onclick="go('project',{project:'第二工場 増築案件'})">
+          <span class="icon">🏗️</span>
+          <span class="label">第二工場 増築案件</span>
+          <span class="sub">見積提出済み</span>
+          <span class="arrow">›</span>
+        </button>
+      </div>
+      <p class="hint">案件をタップして詳細メニューへ</p>
+    </section>
+
+    <!-- Screen 1: 案件内メニュー -->
+    <section class="screen" data-screen="project">
+      <div class="step-title"><span class="dot"></span>メニューを選択</div>
+      <div class="card-grid">
+        <button class="choice-card" onclick="go('estimate')">
+          <span class="icon">📐</span>
+          <span class="label">見積</span>
+          <span class="sub">図面・音声・手入力</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card" onclick="go('photo')">
+          <span class="icon">📷</span>
+          <span class="label">写真</span>
+          <span class="sub">撮る・台帳</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card" onclick="go('docs')">
+          <span class="icon">📄</span>
+          <span class="label">書類</span>
+          <span class="sub">日報・報告書・指示書</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card leaf" onclick="go('form',{leaf:'attendance', title:'勤怠入力'})">
+          <span class="icon">⏱️</span>
+          <span class="label">勤怠</span>
+          <span class="sub">出退勤の記録</span>
+          <span class="arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 2: 見積 分岐 -->
+    <section class="screen" data-screen="estimate">
+      <div class="step-title"><span class="dot"></span>見積の作り方を選択</div>
+      <div class="card-grid single-col">
+        <button class="choice-card leaf" onclick="go('form',{leaf:'estimate_drawing', title:'図面読取で見積'})">
+          <span class="icon">🖼️</span>
+          <span class="label">図面から読み取る</span>
+          <span class="sub">図面画像をアップロードしてAI解析</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card leaf" onclick="go('form',{leaf:'estimate_voice', title:'音声入力で見積'})">
+          <span class="icon">🎙️</span>
+          <span class="label">音声で入力する</span>
+          <span class="sub">現場での聞き取りをそのまま記録</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card leaf" onclick="go('form',{leaf:'estimate_manual', title:'手入力で見積'})">
+          <span class="icon">⌨️</span>
+          <span class="label">手入力する</span>
+          <span class="sub">項目を自分で入力</span>
+          <span class="arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 3: 写真 分岐 -->
+    <section class="screen" data-screen="photo">
+      <div class="step-title"><span class="dot"></span>写真メニュー</div>
+      <div class="card-grid">
+        <button class="choice-card leaf" onclick="go('form',{leaf:'photo_take', title:'写真撮影'})">
+          <span class="icon">📸</span>
+          <span class="label">撮る</span>
+          <span class="sub">現場写真を記録</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card leaf" onclick="go('form',{leaf:'photo_ledger', title:'写真台帳'})">
+          <span class="icon">🗂️</span>
+          <span class="label">台帳</span>
+          <span class="sub">過去写真を確認</span>
+          <span class="arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 4: 書類 分岐 -->
+    <section class="screen" data-screen="docs">
+      <div class="step-title"><span class="dot"></span>書類メニュー</div>
+      <div class="card-grid single-col">
+        <button class="choice-card leaf" onclick="go('form',{leaf:'doc_report', title:'日報作成'})">
+          <span class="icon">📝</span>
+          <span class="label">日報</span>
+          <span class="sub">本日の作業内容を記録</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card leaf" onclick="go('form',{leaf:'doc_result', title:'報告書作成'})">
+          <span class="icon">📊</span>
+          <span class="label">報告書</span>
+          <span class="sub">工程・進捗の報告</span>
+          <span class="arrow">›</span>
+        </button>
+        <button class="choice-card leaf" onclick="go('form',{leaf:'doc_instruction', title:'指示書作成'})">
+          <span class="icon">📋</span>
+          <span class="label">指示書</span>
+          <span class="sub">職人への作業指示</span>
+          <span class="arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 5: 葉ノード 入力フォーム（共通モック） -->
+    <section class="screen" data-screen="form">
+      <div class="step-title"><span class="dot"></span><span id="form-title">入力</span></div>
+
+      <div class="form-box" id="form-drawing" style="display:none;">
+        <div class="photo-mock">📐 図面画像をここにアップロード</div>
+        <div class="field"><label>読取対象範囲</label><input type="text" placeholder="例：1階平面図"></div>
+        <button class="btn-primary" onclick="toast('AI解析を開始しました（ダミー）')">AIで解析する</button>
+      </div>
+
+      <div class="form-box" id="form-voice" style="display:none;">
+        <div class="photo-mock">🎙️ タップして録音開始</div>
+        <div class="field"><label>メモ</label><textarea placeholder="補足事項を入力"></textarea></div>
+        <button class="btn-primary" onclick="toast('音声を保存しました（ダミー）')">保存する</button>
+      </div>
+
+      <div class="form-box" id="form-manual" style="display:none;">
+        <div class="field"><label>工事項目</label><input type="text" placeholder="例：外壁塗装"></div>
+        <div class="field row">
+          <div><label>数量</label><input type="text" placeholder="100"></div>
+          <div><label>単位</label><input type="text" placeholder="㎡"></div>
+        </div>
+        <div class="field"><label>単価（円）</label><input type="text" placeholder="3,500"></div>
+        <button class="btn-primary" onclick="toast('見積項目を追加しました（ダミー）')">追加する</button>
+      </div>
+
+      <div class="form-box" id="form-photoTake" style="display:none;">
+        <div class="photo-mock">📸 カメラ起動プレビュー</div>
+        <div class="field"><label>タグ</label><input type="text" placeholder="例：足場・外壁北面"></div>
+        <button class="btn-primary" onclick="toast('写真を保存しました（ダミー）')">撮影して保存</button>
+      </div>
+
+      <div class="form-box" id="form-photoLedger" style="display:none;">
+        <div class="field"><label>絞り込み</label><select><option>すべて</option><option>足場</option><option>外壁</option><option>完了報告</option></select></div>
+        <div class="photo-mock">🗂️ 写真一覧（ダミー12件）</div>
+        <button class="btn-ghost" onclick="toast('一覧を更新しました（ダミー）')">更新する</button>
+      </div>
+
+      <div class="form-box" id="form-docReport" style="display:none;">
+        <div class="field"><label>作業日</label><input type="date" value="2026-07-06"></div>
+        <div class="field"><label>作業内容</label><textarea placeholder="本日の作業内容を入力"></textarea></div>
+        <div class="field"><label>天候</label><input type="text" placeholder="晴れ"></div>
+        <button class="btn-primary" onclick="toast('日報を提出しました（ダミー）')">提出する</button>
+      </div>
+
+      <div class="form-box" id="form-docResult" style="display:none;">
+        <div class="field"><label>工程名</label><input type="text" placeholder="例：基礎工事"></div>
+        <div class="field"><label>進捗率</label><input type="text" placeholder="80%"></div>
+        <div class="field"><label>所見</label><textarea placeholder="特記事項を入力"></textarea></div>
+        <button class="btn-primary" onclick="toast('報告書を作成しました（ダミー）')">作成する</button>
+      </div>
+
+      <div class="form-box" id="form-docInstruction" style="display:none;">
+        <div class="field"><label>宛先職人</label><input type="text" placeholder="例：山田組"></div>
+        <div class="field"><label>指示内容</label><textarea placeholder="作業指示を入力"></textarea></div>
+        <div class="field"><label>期限</label><input type="date" value="2026-07-10"></div>
+        <button class="btn-primary" onclick="toast('指示書を送信しました（ダミー）')">送信する</button>
+      </div>
+
+      <div class="form-box" id="form-attendance" style="display:none;">
+        <div class="field row">
+          <div><label>出勤</label><input type="time" value="08:00"></div>
+          <div><label>退勤</label><input type="time" value="17:00"></div>
+        </div>
+        <div class="field"><label>作業員</label><input type="text" placeholder="例：鈴木太郎"></div>
+        <button class="btn-primary" onclick="toast('勤怠を記録しました（ダミー）')">記録する</button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  // ---- ダミー状態管理 ----
+  const state = {
+    project: null,
+    path: [{key:'site', label:'現場'}]
+  };
+
+  const screenMeta = {
+    site:     { label: '現場' },
+    project:  { label: '案件メニュー' },
+    estimate: { label: '見積' },
+    photo:    { label: '写真' },
+    docs:     { label: '書類' },
+    form:     { label: '入力' }
+  };
+
+  const leafFormMap = {
+    estimate_drawing: 'form-drawing',
+    estimate_voice:   'form-voice',
+    estimate_manual:  'form-manual',
+    photo_take:       'form-photoTake',
+    photo_ledger:     'form-photoLedger',
+    doc_report:       'form-docReport',
+    doc_result:       'form-docResult',
+    doc_instruction:  'form-docInstruction',
+    attendance:       'form-attendance'
+  };
+
+  function go(screenKey, opts){
+    opts = opts || {};
+    if(opts.project){ state.project = opts.project; }
+
+    // build breadcrumb path depending on target
+    if(screenKey === 'project'){
+      state.path = [
+        {key:'site', label:'現場'},
+        {key:'project', label: state.project || '案件'}
+      ];
+    } else if(['estimate','photo','docs'].includes(screenKey)){
+      state.path = [
+        {key:'site', label:'現場'},
+        {key:'project', label: state.project || '案件'},
+        {key:screenKey, label: screenMeta[screenKey].label}
+      ];
+    } else if(screenKey === 'form'){
+      // determine parent branch from current path (estimate/photo/docs) or direct leaf from project (attendance)
+      let parentLabel = null, parentKey = null;
+      if(opts.leaf === 'attendance'){
+        parentKey = null;
+      } else if(opts.leaf.startsWith('estimate')) { parentKey='estimate'; parentLabel='見積'; }
+      else if(opts.leaf.startsWith('photo')) { parentKey='photo'; parentLabel='写真'; }
+      else if(opts.leaf.startsWith('doc')) { parentKey='docs'; parentLabel='書類'; }
+
+      state.path = [
+        {key:'site', label:'現場'},
+        {key:'project', label: state.project || '案件'}
+      ];
+      if(parentKey){ state.path.push({key:parentKey, label:parentLabel}); }
+      state.path.push({key:'form', label: opts.title || '入力', leaf: opts.leaf});
+    }
+
+    showScreen(screenKey, opts.leaf);
+    renderBreadcrumb();
+  }
+
+  function showScreen(screenKey, leaf){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.querySelector('.screen[data-screen="'+screenKey+'"]');
+    if(target){ target.classList.add('active'); }
+
+    if(screenKey === 'form' && leaf){
+      document.querySelectorAll('#main [id^="form-"]').forEach(f => f.style.display='none');
+      const id = leafFormMap[leaf];
+      const box = document.getElementById(id);
+      if(box){ box.style.display='flex'; }
+      const lastCrumb = state.path[state.path.length-1];
+      document.getElementById('form-title').textContent = lastCrumb.label;
+    }
+    window.scrollTo(0,0);
+  }
+
+  function renderBreadcrumb(){
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = '';
+    state.path.forEach((node, i) => {
+      const isLast = i === state.path.length - 1;
+      const btn = document.createElement('button');
+      btn.className = 'crumb' + (isLast ? ' active' : '');
+      btn.textContent = node.label;
+      if(!isLast){
+        btn.onclick = () => jumpTo(i);
+      }
+      bc.appendChild(btn);
+      if(!isLast){
+        const sep = document.createElement('span');
+        sep.className = 'sep';
+        sep.textContent = '›';
+        bc.appendChild(sep);
+      }
+    });
+  }
+
+  function jumpTo(index){
+    const node = state.path[index];
+    state.path = state.path.slice(0, index+1);
+    showScreen(node.key);
+    renderBreadcrumb();
+  }
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
+  }
+
+  // 初期表示
+  renderBreadcrumb();
+</script>
+
+</body>
+</html>

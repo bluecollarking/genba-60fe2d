@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GENBA — ボイス見積</title>
+<style>
+  :root{
+    --ai:#16306e;
+    --ao:#4fb0ff;
+    --daidai:#ff8a3d;
+    --bg:#0a0f16;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg);
+    color:#eaf2ff;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    height:100%;
+    overflow-x:hidden;
+  }
+  body{
+    background-image:
+      linear-gradient(rgba(79,176,255,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,176,255,0.08) 1px, transparent 1px);
+    background-size:28px 28px;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  .app{
+    width:390px;
+    max-width:100vw;
+    min-height:100vh;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    padding-bottom:150px;
+  }
+
+  /* header */
+  header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:18px 16px 10px;
+  }
+  .logo-hex{
+    width:34px; height:34px; flex-shrink:0;
+  }
+  .brand-text{
+    line-height:1.1;
+  }
+  .brand-text .name{
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:2px;
+    color:#fff;
+  }
+  .brand-text .catch{
+    font-size:9.5px;
+    color:var(--ao);
+    letter-spacing:0.5px;
+    margin-top:2px;
+  }
+
+  /* status line */
+  .status-row{
+    text-align:center;
+    padding:4px 20px 0;
+    min-height:22px;
+    font-size:12px;
+    color:#7fa8d6;
+  }
+
+  /* transcript ticker */
+  .transcript{
+    text-align:center;
+    padding:8px 24px 4px;
+    font-size:14.5px;
+    min-height:44px;
+    color:#dfe9ff;
+    font-weight:500;
+    line-height:1.4;
+  }
+  .transcript span{
+    opacity:0;
+    animation:fadein .35s forwards;
+  }
+  @keyframes fadein{ to{opacity:1;} }
+
+  /* mic zone */
+  .mic-zone{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:18px 0 8px;
+    position:relative;
+  }
+  .mic-wrap{
+    position:relative;
+    width:190px;
+    height:190px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .pulse-ring{
+    position:absolute;
+    width:190px;
+    height:190px;
+    clip-path:polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+    background:radial-gradient(circle, rgba(79,176,255,0.35), transparent 70%);
+    opacity:0;
+  }
+  .mic-wrap.recording .pulse-ring{
+    animation:pulse 1.4s ease-out infinite;
+  }
+  .mic-wrap.recording .pulse-ring:nth-child(2){ animation-delay:.45s; }
+  .mic-wrap.recording .pulse-ring:nth-child(3){ animation-delay:.9s; }
+  @keyframes pulse{
+    0%{ transform:scale(0.75); opacity:.65; }
+    100%{ transform:scale(1.5); opacity:0; }
+  }
+
+  .mic-btn{
+    position:relative;
+    width:150px;
+    height:150px;
+    border:none;
+    cursor:pointer;
+    clip-path:polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+    background:linear-gradient(155deg, #1c3d8c 0%, var(--ai) 55%, #0d1c40 100%);
+    box-shadow:0 0 0 3px rgba(79,176,255,0.5), 0 10px 30px rgba(0,0,0,0.6), inset 0 0 25px rgba(79,176,255,0.25);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform .15s ease;
+    z-index:2;
+  }
+  .mic-btn:active{ transform:scale(0.94); }
+  .mic-btn.recording{
+    background:linear-gradient(155deg, #2a52b8 0%, var(--daidai) 130%);
+    box-shadow:0 0 0 3px rgba(255,138,61,0.65), 0 10px 40px rgba(255,138,61,0.35), inset 0 0 25px rgba(255,255,255,0.2);
+  }
+  .mic-btn svg{ width:56px; height:56px; }
+
+  .mic-caption{
+    margin-top:14px;
+    font-size:12.5px;
+    color:#9fb8de;
+    letter-spacing:1px;
+  }
+
+  /* cards feed */
+  .feed{
+    flex:1;
+    padding:6px 14px 10px;
+    display:flex;
+    flex-direction:column-reverse;
+    gap:10px;
+    min-height:120px;
+  }
+  .card{
+    position:relative;
+    background:linear-gradient(135deg, rgba(22,48,110,0.55), rgba(10,15,22,0.85));
+    border:1px solid rgba(79,176,255,0.3);
+    border-left:4px solid var(--ao);
+    border-radius:10px;
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    animation:cardIn .45s cubic-bezier(.2,.9,.3,1.2);
+    touch-action:pan-y;
+  }
+  .card.labor{ border-left-color:var(--daidai); }
+  @keyframes cardIn{
+    0%{ transform:translateY(60px) scale(.9); opacity:0; }
+    100%{ transform:translateY(0) scale(1); opacity:1; }
+  }
+  .card.removing{
+    animation:cardOut .3s forwards;
+  }
+  @keyframes cardOut{
+    to{ transform:translateX(120%); opacity:0; }
+  }
+  .card-icon{
+    width:34px; height:34px;
+    flex-shrink:0;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(79,176,255,0.15);
+    font-size:18px;
+  }
+  .card.labor .card-icon{ background:rgba(255,138,61,0.15); }
+  .card-body{ flex:1; min-width:0; }
+  .card-tag{
+    font-size:10px;
+    color:var(--ao);
+    letter-spacing:1px;
+    font-weight:700;
+  }
+  .card.labor .card-tag{ color:var(--daidai); }
+  .card-title{
+    font-size:14.5px;
+    font-weight:700;
+    color:#fff;
+    margin-top:1px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .card-sub{
+    font-size:12px;
+    color:#a8bcd8;
+    margin-top:2px;
+  }
+  .card-amt{
+    font-size:15px;
+    font-weight:700;
+    color:#fff;
+    flex-shrink:0;
+    text-align:right;
+  }
+  .card-hint{
+    position:absolute;
+    inset:0;
+    border-radius:10px;
+    background:rgba(255,80,80,0.18);
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right:16px;
+    font-size:12px;
+    color:#ffb3b3;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .15s;
+  }
+  .card.swiping .card-hint{ opacity:1; }
+
+  .feed-empty{
+    text-align:center;
+    color:#5a7194;
+    font-size:12.5px;
+    padding:20px 30px;
+  }
+
+  /* bottom action bar */
+  .action-bar{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:0;
+    width:390px;
+    max-width:100vw;
+    padding:12px 14px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, rgba(10,15,22,0) 0%, rgba(10,15,22,0.96) 25%, #0a0f16 60%);
+    display:flex;
+    gap:10px;
+    z-index:10;
+  }
+  .action-btn{
+    flex:1;
+    border:none;
+    border-radius:12px;
+    padding:14px 8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    cursor:pointer;
+  }
+  .action-btn small{
+    font-size:10px;
+    font-weight:400;
+    opacity:.8;
+  }
+  .action-btn.est{
+    background:linear-gradient(135deg, var(--ao), #2a72d4);
+    box-shadow:0 6px 18px rgba(79,176,255,0.35);
+  }
+  .action-btn.report{
+    background:linear-gradient(135deg, var(--daidai), #c9601f);
+    box-shadow:0 6px 18px rgba(255,138,61,0.3);
+  }
+  .action-btn:disabled{
+    opacity:.35;
+    box-shadow:none;
+    cursor:not-allowed;
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    top:16px;
+    transform:translate(-50%,-140%);
+    background:#132043;
+    border:1px solid rgba(79,176,255,0.4);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:12.5px;
+    z-index:50;
+    transition:transform .35s cubic-bezier(.3,.9,.3,1.3);
+    white-space:nowrap;
+  }
+  .toast.show{ transform:translate(-50%,0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <svg class="logo-hex" viewBox="0 0 100 100">
+      <polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#4fb0ff" stroke-width="4"/>
+      <polygon points="50,16 82,33 82,67 50,84 18,67 18,33" fill="none" stroke="#16306e" stroke-width="3"/>
+      <line x1="50" y1="35" x2="50" y2="65" stroke="#ff8a3d" stroke-width="6" stroke-linecap="round"/>
+      <line x1="35" y1="50" x2="65" y2="50" stroke="#ff8a3d" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+      <div class="name">GENBA</div>
+      <div class="catch">現場が、経営を超えていく。</div>
+    </div>
+  </header>
+
+  <div class="status-row" id="statusRow">タップして話しかけてください</div>
+  <div class="transcript" id="transcript"></div>
+
+  <div class="mic-zone">
+    <div class="mic-wrap" id="micWrap">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <button class="mic-btn" id="micBtn" aria-label="マイク">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" fill="#eaf2ff"/>
+          <path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="#eaf2ff" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mic-caption" id="micCaption">タップして録音開始（モック）</div>
+  </div>
+
+  <div class="feed" id="feed">
+    <div class="feed-empty" id="feedEmpty">まだカードがありません。<br>マイクをタップすると、話した内容が<br>材料・労務カードになります。</div>
+  </div>
+
+</div>
+
+<div class="action-bar">
+  <button class="action-btn est" id="estBtn" disabled>
+    見積にする
+    <small>materials → 見積書</small>
+  </button>
+  <button class="action-btn report" id="reportBtn" disabled>
+    日報にする
+    <small>作業内容 → 日報</small>
+  </button>
+</div>
+
+<div class="toast" id="toast">カードを削除しました</div>
+
+<script>
+(function(){
+  const micBtn = document.getElementById('micBtn');
+  const micWrap = document.getElementById('micWrap');
+  const micCaption = document.getElementById('micCaption');
+  const statusRow = document.getElementById('statusRow');
+  const transcriptEl = document.getElementById('transcript');
+  const feed = document.getElementById('feed');
+  const feedEmpty = document.getElementById('feedEmpty');
+  const estBtn = document.getElementById('estBtn');
+  const reportBtn = document.getElementById('reportBtn');
+  const toast = document.getElementById('toast');
+
+  // モック例文 → 解釈結果セット
+  const scenarios = [
+    {
+      text: "えーと、コンパネ12mm 15枚と、垂木3mの角材を20本、あと今日は基礎の型枠組みで3人、8時間作業しました",
+      cards: [
+        {type:'material', icon:'📐', tag:'材料', title:'コンパネ 12mm', sub:'数量 15枚 ・ 建材', amt:'¥22,500'},
+        {type:'material', icon:'🪵', tag:'材料', title:'垂木 角材 3m', sub:'数量 20本 ・ 木材', amt:'¥14,000'},
+        {type:'labor', icon:'👷', tag:'労務', title:'基礎 型枠組み', sub:'3人 × 8時間', amt:'¥96,000'}
+      ]
+    },
+    {
+      text: "外壁の足場を8スパン設置、シートも張って、職人2人で半日かかったよ",
+      cards: [
+        {type:'material', icon:'🏗️', tag:'材料', title:'足場一式', sub:'8スパン ・ 仮設', amt:'¥64,000'},
+        {type:'material', icon:'🧵', tag:'材料', title:'養生シート', sub:'一式', amt:'¥8,000'},
+        {type:'labor', icon:'👷', tag:'労務', title:'足場設置作業', sub:'2人 × 4時間', amt:'¥32,000'}
+      ]
+    },
+    {
+      text: "配線工事でVVFケーブル2.0mm 100m、あと電気工1人で6時間ね",
+      cards: [
+        {type:'material', icon:'🔌', tag:'材料', title:'VVFケーブル 2.0mm', sub:'数量 100m', amt:'¥18,000'},
+        {type:'labor', icon:'⚡', tag:'労務', title:'配線工事', sub:'1人 × 6時間', amt:'¥42,000'}
+      ]
+    }
+  ];
+
+  let scenarioIndex = 0;
+  let isRecording = false;
+  let cardCount = 0;
+
+  function typeTranscript(text, cb){
+    transcriptEl.innerHTML = '';
+    const chars = text.split('');
+    let i = 0;
+    function step(){
+      if(i >= chars.length){
+        if(cb) setTimeout(cb, 400);
+        return;
+      }
+      const span = document.createElement('span');
+      span.textContent = chars[i];
+      transcriptEl.appendChild(span);
+      i++;
+      setTimeout(step, 28);
+    }
+    step();
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 1600);
+  }
+
+  function addCard(data, delay){
+    setTimeout(()=>{
+      if(feedEmpty) feedEmpty.style.display = 'none';
+      const card = document.createElement('div');
+      card.className = 'card' + (data.type === 'labor' ? ' labor' : '');
+      card.innerHTML = `
+        <div class="card-icon">${data.icon}</div>
+        <div class="card-body">
+          <div class="card-tag">${data.tag}</div>
+          <div class="card-title">${data.title}</div>
+          <div class="card-sub">${data.sub}</div>
+        </div>
+        <div class="card-amt">${data.amt}</div>
+        <div class="card-hint">← スワイプで削除</div>
+      `;
+      feed.appendChild(card);
+      cardCount++;
+      updateActionButtons();
+      attachSwipe(card);
+    }, delay);
+  }
+
+  function updateActionButtons(){
+    const has = cardCount > 0;
+    estBtn.disabled = !has;
+    reportBtn.disabled = !has;
+  }
+
+  function attachSwipe(card){
+    let startX = 0, curX = 0, dragging = false;
+    card.addEventListener('touchstart', e=>{
+      startX = e.touches[0].clientX; dragging = true;
+    }, {passive:true});
+    card.addEventListener('touchmove', e=>{
+      if(!dragging) return;
+      curX = e.touches[0].clientX - startX;
+      if(curX < 0){
+        card.style.transform = `translateX(${curX}px)`;
+        card.classList.add('swiping');
+      }
+    }, {passive:true});
+    card.addEventListener('touchend', ()=>{
+      dragging = false;
+      if(curX < -80){
+        removeCard(card);
+      } else {
+        card.style.transform = '';
+        card.classList.remove('swiping');
+      }
+      curX = 0;
+    });
+    // クリック（PC確認用）=修正モック、ダブルクリック的長押しはスキップし簡易タップで削除ヒント表示
+    card.addEventListener('click', ()=>{
+      showToast('カードを修正モードで開きます（モック）');
+    });
+  }
+
+  function removeCard(card){
+    card.classList.add('removing');
+    setTimeout(()=>{
+      card.remove();
+      cardCount--;
+      updateActionButtons();
+      if(cardCount === 0 && feedEmpty) feedEmpty.style.display = 'block';
+      showToast('カードを削除しました');
+    }, 280);
+  }
+
+  micBtn.addEventListener('click', ()=>{
+    if(isRecording) return;
+    isRecording = true;
+    micBtn.classList.add('recording');
+    micWrap.classList.add('recording');
+    micCaption.textContent = '聞き取り中…';
+    statusRow.textContent = '音声を認識しています';
+
+    const scenario = scenarios[scenarioIndex % scenarios.length];
+    scenarioIndex++;
+
+    typeTranscript(scenario.text, ()=>{
+      statusRow.textContent = 'AIが内容を解析しました';
+      micCaption.textContent = 'カードを生成中…';
+      scenario.cards.forEach((c, idx)=> addCard(c, idx * 380));
+
+      const totalDelay = scenario.cards.length * 380 + 500;
+      setTimeout(()=>{
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        micWrap.classList.remove('recording');
+        micCaption.textContent = 'タップして録音開始（モック）';
+        statusRow.textContent = 'タップして話しかけてください';
+      }, totalDelay);
+    });
+  });
+
+  estBtn.addEventListener('click', ()=>{
+    if(estBtn.disabled) return;
+    showToast('見積書を作成しました（モック）');
+  });
+  reportBtn.addEventListener('click', ()=>{
+    if(reportBtn.disabled) return;
+    showToast('日報を作成しました（モック）');
+  });
+})();
+</script>
+</body>
+</html>

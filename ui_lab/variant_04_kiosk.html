@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>GENBA - 現場キオスク</title>
+<style>
+  :root{
+    --ai:#16306e;
+    --blue:#4fb0ff;
+    --orange:#ff8a3d;
+    --bg:#0a0f16;
+    --card:#121a26;
+    --card-border:#233247;
+    --text:#f4f7fb;
+    --sub:#9fb0c4;
+    --danger:#ff5c5c;
+    --ok:#3ddc84;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:
+      linear-gradient(0deg, rgba(79,176,255,.07) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, rgba(79,176,255,.07) 1px, transparent 1px) 0 0/28px 28px,
+      var(--bg);
+    color:var(--text);
+    font-family:"Hiragino Sans","Yu Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    overscroll-behavior:none;
+    user-select:none;
+  }
+  #app{
+    max-width:390px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  /* ---- ヘッダー ---- */
+  header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 16px 10px;
+    border-bottom:1px solid var(--card-border);
+    background:rgba(10,15,22,.85);
+    position:sticky;
+    top:0;
+    z-index:30;
+  }
+  header .logo{width:34px;height:34px;flex-shrink:0;}
+  header .brand{display:flex;flex-direction:column;line-height:1.15;}
+  header .brand b{font-size:16px;letter-spacing:.06em;}
+  header .brand span{font-size:10px;color:var(--sub);}
+  header .status{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--ok);
+    background:rgba(61,220,132,.1);
+    border:1px solid rgba(61,220,132,.3);
+    padding:4px 8px;
+    border-radius:20px;
+  }
+  header .status .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);}
+
+  /* ---- パンくず / 戻る ---- */
+  .crumbbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 16px;
+    min-height:56px;
+  }
+  .backbtn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:56px;height:56px;
+    border-radius:16px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    color:var(--text);
+    font-size:26px;
+    flex-shrink:0;
+  }
+  .backbtn:active{background:#1c2838;}
+  .backbtn.hidden{visibility:hidden;pointer-events:none;}
+  .crumbtitle{flex:1;}
+  .crumbtitle .kicker{font-size:11px;color:var(--blue);font-weight:700;letter-spacing:.08em;}
+  .crumbtitle h1{margin:2px 0 0;font-size:19px;font-weight:800;}
+
+  /* ---- コンテキストカード（現在の現場） ---- */
+  .sitecard{
+    margin:0 16px 14px;
+    padding:14px 16px;
+    background:linear-gradient(135deg, rgba(22,48,110,.55), rgba(79,176,255,.12));
+    border:1px solid rgba(79,176,255,.35);
+    border-radius:18px;
+  }
+  .sitecard .name{font-size:17px;font-weight:800;}
+  .sitecard .meta{margin-top:4px;font-size:12px;color:var(--sub);}
+  .sitecard .meta b{color:var(--orange);}
+
+  /* ---- メイン: 2x2 巨大ボタン ---- */
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:0 16px 22px;
+  }
+  .grid2x2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:14px;
+    width:100%;
+    height:min(58vh, 440px);
+  }
+  .tile{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    border-radius:24px;
+    border:2px solid var(--card-border);
+    background:var(--card);
+    color:var(--text);
+    font-size:19px;
+    font-weight:800;
+    letter-spacing:.03em;
+    position:relative;
+    min-height:64px;
+    padding:8px;
+  }
+  .tile .ic{
+    width:48px;height:48px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .tile .ic svg{width:100%;height:100%;}
+  .tile small{
+    font-size:11px;
+    font-weight:600;
+    color:var(--sub);
+  }
+  .tile:active{transform:scale(.96);}
+  .tile.primary{
+    background:linear-gradient(155deg, var(--ai), #0d1f4d);
+    border-color:var(--blue);
+    box-shadow:0 0 0 1px rgba(79,176,255,.25) inset, 0 8px 24px rgba(22,48,110,.5);
+  }
+  .tile.accent{
+    background:linear-gradient(155deg, #5a2e0f, #2a1608);
+    border-color:var(--orange);
+  }
+  .tile.accent .ic svg{stroke:var(--orange);}
+  .tile .badge{
+    position:absolute;
+    top:10px;right:10px;
+    min-width:22px;height:22px;
+    border-radius:11px;
+    background:var(--danger);
+    color:#fff;
+    font-size:11px;
+    font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    padding:0 6px;
+  }
+
+  /* 下半分優先: フッター固定アクション（親指） */
+  .thumbdock{
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+  }
+  .dockbtn{
+    flex:1;
+    height:64px;
+    border-radius:18px;
+    border:2px solid var(--card-border);
+    background:var(--card);
+    color:var(--text);
+    font-size:14px;
+    font-weight:700;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+  }
+  .dockbtn.home{border-color:var(--blue);color:var(--blue);}
+  .dockbtn:active{background:#1c2838;}
+
+  /* ---- 画面切替 ---- */
+  .screen{display:none;flex:1;flex-direction:column;}
+  .screen.active{display:flex;}
+
+  /* ---- 詳細系画面(見積る/撮る/書く/記録の中身)用リスト ---- */
+  .listwrap{padding:0 16px 24px;flex:1;}
+  .bigitem{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    min-height:72px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    background:var(--card);
+    border:2px solid var(--card-border);
+    border-radius:18px;
+    color:var(--text);
+    font-size:16px;
+    font-weight:700;
+    text-align:left;
+  }
+  .bigitem:active{background:#1c2838;}
+  .bigitem .ic{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .bigitem .tx{flex:1;}
+  .bigitem .tx .sub{font-size:12px;color:var(--sub);font-weight:500;margin-top:2px;}
+  .bigitem .chev{color:var(--sub);font-size:20px;}
+  .bigitem.done{border-color:rgba(61,220,132,.4);}
+  .bigitem.done .ic svg{stroke:var(--ok);}
+  .bigitem.warn{border-color:rgba(255,138,61,.5);}
+
+  /* カメラ疑似画面 */
+  .cammock{
+    margin:0 16px;
+    flex:1;
+    border-radius:22px;
+    border:2px solid var(--card-border);
+    background:
+      repeating-linear-gradient(45deg, #0d151f 0 10px, #101a26 10px 20px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--sub);
+    font-size:13px;
+    position:relative;
+    min-height:280px;
+  }
+  .cammock .frame{
+    position:absolute;inset:20px;
+    border:2px dashed rgba(79,176,255,.5);
+    border-radius:16px;
+  }
+  .shutter-wrap{
+    display:flex;justify-content:center;
+    padding:22px 0;
+  }
+  .shutter{
+    width:84px;height:84px;
+    border-radius:50%;
+    background:var(--orange);
+    border:6px solid #fff2;
+    box-shadow:0 0 0 4px var(--orange);
+  }
+  .shutter:active{transform:scale(.92);}
+
+  /* トースト */
+  .toast{
+    position:fixed;
+    left:50%;bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ok);
+    color:#04210f;
+    font-weight:800;
+    font-size:14px;
+    padding:12px 22px;
+    border-radius:30px;
+    opacity:0;
+    transition:all .25s ease;
+    z-index:99;
+    white-space:nowrap;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* フォーム系(書く) */
+  .formcard{
+    margin:0 16px 14px;
+    background:var(--card);
+    border:2px solid var(--card-border);
+    border-radius:18px;
+    padding:16px;
+  }
+  .formcard label{font-size:12px;color:var(--sub);font-weight:700;}
+  .voicebtn{
+    width:100%;
+    margin-top:16px;
+    height:88px;
+    border-radius:24px;
+    border:2px solid var(--orange);
+    background:linear-gradient(155deg,#5a2e0f,#2a1608);
+    color:var(--orange);
+    font-size:18px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+  }
+  .voicebtn:active{transform:scale(.97);}
+  .quicktags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .qtag{
+    padding:12px 16px;
+    min-height:44px;
+    background:#0f1826;
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--sub);
+    display:flex;align-items:center;
+  }
+  .qtag:active{border-color:var(--blue);color:var(--blue);}
+
+  .section-title{
+    padding:0 16px;
+    margin:4px 0 12px;
+    font-size:13px;
+    font-weight:800;
+    color:var(--sub);
+    display:flex;align-items:center;gap:6px;
+  }
+  .section-title::before{content:"";width:4px;height:14px;background:var(--blue);border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <svg class="logo" viewBox="0 0 120 120">
+      <path d="M60 5 L107 32 L107 88 L60 115 L13 88 L13 32 Z" fill="none" stroke="#16306e" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M60 19 L95 39 L95 81 L60 101 L25 81 L25 39 Z" fill="none" stroke="#4fb0ff" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M52 34 H68 V52 H86 V68 H68 V86 H52 V68 H34 V52 H52 Z" fill="#ff8a3d"/>
+    </svg>
+    <div class="brand">
+      <b>GENBA</b>
+      <span>現場が、経営を超えていく。</span>
+    </div>
+    <div class="status"><span class="dot"></span>現場モード</div>
+  </header>
+
+  <!-- ============ 画面0: 今日の現場（トップ） ============ -->
+  <section class="screen active" id="scr-top">
+    <div class="crumbbar">
+      <div class="backbtn hidden">‹</div>
+      <div class="crumbtitle">
+        <div class="kicker">TODAY</div>
+        <h1>今日の現場</h1>
+      </div>
+    </div>
+
+    <div class="sitecard">
+      <div class="name">A様邸 新築工事</div>
+      <div class="meta">本日 2/3日目 ・ 職人 <b>4名</b> ・ 天候 晴</div>
+    </div>
+
+    <main>
+      <div class="grid2x2">
+        <button class="tile primary" onclick="go('mitsumoru')">
+          <div class="ic">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#4fb0ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="8" y="6" width="32" height="36" rx="3"/>
+              <line x1="15" y1="16" x2="33" y2="16"/>
+              <line x1="15" y1="24" x2="33" y2="24"/>
+              <line x1="15" y1="32" x2="25" y2="32"/>
+            </svg>
+          </div>
+          見積る
+        </button>
+
+        <button class="tile" onclick="go('toru')">
+          <div class="ic">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#f4f7fb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 16 h6 l3-5 h14 l3 5 h6 v22 H8 z"/>
+              <circle cx="24" cy="27" r="7"/>
+            </svg>
+          </div>
+          撮る
+          <span class="badge">3</span>
+        </button>
+
+        <button class="tile accent" onclick="go('kaku')">
+          <div class="ic">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 38 L10 30 L30 10 L38 18 L18 38 Z"/>
+              <line x1="24" y1="16" x2="32" y2="24"/>
+            </svg>
+          </div>
+          書く
+        </button>
+
+        <button class="tile" onclick="go('kiroku')">
+          <div class="ic">
+            <svg viewBox="0 0 48 48" fill="none" stroke="#f4f7fb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M24 6 a18 18 0 1 1 -12.7 5.3"/>
+              <polyline points="6,6 8,16 18,14"/>
+              <polyline points="24,14 24,24 32,28"/>
+            </svg>
+          </div>
+          記録
+        </button>
+      </div>
+
+      <div class="thumbdock">
+        <button class="dockbtn home" onclick="toast('現場を切替えました（ダミー）')">
+          <span style="font-size:20px;">🏗️</span>現場切替
+        </button>
+        <button class="dockbtn" onclick="toast('緊急連絡（ダミー）')">
+          <span style="font-size:20px;">☎️</span>緊急連絡
+        </button>
+      </div>
+    </main>
+  </section>
+
+  <!-- ============ 画面: 見積る ============ -->
+  <section class="screen" id="scr-mitsumoru">
+    <div class="crumbbar">
+      <button class="backbtn" onclick="go('top')">‹</button>
+      <div class="crumbtitle">
+        <div class="kicker">TODAY ＞ 見積る</div>
+        <h1>見積る</h1>
+      </div>
+    </div>
+    <div class="section-title">つくる</div>
+    <main style="justify-content:flex-start;">
+      <div class="grid2x2" style="height:auto;grid-template-rows:none;">
+        <button class="tile primary" style="min-height:150px;" onclick="toast('新規見積を開始（ダミー）')">
+          <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#4fb0ff" stroke-width="3" stroke-linecap="round"><line x1="24" y1="10" x2="24" y2="38"/><line x1="10" y1="24" x2="38" y2="24"/></svg></div>
+          新規作成
+        </button>
+        <button class="tile" style="min-height:150px;" onclick="go('mitsu-list')">
+          <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#f4f7fb" stroke-width="3" stroke-linejoin="round"><rect x="10" y="6" width="28" height="36" rx="2"/><line x1="16" y1="16" x2="32" y2="16"/><line x1="16" y1="24" x2="32" y2="24"/><line x1="16" y1="32" x2="24" y2="32"/></svg></div>
+          一覧を見る
+          <span class="badge">6</span>
+        </button>
+        <button class="tile accent" style="min-height:150px;" onclick="toast('単価表を開く（ダミー）')">
+          <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#ff8a3d" stroke-width="3" stroke-linejoin="round"><rect x="8" y="10" width="32" height="28" rx="2"/><line x1="8" y1="20" x2="40" y2="20"/><line x1="20" y1="20" x2="20" y2="38"/></svg></div>
+          単価表
+        </button>
+        <button class="tile" style="min-height:150px;" onclick="toast('AI見積アシスト起動（ダミー）')">
+          <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#f4f7fb" stroke-width="3" stroke-linejoin="round"><circle cx="24" cy="20" r="10"/><path d="M8 42 c0-9 7-14 16-14 s16 5 16 14"/></svg></div>
+          AIに相談
+        </button>
+      </div>
+    </main>
+  </section>
+
+  <!-- 見積一覧（更に一段下） -->
+  <section class="screen" id="scr-mitsu-list">
+    <div class="crumbbar">
+      <button class="backbtn" onclick="go('mitsumoru')">‹</button>
+      <div class="crumbtitle">
+        <div class="kicker">見積る ＞ 一覧</div>
+        <h1>見積一覧</h1>
+      </div>
+    </div>
+    <div class="listwrap">
+      <button class="bigitem done" onclick="toast('見積書を開きます（ダミー）')">
+        <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="#3ddc84" stroke-width="3"><path d="M8 21 l7 7 L33 11"/></svg></div>
+        <div class="tx">外壁塗装工事一式<div class="sub">¥1,280,000 ・ 承認済</div></div>
+        <div class="chev">›</div>
+      </button>
+      <button class="bigitem" onclick="toast('見積書を開きます（ダミー）')">
+        <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="#f4f7fb" stroke-width="3"><rect x="7" y="6" width="26" height="28" rx="2"/></svg></div>
+        <div class="tx">基礎工事 追加分<div class="sub">¥420,000 ・ 提出待ち</div></div>
+        <div class="chev">›</div>
+      </button>
+      <button class="bigitem warn" onclick="toast('見積書を開きます（ダミー）')">
+        <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="#ff8a3d" stroke-width="3"><line x1="20" y1="12" x2="20" y2="24"/><circle cx="20" cy="30" r="1.5" fill="#ff8a3d"/></svg></div>
+        <div class="tx">電気設備 改修工事<div class="sub">¥860,000 ・ 要修正</div></div>
+        <div class="chev">›</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ 画面: 撮る ============ -->
+  <section class="screen" id="scr-toru">
+    <div class="crumbbar">
+      <button class="backbtn" onclick="go('top')">‹</button>
+      <div class="crumbtitle">
+        <div class="kicker">TODAY ＞ 撮る</div>
+        <h1>撮る</h1>
+      </div>
+    </div>
+    <div class="cammock">
+      <div class="frame"></div>
+      A様邸／基礎配筋　自動タグ付け
+    </div>
+    <div class="shutter-wrap">
+      <button class="shutter" onclick="toast('撮影しました（ダミー）')"></button>
+    </div>
+    <div class="thumbdock" style="padding:0 16px 20px;">
+      <button class="dockbtn" onclick="go('toru-album')">
+        <span style="font-size:20px;">🖼️</span>台帳を見る
+      </button>
+      <button class="dockbtn home" onclick="toast('工種を切替（ダミー）')">
+        <span style="font-size:20px;">🔀</span>工種切替
+      </button>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-toru-album">
+    <div class="crumbbar">
+      <button class="backbtn" onclick="go('toru')">‹</button>
+      <div class="crumbtitle">
+        <div class="kicker">撮る ＞ 台帳</div>
+        <h1>写真台帳</h1>
+      </div>
+    </div>
+    <div class="listwrap">
+      <button class="bigitem done" onclick="toast('写真を開く（ダミー）')">
+        <div class="ic">📷</div><div class="tx">基礎配筋<div class="sub">14枚 ・ 本日 09:20</div></div><div class="chev">›</div>
+      </button>
+      <button class="bigitem done" onclick="toast('写真を開く（ダミー）')">
+        <div class="ic">📷</div><div class="tx">型枠設置<div class="sub">8枚 ・ 本日 10:45</div></div><div class="chev">›</div>
+      </button>
+      <button class="bigitem" onclick="toast('写真を開く（ダミー）')">
+        <div class="ic">📷</div><div class="tx">足場架設<div class="sub">3枚 ・ 未整理</div></div><div class="chev">›</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ 画面: 書く ============ -->
+  <section class="screen" id="scr-kaku">
+    <div class="crumbbar">
+      <button class="backbtn" onclick="go('top')">‹</button>
+      <div class="crumbtitle">
+        <div class="kicker">TODAY ＞ 書く</div>
+        <h1>書く</h1>
+      </div>
+    </div>
+    <div class="formcard">
+      <label>本日の作業日報</label>
+      <button class="voicebtn" onclick="toast('音声入力を開始（ダミー）')">
+        <span style="font-size:26px;">🎙️</span>音声で入力する
+      </button>
+      <div class="quicktags">
+        <div class="qtag" onclick="toast('タグ追加：晴れ・順調')">晴れ・順調</div>
+        <div class="qtag" onclick="toast('タグ追加：資材搬入')">資材搬入あり</div>
+        <div class="qtag" onclick="toast('タグ追加：追加作業')">追加作業発生</div>
+        <div class="qtag" onclick="toast('タグ追加：立会い')">施主立会い</div>
+      </div>
+    </div>
+    <div class="section-title">その他の書類</div>
+    <div class="listwrap" style="padding-top:0;">
+      <button class="bigitem" onclick="toast('安全チェックを開く（ダミー）')">
+        <div class="ic">✅</div><div class="tx">安全確認チェックシート<div class="sub">毎朝の点検</div></div><div class="chev">›</div>
+      </button>
+      <button class="bigitem" onclick="toast('発注書を開く（ダミー）')">
+        <div class="ic">📦</div><div class="tx">資材発注書<div class="sub">下書き 1件</div></div><div class="chev">›</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ 画面: 記録 ============ -->
+  <section class="screen" id="scr-kiroku">
+    <div class="crumbbar">
+      <button class="backbtn" onclick="go('top')">‹</button>
+      <div class="crumbtitle">
+        <div class="kicker">TODAY ＞ 記録</div>
+        <h1>記録</h1>
+      </div>
+    </div>
+    <div class="listwrap">
+      <button class="bigitem done" onclick="toast('出面（でづら）を開く（ダミー）')">
+        <div class="ic">👷</div><div class="tx">出面記録<div class="sub">本日 4名 ・ 打刻済</div></div><div class="chev">›</div>
+      </button>
+      <button class="bigitem" onclick="toast('資材使用記録を開く（ダミー）')">
+        <div class="ic">🧱</div><div class="tx">資材使用記録<div class="sub">セメント 40袋</div></div><div class="chev">›</div>
+      </button>
+      <button class="bigitem warn" onclick="toast('ヒヤリハットを開く（ダミー）')">
+        <div class="ic">⚠️</div><div class="tx">ヒヤリハット報告<div class="sub">未提出 1件</div></div><div class="chev">›</div>
+      </button>
+      <button class="bigitem" onclick="toast('工程履歴を開く（ダミー）')">
+        <div class="ic">📅</div><div class="tx">工程履歴<div class="sub">全12工程 ・ 2完了</div></div><div class="chev">›</div>
+      </button>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function go(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    var target = document.getElementById('scr-'+id);
+    if(target){ target.classList.add('active'); window.scrollTo(0,0); }
+  }
+  var toastTimer;
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1600);
+  }
+</script>
+</body>
+</html>

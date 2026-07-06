@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENBA UI Lab — 10案比較ギャラリー</title>
+<style>
+  :root{--ai:#16306e;--ao:#4fb0ff;--dai:#ff8a3d;--bg:#0a0f16;--line:#2e4458;--muted:#8ea3b8}
+  body{margin:0;font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:var(--bg);color:#eef4fb;
+    background-image:linear-gradient(rgba(79,176,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(79,176,255,.05) 1px,transparent 1px);
+    background-size:28px 28px;padding:24px}
+  h1{font-size:20px;letter-spacing:.08em;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:12.5px;margin-bottom:22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  a.card{display:block;background:#101a26;border:1px solid var(--line);border-radius:10px;padding:16px;
+    text-decoration:none;color:#eef4fb;transition:all .15s;position:relative}
+  a.card:hover{border-color:var(--dai);transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+  a.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ao);border-radius:10px 0 0 10px}
+  .num{font-size:11px;color:var(--dai);font-weight:800;letter-spacing:.1em}
+  .name{font-size:16px;font-weight:800;margin:2px 0 6px}
+  .desc{font-size:12px;color:var(--muted);line-height:1.7}
+  .tag{display:inline-block;font-size:10px;background:#1c2c3e;border:1px solid var(--line);border-radius:3px;padding:2px 7px;margin-top:8px;color:#b6c6d6}
+  .hint{margin-top:24px;background:#101a26;border-left:4px solid var(--dai);border-radius:0 8px 8px 0;padding:14px;font-size:13px;line-height:1.8;color:#cdd9e6}
+</style>
+</head>
+<body>
+<h1>⬡ GENBA UI Lab</h1>
+<div class="sub">ツリー型UI 10案 ── スマホで開いて実際にタップして比べてください（各案とも実際に遷移が動きます）</div>
+<div class="grid">
+  <a class="card" href="variant_01_wizard.html"><div class="num">案 01</div><div class="name">ウィザード</div><div class="desc">1画面1質問で進むステッパー。進捗バー＋戻る/次への大ボタン。迷いようがない。</div><span class="tag">確実・初心者に優しい</span></a>
+  <a class="card" href="variant_02_chat.html"><div class="num">案 02</div><div class="name">チャット対話</div><div class="desc">LINE風にGENBAと会話。選択肢チップをタップして進む。マイク付き。</div><span class="tag">親しみ・音声と好相性</span></a>
+  <a class="card" href="variant_03_tree.html"><div class="num">案 03</div><div class="name">決定木カード</div><div class="desc">パンくず＋選択カードで枝分かれしながら潜る。戻るはパンくずタップ。</div><span class="tag">ツリー直球・現在地明快</span></a>
+  <a class="card" href="variant_04_kiosk.html"><div class="num">案 04</div><div class="name">キオスク大ボタン</div><div class="desc">軍手でも押せる2×2巨大タイル。どの階層も同じ操作パターン。</div><span class="tag">現場最優先・学習ゼロ</span></a>
+  <a class="card" href="variant_05_timeline.html"><div class="num">案 05</div><div class="name">タイムライン</div><div class="desc">1日の工程が縦に流れる。✓が埋まっていき、今やることが光る。</div><span class="tag">進捗が気持ちいい</span></a>
+  <a class="card" href="variant_06_mindmap.html"><div class="num">案 06</div><div class="name">マインドマップ</div><div class="desc">中央=案件、枝=機能。配線図みたいな回路ラインでズームイン。</div><span class="tag">電気屋の美学</span></a>
+  <a class="card" href="variant_07_voice.html"><div class="num">案 07</div><div class="name">ボイスファースト</div><div class="desc">巨大マイク1つ。話すと材料/労務カードが積まれていく。文字入力は最終手段。</div><span class="tag">究極のハンズフリー</span></a>
+  <a class="card" href="variant_08_swipe.html"><div class="num">案 08</div><div class="name">スワイプ紙芝居</div><div class="desc">拾い出し確認をTinder式で。右=採用/左=除外。1枚1判断。</div><span class="tag">確認作業が爽快</span></a>
+  <a class="card" href="variant_09_checklist.html"><div class="num">案 09</div><div class="name">チェックリスト</div><div class="desc">朝礼ボード式「今日やること」。全部✓で現場完了🎉→日報自動生成。</div><span class="tag">1日の型ができる</span></a>
+  <a class="card" href="variant_10_drill.html"><div class="num">案 10</div><div class="name">ドリルダウン</div><div class="desc">案件カード→KPI→明細へ降りる。経営の数字と現場の明細を行き来。</div><span class="tag">経営者視点</span></a>
+</div>
+<div class="hint">
+  <b>選び方のヒント：</b>単独優勝を選ぶより「幹＋枝」の組み合わせが強いです。例：<b>幹=案3(決定木)や案9(チェックリスト)</b>で全体の流れを作り、<b>拾い出し確認だけ案8(スワイプ)</b>、<b>入力は案7(ボイス)</b>を差し込む——といった合成が可能。気に入った番号と「ここが好き/ここが嫌い」を教えてください。
+</div>
+</body>
+</html>

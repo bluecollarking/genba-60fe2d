@@ -1215,10 +1215,25 @@ async function importBackup(e){
   r.onload=async()=>{
     try{
       const b=JSON.parse(r.result);
+      // ★セキュリティ: 復元データを無害化（細工JSONによるXSS対策）
+      if(Array.isArray(b.cases)){
+        b.cases=b.cases.map((c,i)=>({
+          id:"c"+Date.now()+"_"+i,                      // IDは信用せず再発行
+          name:String(c&&c.name||"復元案件"),
+          savedAt:String(c&&c.savedAt||new Date().toISOString()),
+          data:(c&&typeof c.data==="object")?c.data:{head:{},cats:[...DEFAULT_CATS],rows:[]}
+        }));
+      }
+      if(Array.isArray(b.photos)){
+        b.photos=b.photos.filter(p=>p&&typeof p.data==="string"&&/^data:image\//.test(p.data))
+          .map((p,i)=>({id:Date.now()+i,data:p.data,koshu:String(p.koshu||""),
+            memo:String(p.memo||""),date:String(p.date||""),name:String(p.name||""),caseId:null}));
+      }
       if(b.cases)setCases(b.cases);
       if(b.master){master=b.master;safeLS.setItem("rw_master",JSON.stringify(master));}
-      if(b.current){cats=b.current.cats||DEFAULT_CATS;rows=b.current.rows||[];setHead(b.current.head);
-        if(b.current.curCaseId){curCaseId=b.current.curCaseId;safeLS.setItem("rw_curcase",curCaseId);}}
+      if(b.current){cats=Array.isArray(b.current.cats)?b.current.cats.map(String):[...DEFAULT_CATS];
+        rows=Array.isArray(b.current.rows)?b.current.rows:[];setHead(b.current.head);
+        curCaseId=null;safeLS.removeItem("rw_curcase");} // 外部IDは復元しない（XSS対策）
       if(b.phproject)safeLS.setItem("rw_phproject",b.phproject);
       if(Array.isArray(b.photos)&&b.photos.length){
         for(const p of b.photos){try{await phAdd(p);}catch(_){}}
@@ -1510,7 +1525,8 @@ function runDraft(){
           <span class="muted" style="font-size:11px">元: ${esc(o.line)}</span></div></div>`;
       }
     }).join("")+
-    `</div><button class="act" style="margin-top:10px" onclick='applyDraft(${JSON.stringify(res).replace(/'/g,"&#39;")})'>✓ チェックした項目を見積に追加</button>`;
+    `</div><button class="act" style="margin-top:10px" onclick="applyDraft(window.__draftRes)">✓ チェックした項目を見積に追加</button>`;
+  window.__draftRes=res; // onclick属性へのJSON埋め込みを廃止（XSS対策）
 }
 function applyDraft(res){
   res.forEach((o,i)=>{
