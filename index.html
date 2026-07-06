@@ -365,7 +365,7 @@ LED照明器具 40W相当 取付 18台
       <h2>💴 集計（消費税は10%切り捨て＝両磐電気仕様）</h2>
       <div class="row">
         <div>
-          <label>労務単価（円/人工）<br><span class="muted" style="font-size:11px">公共工事設計労務単価 令8 全国平均25,834。地域・職種で調整</span></label><input id="f_roumu" type="number" value="25834" oninput="renderEstimate()">
+          <label>労務単価（円/人工）<br><span class="muted" style="font-size:11px">初期値＝公共工事設計労務単価 令8・岩手県・電工 30,900円。職種で調整可</span></label><input id="f_roumu" type="number" value="30900" oninput="renderEstimate()">
           <label>想定人数（人）<br><span class="muted" style="font-size:11px">延べ人工÷人数＝概算工期(日)を表示</span></label><input id="f_crew" type="number" value="2" oninput="recalc()">
           <label>表示方式</label>
           <select id="f_dispmode" onchange="renderEstimate()">
@@ -848,7 +848,9 @@ const SAMPLE_MASTER = [
   {name:"運搬費",spec:"",unit:"式",price:0,bu:1.0,cat:"共通仮設・諸工事",kw:"運搬 搬入 搬出"},
   {name:"墨出し・現場管理",spec:"",unit:"式",price:0,bu:2.0,cat:"共通仮設・諸工事",kw:"墨出し 管理 共通仮設"},
 ];
-const DEFAULT_ROUMU = 25834; // 公共工事設計労務単価 令和8年 全国全職種加重平均(円/人工)
+const DEFAULT_ROUMU = 30900; // 公共工事設計労務単価 令和8年3月適用・岩手県・電工(円/人工)
+// マスタ未登録品でも労務を計上するための標準歩掛（人工/単位）。種別はclassifyDeviceで推定
+const DEFAULT_BU = { switch:0.08, outlet:0.09, ceiling:0.12, panel:0.60, weak:0.15, other:0.10 };
 
 let master = [];
 let cats = [];
@@ -1433,14 +1435,14 @@ ${txt}`;
 // ---------- AI下書き ----------
 function parseQty(line){
   // 単位付きの数字を優先（末尾側を採用）。φ22 等の寸法や日付は拾わない
-  const re=/([0-9]+(?:\.[0-9]+)?)\s*(m|ｍ|個|台|面|箇所|か所|本|式|枚|セット|回路|灯)/gi;
+  const re=/([0-9]+(?:\.[0-9]+)?)\s*(メートル|ﾒｰﾄﾙ|m|ｍ|個|台|面|箇所|か所|本|式|枚|セット|回路|灯)/gi;
   let m,last=null;
   while((m=re.exec(line))!==null){
     const n=parseFloat(m[1]);
     if(n>0 && n<10000) last=m; // 日付やコード(>=10000)は除外
   }
   if(last){
-    let u=last[2].replace("ｍ","m");
+    let u=last[2].replace("ｍ","m").replace(/メートル|ﾒｰﾄﾙ/,"m");
     if(u==="灯")u="台"; // 「9灯」→台
     return{qty:parseFloat(last[1]),unit:u};
   }
@@ -1502,8 +1504,9 @@ function runDraft(){
       }else{
         return `<div class="item">
           <input type="checkbox" id="ck${i}" style="width:auto">
-          <div style="flex:1"><span style="color:var(--warn)">該当なし（マスタに未登録）</span>
-          <span class="pill">${o.qty}${esc(o.unit)}</span><br>
+          <div style="flex:1"><span style="color:var(--warn)">マスタ未登録（材料単価は後入力）</span>
+          <span class="pill">${o.qty}${esc(o.unit)}</span>
+          <span class="pill" style="color:var(--accent2)">労務=標準歩掛で自動計上</span><br>
           <span class="muted" style="font-size:11px">元: ${esc(o.line)}</span></div></div>`;
       }
     }).join("")+
@@ -1521,7 +1524,11 @@ function applyDraft(res){
     if(o.best&&o.bestSc>0){
       rows.push({cat:o.best.cat,name:o.best.name,spec:o.best.spec||"",unit:o.unit||o.best.unit,qty:o.qty,price:o.best.price,bu:o.best.bu||0});
     }else{
-      rows.push({cat:cats[cats.length-1],name:o.line,spec:"",unit:o.unit||"式",qty:o.qty,price:0});
+      // マスタ未登録でも労務は止めない：種別から標準歩掛を推定して計上（材料単価のみ後入力）
+      const kind=classifyDevice(o.line,"");
+      // m物（配線・配管）は per-m の小さい歩掛。個数物は種別別の標準歩掛
+      const bu=((o.unit||"")==="m") ? 0.015 : (DEFAULT_BU[kind]||0.10);
+      rows.push({cat:cats[cats.length-1],name:o.line,spec:"歩掛=標準推定",unit:o.unit||"式",qty:o.qty,price:0,bu:bu});
     }
   });
   persist();renderEstimate();
