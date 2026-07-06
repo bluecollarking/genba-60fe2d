@@ -288,7 +288,11 @@
       </label></div>
       <div id="dropStatus" class="muted" style="font-size:12px;margin-bottom:8px"></div>
 
-      <label>要件・仕様テキスト（例を入れてあります。書き換えてOK／PDFを入れるとここに追記されます）</label>
+      <div class="row noprint" style="margin-bottom:4px">
+        <button class="ghost" id="micBtn" onclick="toggleMic()">🎤 音声で入力（作業・材料・人数を話す）</button>
+      </div>
+      <div id="micStatus" class="muted" style="font-size:12px;margin-bottom:6px"></div>
+      <label>要件・仕様テキスト（音声・PDF・手入力なんでもOK。ここに溜まります）</label>
       <textarea id="aiInput">PF管22 露出 80m
 VVF2.0-2C 配線 120m
 アウトレットボックス 中形四角 12個
@@ -298,8 +302,10 @@ LED照明器具 40W相当 取付 18台
 ケーブルラック 200幅 25m</textarea>
       <div class="row" style="margin-top:10px">
         <button class="act" onclick="runDraft()">🔍 拾い出す</button>
+        <button class="act" style="background:linear-gradient(180deg,var(--blue),#2563c4);color:#04121f" onclick="aiDraft()">🤖 AIで解釈して拾い出す</button>
         <button class="ghost" onclick="document.getElementById('aiInput').value=''">クリア</button>
       </div>
+      <div class="hint" style="margin-top:8px">🎤の使い方：「コンセント5個、VVF100メートル、撤去が1式、<b>2人で6時間</b>」のように話す →「🤖AIで解釈」→ 材料明細＋労務（人工）まで自動で組み立てます。</div>
       <div id="draftResult"></div>
     </div>
     <div class="card">
@@ -1368,6 +1374,62 @@ function addCableLine(){
   document.querySelector('nav button[data-v="estimate"]').click();
 }
 
+// ---------- 音声入力（Web Speech API・https必須） ----------
+let rec=null, micOn=false;
+function toggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const st=document.getElementById("micStatus");
+  if(!SR){st.textContent="⚠️ このブラウザは音声入力に未対応です。iPhoneはSafari、AndroidはChromeでお試しください。";return;}
+  if(micOn){try{rec.stop();}catch(_){ } return;}
+  rec=new SR(); rec.lang="ja-JP"; rec.continuous=true; rec.interimResults=true;
+  const ta=document.getElementById("aiInput");
+  const base=ta.value;
+  let finals="";
+  rec.onresult=e=>{
+    finals="";let tmp="";
+    for(let i=0;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal)finals+=r[0].transcript+"\n"; else tmp+=r[0].transcript;
+    }
+    ta.value=(base?base+"\n":"")+finals+(tmp?("…"+tmp):"");
+  };
+  rec.onstart=()=>{micOn=true;
+    document.getElementById("micBtn").textContent="⏹ 停止する（録音中）";
+    st.textContent="🎤 聞き取り中… 話し終わったら⏹で停止";};
+  rec.onend=()=>{micOn=false;
+    const t=document.getElementById("aiInput");
+    t.value=(base?base+"\n":"")+finals; // 中間表示を確定分だけに整える
+    document.getElementById("micBtn").textContent="🎤 音声で入力（作業・材料・人数を話す）";
+    st.textContent="✓ 停止しました。内容を確認して『🤖AIで解釈』か『🔍拾い出す』へ";};
+  rec.onerror=e=>{st.textContent="⚠️ 音声エラー: "+e.error+(e.error==="not-allowed"?"（マイクの許可が必要です）":"");};
+  rec.start();
+}
+// ---------- AI解釈（音声メモ→明細変換） ----------
+async function aiDraft(){
+  const key=(safeLS.getItem("rw_apikey")||"").trim();
+  const txt=document.getElementById("aiInput").value.trim();
+  if(!txt){alert("先に音声かテキストで内容を入れてください");return;}
+  if(!key){alert("APIキーが未設定です（このタブ下部で設定）。設定なしの場合は『🔍拾い出す』をご利用ください");return;}
+  busy("AIが現場メモを解釈中...","作業内容を見積明細に変換しています");
+  try{
+    const prompt=`あなたは日本の電気工事の積算担当です。以下の現場メモ（音声書き起こし・話し言葉）を見積明細に変換してください。
+規則:
+- 出力は1行1項目で「名称 仕様 数量単位」のみ（例: コンセント取付 2P15A 5個）
+- 電線・配管は長さm、器具は個/台、ひとまとまりの作業は1式
+- 「○人で○時間」「○人工」など人員・時間の言及があれば、最終行に「労務 ○人×○時間 1式」の形式で出力
+- 説明・前置き・記号は不要。判読不能な部分は無視
+現場メモ:
+${txt}`;
+    const out=await aiText(prompt,key);
+    if(out){
+      document.getElementById("aiInput").value=out.trim();
+      runDraft();
+      dzStatus("✓ AIが解釈しました。照合結果を確認してチェック→見積に追加してください");
+    }else{alert("AIから応答がありませんでした");}
+  }catch(e){alert("AI解釈に失敗: "+e.message);}
+  finally{idle();}
+}
+
 // ---------- AI下書き ----------
 function parseQty(line){
   // 単位付きの数字を優先（末尾側を採用）。φ22 等の寸法や日付は拾わない
@@ -1399,6 +1461,11 @@ function runDraft(){
     .filter(s=>!/電気設備図|^図面|階$/.test(s));   // 図面名・階表記の行を除外
   const res=[];
   lines.forEach(line=>{
+    // 労務指定（例:「労務 2人×6時間」「2人で6時間」「3人工」）を検出
+    const lm=line.match(/(\d+(?:\.\d+)?)\s*人\s*(?:×|x|で)?\s*(\d+(?:\.\d+)?)\s*時間/);
+    const nm=line.match(/(\d+(?:\.\d+)?)\s*人工/);
+    if(lm){res.push({line,labor:{p:+lm[1],h:+lm[2],nin:(+lm[1])*(+lm[2])/8}});return;}
+    if(nm){res.push({line,labor:{p:null,h:null,nin:+nm[1]}});return;}
     let best=null,bestSc=0;
     master.forEach(m=>{const sc=scoreMatch(line,m);if(sc>bestSc){bestSc=sc;best=m;}});
     const {qty,unit}=parseQty(line);
@@ -1407,6 +1474,17 @@ function runDraft(){
   const box=document.getElementById("draftResult");
   box.innerHTML=`<div class="suggest"><h3 style="margin:0 0 8px">照合結果（${res.length}件）</h3>`+
     res.map((o,i)=>{
+      if(o.labor){
+        return `<div class="item">
+          <input type="checkbox" id="ck${i}" checked style="width:auto">
+          <div style="flex:1">
+            <b style="color:var(--accent2)">👷 労務</b>
+            <span class="pill">${o.labor.p?`${o.labor.p}人×${o.labor.h}時間`:"人工指定"}</span>
+            <span class="pill">= ${o.labor.nin.toFixed(2)}人工</span>
+            <span class="pill">@労務単価で自動計算</span><br>
+            <span class="muted" style="font-size:11px">元: ${esc(o.line)}</span>
+          </div></div>`;
+      }
       if(o.best&&o.bestSc>0){
         return `<div class="item">
           <input type="checkbox" id="ck${i}" checked style="width:auto">
@@ -1430,6 +1508,12 @@ function runDraft(){
 function applyDraft(res){
   res.forEach((o,i)=>{
     const ck=document.getElementById("ck"+i);if(!ck||!ck.checked)return;
+    if(o.labor){
+      rows.push({cat:"共通仮設・諸工事",name:"労務（音声/現場指示）",
+        spec:o.labor.p?`${o.labor.p}人×${o.labor.h}時間`:"人工指定",
+        unit:"式",qty:1,price:0,bu:o.labor.nin});
+      return;
+    }
     if(o.best&&o.bestSc>0){
       rows.push({cat:o.best.cat,name:o.best.name,spec:o.best.spec||"",unit:o.unit||o.best.unit,qty:o.qty,price:o.best.price,bu:o.best.bu||0});
     }else{
