@@ -1416,7 +1416,7 @@ async function aiDraft(){
 規則:
 - 出力は1行1項目で「名称 仕様 数量単位」のみ（例: コンセント取付 2P15A 5個）
 - 電線・配管は長さm、器具は個/台、ひとまとまりの作業は1式
-- 「○人で○時間」「○人工」など人員・時間の言及があれば、最終行に「労務 ○人×○時間 1式」の形式で出力
+- 「○人で○時間」「○名で○時間」「○人×○日」「○人工」など人員・時間・日数の言及があれば、必ず最終行に「労務 ○人×○時間 1式」（日数の場合は1日=8時間で換算）の形式で出力
 - 説明・前置き・記号は不要。判読不能な部分は無視
 現場メモ:
 ${txt}`;
@@ -1455,16 +1455,20 @@ function scoreMatch(line,m){
   return sc;
 }
 function runDraft(){
-  const lines=document.getElementById("aiInput").value.split(/\n/).map(s=>s.trim())
+  const lines=document.getElementById("aiInput").value.split(/\n/)
+    .flatMap(s=>s.split(/[、。]/))                 // 音声の読点・句点でも分割（1行に複数項目対応）
+    .map(s=>s.trim())
     .filter(Boolean)
     .filter(s=>!s.startsWith("#"))                 // コメント/見出し行を除外
     .filter(s=>!/電気設備図|^図面|階$/.test(s));   // 図面名・階表記の行を除外
   const res=[];
   lines.forEach(line=>{
-    // 労務指定（例:「労務 2人×6時間」「2人で6時間」「3人工」）を検出
-    const lm=line.match(/(\d+(?:\.\d+)?)\s*人\s*(?:×|x|で)?\s*(\d+(?:\.\d+)?)\s*時間/);
+    // 労務指定を検出（「2人で6時間」「1名で3時間」「2人×3日」「3人工」に対応）
+    const lm=line.match(/(\d+(?:\.\d+)?)\s*[人名]\s*(?:×|x|で)?\s*(\d+(?:\.\d+)?)\s*時間/);
+    const ld=line.match(/(\d+(?:\.\d+)?)\s*[人名]\s*(?:×|x|で)?\s*(\d+(?:\.\d+)?)\s*日/);
     const nm=line.match(/(\d+(?:\.\d+)?)\s*人工/);
     if(lm){res.push({line,labor:{p:+lm[1],h:+lm[2],nin:(+lm[1])*(+lm[2])/8}});return;}
+    if(ld){res.push({line,labor:{p:+ld[1],h:(+ld[2])*8,nin:(+ld[1])*(+ld[2])}});return;}
     if(nm){res.push({line,labor:{p:null,h:null,nin:+nm[1]}});return;}
     let best=null,bestSc=0;
     master.forEach(m=>{const sc=scoreMatch(line,m);if(sc>bestSc){bestSc=sc;best=m;}});
