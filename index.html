@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#16306e">
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="icon" href="logo.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -276,13 +276,7 @@
 <!-- イグニッション起動演出 -->
 <div id="ignition">
   <div class="chev-bar chev-top"></div>
-  <svg class="ign-logo" viewBox="0 0 120 120">
-    <polygon class="ign-ring" points="60,6 108,33 108,87 60,114 12,87 12,33" fill="none" stroke="#ffc400" stroke-width="3"/>
-    <polygon class="ign-ring2" points="60,18 98,39 98,81 60,102 22,81 22,39" fill="none" stroke="#f3f3f0" stroke-width="1.6"/>
-    <line x1="60" y1="46" x2="60" y2="74" stroke="#ffc400" stroke-width="5" stroke-linecap="round"/>
-    <line x1="46" y1="60" x2="74" y2="60" stroke="#ffc400" stroke-width="5" stroke-linecap="round"/>
-  </svg>
-  <div class="ign-text">G E N B A</div>
+  <img src="logo.png" alt="GENBA" style="width:80%;max-width:320px;height:auto;filter:drop-shadow(0 6px 24px rgba(0,0,0,.6));opacity:0;animation:ignFade .9s .2s forwards">
   <div class="ign-catch">現場が、経営を超えていく。</div>
   <div class="ign-boot">SYSTEM START ...</div>
   <div class="chev-bar chev-bot"></div>
@@ -297,17 +291,15 @@
 </div>
 <!-- 案件ランチャー（起動画面） -->
 <div id="launcher">
-  <img src="logo.svg" alt="GENBA" style="width:84px;height:84px;margin-bottom:10px;filter:drop-shadow(0 4px 18px rgba(79,176,255,.5))">
-  <div class="lx-logo" style="letter-spacing:.22em">GENBA <span style="font-size:14px;color:var(--blue);letter-spacing:.25em;vertical-align:middle">現場</span></div>
+  <img src="logo.png" alt="GENBA" style="width:88%;max-width:320px;height:auto;margin-bottom:14px;filter:drop-shadow(0 6px 22px rgba(0,0,0,.5))">
   <div style="color:#cdd9e6;font-size:15px;margin-bottom:6px;letter-spacing:.06em;font-weight:700"><b style="color:var(--accent)">現場が、経営を超えていく。</b></div>
   <div class="lx-sub">本日の現場を選択してください</div>
   <div class="lx-grid" id="lxGrid"></div>
   <div class="lx-skip" onclick="hideLauncher()">案件を選ばずに開く（前回の続き）→</div>
 </div>
 <header>
-  <img src="logo.svg" alt="GENBA" style="width:40px;height:40px;filter:drop-shadow(0 2px 8px rgba(79,176,255,.45))">
+  <img src="logo.png" alt="GENBA" style="height:42px;width:auto;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))">
   <h1 style="display:flex;flex-direction:column;gap:1px;line-height:1.25">
-    <span style="letter-spacing:.18em">GENBA <span style="font-size:11px;color:var(--blue);letter-spacing:.2em;font-weight:700">現場</span></span>
     <span class="muted" style="font-size:11px;letter-spacing:.08em;font-weight:600">現場が、経営を超えていく。</span>
   </h1>
   <span class="tag" id="hdrCase" style="border-color:var(--accent);color:#ffe08a;cursor:pointer" onclick="showLauncher()" title="クリックで案件を切替">📁 （案件未選択）</span>
