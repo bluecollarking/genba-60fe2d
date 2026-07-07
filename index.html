@@ -214,7 +214,7 @@
   .spinner{width:64px;height:64px;border-radius:50%;border:3px solid var(--line2);
     border-top-color:var(--accent);border-right-color:var(--blue);animation:spin .9s linear infinite;position:relative}
   .spinner::after{content:"⚡";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    font-size:24px;animation:spinrev .9s linear infinite;filter:drop-shadow(0 0 6px rgba(255,138,61,.8))}
+    font-size:24px;animation:spinrev .9s linear infinite)}
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes spinrev{to{transform:rotate(-360deg)}}
   #busyMsg{color:#fff;font-weight:800;letter-spacing:.06em;font-size:15px}
@@ -294,7 +294,7 @@
   <div class="chev-bar chev-top"></div>
   <div class="ign-stage">
     <svg class="ign-hex" viewBox="0 0 200 200"><polygon class="ign-hexring" points="100,10 178,55 178,145 100,190 22,145 22,55"/></svg>
-    <img class="ign-badge" src="logo_badge.png?v=2" alt="GENBA">
+    <img class="ign-badge" src="crest.png" alt="GENBA">
   </div>
   <div class="ign-word">GENBA</div>
   <div class="ign-catch">現場が、経営を超えていく。</div>
@@ -311,7 +311,7 @@
 </div>
 <!-- 案件ランチャー（起動画面） -->
 <div id="launcher">
-  <img src="logo_badge.png?v=2" alt="GENBA" style="width:150px;height:auto;margin-bottom:12px;filter:drop-shadow(0 8px 26px rgba(84,179,255,.35))">
+  <img src="crest.png" alt="GENBA" style="width:150px;height:auto;margin-bottom:12px">
   <div style="font-size:34px;font-weight:900;letter-spacing:.3em;color:#fff;text-indent:.3em">GENBA</div>
   <div style="color:var(--accent);font-size:14px;margin:8px 0 4px;letter-spacing:.06em;font-weight:700">現場が、経営を超えていく。</div>
   <div class="lx-sub">本日の現場を選択してください</div>
@@ -319,7 +319,7 @@
   <div class="lx-skip" onclick="hideLauncher()">案件を選ばずに開く（前回の続き）→</div>
 </div>
 <header>
-  <img src="logo_badge.png?v=2" alt="GENBA" style="height:46px;width:auto;filter:drop-shadow(0 2px 10px rgba(84,179,255,.35))">
+  <img src="crest.png" alt="GENBA" style="height:46px;width:auto">
   <h1 style="display:flex;flex-direction:column;gap:0;line-height:1.15">
     <span style="font-size:20px;font-weight:900;letter-spacing:.24em;color:#fff">GENBA</span>
     <span style="font-size:10px;letter-spacing:.05em;font-weight:600;color:var(--accent)">現場が、経営を超えていく。</span>
