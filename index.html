@@ -14,11 +14,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
   :root{
-    --bg:#0a0f16; --bg2:#0c131c; --panel:#101a26cc; --panel2:#16222fcc;
-    --line:#22344a; --line2:#2e4458;
-    --text:#eef4fb; --muted:#8ea3b8; --accent:#ff8a3d; --accent-d:#e3712a;
-    --blue:#4fb0ff; --accent2:#2fd3a5; --warn:#ffc24b; --danger:#ff6b6b; --chip:#1c2c3e;
-    --grid:rgba(79,176,255,.06);
+    /* GENBA 重機/CATスキン */
+    --bg:#0d0d0f; --bg2:#111214; --panel:#1b1c1feb; --panel2:#232427eb;
+    --line:#33353a; --line2:#4a4d54;
+    --text:#f3f3f0; --muted:#9a9ea6; --accent:#ffc400; --accent-d:#d9a600;
+    --blue:#5a8cff; --accent2:#1f9d55; --warn:#ffc400; --danger:#e0311c; --chip:#242527;
+    --grid:rgba(255,196,0,.045);
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -28,16 +29,16 @@
     background-image:
       linear-gradient(var(--grid) 1px,transparent 1px),
       linear-gradient(90deg,var(--grid) 1px,transparent 1px),
-      radial-gradient(1200px 600px at 80% -10%, rgba(255,138,61,.08), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(79,176,255,.07), transparent 60%);
+      radial-gradient(1200px 600px at 80% -10%, rgba(255,196,0,.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(90,94,102,.10), transparent 60%);
     background-size:28px 28px,28px 28px,100% 100%,100% 100%;
     background-attachment:fixed;
   }
   .mono{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-variant-numeric:tabular-nums}
   /* ===== Header ===== */
   header{position:relative;padding:18px 22px;
-    background:linear-gradient(120deg,#0c1a28 0%,#0e2436 55%,#12161c 100%);
-    border-bottom:2px solid var(--accent);
+    background:linear-gradient(180deg,#232427 0%,#151618 100%);
+    border-bottom:3px solid var(--accent);
     display:flex;align-items:center;gap:14px;flex-wrap:wrap;
     box-shadow:0 6px 24px rgba(0,0,0,.45)}
   header::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(45deg,var(--accent) 0 10px,#1a1205 10px 20px)}
@@ -129,6 +130,24 @@
   ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
   ::-webkit-scrollbar-track{background:transparent}
   datalist{display:none}
+  /* ===== イグニッション起動演出（CAT配色）===== */
+  #ignition{position:fixed;inset:0;z-index:9999;
+    background:radial-gradient(ellipse at center,#1b1c1f 0%,#000 85%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:opacity .7s ease,visibility .7s ease}
+  #ignition.hide{opacity:0;visibility:hidden;pointer-events:none}
+  #ignition .chev-bar{position:absolute;left:0;right:0;height:16px;
+    background:repeating-linear-gradient(-45deg,#ffc400 0 16px,#111214 16px 32px);opacity:.9}
+  #ignition .chev-top{top:0}#ignition .chev-bot{bottom:0}
+  .ign-logo{width:120px;height:120px;filter:drop-shadow(0 0 22px rgba(255,196,0,.4))}
+  .ign-ring{stroke-dasharray:340;stroke-dashoffset:340;animation:ignSweep 1.2s cubic-bezier(.2,.8,.2,1) forwards}
+  .ign-ring2{stroke-dasharray:300;stroke-dashoffset:300;animation:ignSweep 1.2s .15s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes ignSweep{to{stroke-dashoffset:0}}
+  .ign-text{margin-top:22px;letter-spacing:.5em;font-size:16px;font-weight:800;color:#f3f3f0;opacity:0;animation:ignFade .8s .9s forwards}
+  .ign-catch{margin-top:10px;font-size:12.5px;color:var(--accent);opacity:0;letter-spacing:.06em;animation:ignFade .8s 1.25s forwards}
+  .ign-boot{position:absolute;bottom:46px;font-size:10px;letter-spacing:.25em;color:var(--muted);opacity:0;animation:ignFade .8s 1.5s forwards}
+  @keyframes ignFade{to{opacity:1}}
+  @media print{#ignition{display:none!important}}
   /* ===== 図枠風コーナーマーク（建築図面ディテール）===== */
   .card::after{content:"";position:absolute;right:9px;top:9px;width:13px;height:13px;
     border-top:2px solid var(--line2);border-right:2px solid var(--line2);opacity:.7}
@@ -215,6 +234,21 @@
 </style>
 </head>
 <body>
+<!-- イグニッション起動演出 -->
+<div id="ignition">
+  <div class="chev-bar chev-top"></div>
+  <svg class="ign-logo" viewBox="0 0 120 120">
+    <polygon class="ign-ring" points="60,6 108,33 108,87 60,114 12,87 12,33" fill="none" stroke="#ffc400" stroke-width="3"/>
+    <polygon class="ign-ring2" points="60,18 98,39 98,81 60,102 22,81 22,39" fill="none" stroke="#f3f3f0" stroke-width="1.6"/>
+    <line x1="60" y1="46" x2="60" y2="74" stroke="#ffc400" stroke-width="5" stroke-linecap="round"/>
+    <line x1="46" y1="60" x2="74" y2="60" stroke="#ffc400" stroke-width="5" stroke-linecap="round"/>
+  </svg>
+  <div class="ign-text">G E N B A</div>
+  <div class="ign-catch">現場が、経営を超えていく。</div>
+  <div class="ign-boot">SYSTEM START ...</div>
+  <div class="chev-bar chev-bot"></div>
+</div>
+<script>/* 起動演出のハード安全網（load失敗時も必ず解除）*/setTimeout(function(){var g=document.getElementById("ignition");if(g)g.classList.add("hide");},3500);</script>
 <!-- 処理中オーバーレイ -->
 <div id="busy">
   <div class="spinner"></div>
@@ -872,6 +906,7 @@ function load(){
   const php=safeLS.getItem("rw_phproject");if(php){const el=document.getElementById("ph_project");if(el){el.value=php;document.getElementById("phTitlePrint").textContent=php;}}
   if(!document.getElementById("f_date").value) document.getElementById("f_date").value = wareki(new Date());
   renderMaster(); renderEstimate(); renderDatalist(); renderCases(); updateHdrCase();
+  setTimeout(()=>{var g=document.getElementById("ignition");if(g)g.classList.add("hide");},2100); // 起動演出フェードアウト
   showLauncher(); // 起動時は必ず「今日の現場」を選ぶ
   if(!safeLS.persistent){
     dzStatus("ℹ️ この環境では保存（localStorage）が無効のため、入力はメモリ上のみ保持されます。データを残すには index.html を Chrome 等で直接開いてください。");
