@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GENBA Flow — 高級コックピットUI</title>
+<style>
+  :root{
+    --carbon-1:#0a0a0c;
+    --carbon-2:#151517;
+    --carbon-3:#1c1c1f;
+    --chrome-1:#e8e9eb;
+    --chrome-2:#9a9ca1;
+    --chrome-3:#4b4d52;
+    --red:#ff2b2b;
+    --red-dim:#7a1414;
+    --leather:#20191a;
+    --leather-hi:#332624;
+    --white-meter:#f4f2ea;
+    --amber:#ffb020;
+    --green:#3ddc84;
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic UI", "Segoe UI", system-ui, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; background:#000;
+    display:flex; justify-content:center; align-items:flex-start;
+    min-height:100vh;
+  }
+  #app{
+    width:390px; min-height:100vh; position:relative; overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% -10%, #1a1a1d 0%, #0a0a0c 55%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 4px),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 2px, transparent 2px, transparent 4px),
+      var(--carbon-1);
+    color:var(--chrome-1);
+    box-shadow:0 0 80px rgba(0,0,0,0.9);
+    display:flex; flex-direction:column;
+  }
+
+  /* ===== IGNITION SPLASH ===== */
+  #ignition{
+    position:fixed; inset:0; width:390px; margin:0 auto; z-index:999;
+    background:radial-gradient(ellipse at center, #101012 0%, #000 80%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:opacity .8s ease, visibility .8s ease;
+  }
+  #ignition.hide{opacity:0; visibility:hidden; pointer-events:none;}
+  .ign-logo{width:110px;height:110px; filter:drop-shadow(0 0 18px rgba(255,43,43,0.35));}
+  .ign-ring{stroke-dasharray:340; stroke-dashoffset:340; animation:ignSweep 1.3s cubic-bezier(.2,.8,.2,1) forwards;}
+  .ign-ring2{stroke-dasharray:300; stroke-dashoffset:300; animation:ignSweep 1.3s .15s cubic-bezier(.2,.8,.2,1) forwards;}
+  @keyframes ignSweep{to{stroke-dashoffset:0;}}
+  .ign-text{
+    margin-top:22px; letter-spacing:0.45em; font-size:13px; color:var(--chrome-2);
+    text-transform:uppercase; opacity:0; animation:ignFade 1s .9s forwards;
+  }
+  .ign-catch{
+    margin-top:8px; font-size:12px; color:var(--red); opacity:0; letter-spacing:.08em;
+    animation:ignFade 1s 1.3s forwards;
+  }
+  @keyframes ignFade{to{opacity:1;}}
+
+  /* ===== HEADER ===== */
+  header{
+    padding:14px 16px 10px; position:relative; z-index:2;
+    background:linear-gradient(180deg, #131315 0%, #0d0d0f 100%);
+    border-bottom:1px solid #000;
+    box-shadow:0 1px 0 rgba(255,255,255,0.04), 0 6px 14px rgba(0,0,0,0.5);
+  }
+  .brand-row{display:flex; align-items:center; gap:10px;}
+  .logo-svg{width:34px;height:34px; flex-shrink:0;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.1;}
+  .brand-name{font-size:16px; font-weight:700; letter-spacing:.12em; color:var(--chrome-1);}
+  .brand-sub{font-size:9.5px; color:var(--chrome-3); letter-spacing:.2em;}
+  .project-chip{
+    margin-left:auto; font-size:11px; color:var(--chrome-2);
+    border:1px solid var(--chrome-3); border-radius:20px; padding:5px 10px;
+    background:linear-gradient(180deg, #1c1c1e, #131314);
+  }
+
+  /* KPI strip: 3 gauges */
+  .kpi-strip{
+    display:flex; justify-content:space-between; margin-top:14px;
+    padding:12px 6px 4px; border-radius:14px;
+    background:linear-gradient(160deg, var(--leather-hi), var(--leather));
+    border:1px solid #000;
+    box-shadow:inset 0 1px 2px rgba(255,255,255,0.05), inset 0 -6px 14px rgba(0,0,0,0.6), 0 4px 10px rgba(0,0,0,0.5);
+  }
+  .gauge{width:112px; text-align:center; position:relative;}
+  .gauge svg{width:88px;height:88px;}
+  .gauge-label{font-size:9px; color:var(--chrome-3); letter-spacing:.15em; margin-top:-6px;}
+  .gauge-value{
+    position:absolute; top:38px; left:0; right:0; text-align:center;
+    font-size:13px; font-weight:700; color:var(--white-meter);
+    text-shadow:0 0 6px rgba(244,242,234,0.5);
+  }
+  .gauge-sub{
+    position:absolute; top:54px; left:0; right:0; text-align:center;
+    font-size:8px; color:var(--chrome-2);
+  }
+  .needle{transform-origin:44px 44px; filter:drop-shadow(0 0 2px rgba(255,43,43,0.8));}
+
+  /* ===== BREADCRUMB ===== */
+  .breadcrumb{
+    display:flex; align-items:center; gap:6px; padding:9px 16px;
+    font-size:10.5px; color:var(--chrome-3); background:#0c0c0e;
+    border-bottom:1px solid #000; overflow-x:auto; white-space:nowrap;
+  }
+  .breadcrumb b{color:var(--chrome-1); font-weight:600;}
+  .breadcrumb .sep{color:var(--red); opacity:.7;}
+
+  /* ===== MAIN ===== */
+  main{flex:1; padding:16px 16px 110px; position:relative; z-index:1;}
+  .section-title{
+    font-size:11px; letter-spacing:.18em; color:var(--chrome-2); text-transform:uppercase;
+    margin:18px 2px 10px; display:flex; align-items:center; gap:8px;
+  }
+  .section-title::before{content:""; width:3px; height:12px; background:var(--red); box-shadow:0 0 6px var(--red); display:inline-block;}
+
+  /* Today board */
+  .board-wrap{display:flex; gap:12px; align-items:center;}
+  .progress-ring-wrap{position:relative; width:92px; height:92px; flex-shrink:0;}
+  .progress-ring-wrap svg{width:92px;height:92px;}
+  .progress-ring-center{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .progress-ring-center b{font-size:20px; color:var(--white-meter);}
+  .progress-ring-center span{font-size:9px; color:var(--chrome-3); letter-spacing:.1em;}
+
+  .task-list{flex:1; display:flex; flex-direction:column; gap:8px;}
+  .task-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+    background:linear-gradient(180deg,#191a1c,#111113); border:1px solid #000;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .task-item.done{opacity:.45;}
+  .task-check{
+    width:18px;height:18px; border-radius:50%; border:2px solid var(--chrome-3); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+  }
+  .task-item.done .task-check{border-color:var(--green); color:var(--green); background:rgba(61,220,132,0.1);}
+  .task-item span{font-size:12.5px; color:var(--chrome-1);}
+  .task-item.done span{text-decoration:line-through; color:var(--chrome-3);}
+
+  /* Swipe deck */
+  .deck{position:relative; height:210px; margin-top:6px;}
+  .swipe-card{
+    position:absolute; inset:0; border-radius:16px; padding:16px;
+    background:linear-gradient(160deg,#1e1f22,#101012);
+    border:1px solid #000;
+    box-shadow:0 10px 26px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+    display:flex; flex-direction:column; justify-content:space-between;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s;
+    cursor:grab;
+  }
+  .swipe-card:active{cursor:grabbing;}
+  .swipe-card .mat-name{font-size:15px; font-weight:700; color:var(--white-meter);}
+  .swipe-card .mat-detail{font-size:11px; color:var(--chrome-2); margin-top:4px; line-height:1.6;}
+  .swipe-card .mat-qty{
+    font-size:26px; font-weight:800; color:var(--white-meter); margin-top:10px;
+    text-shadow:0 0 10px rgba(244,242,234,0.3);
+  }
+  .mat-badge{
+    align-self:flex-start; font-size:9px; letter-spacing:.1em; padding:3px 8px; border-radius:20px;
+    border:1px solid var(--chrome-3); color:var(--chrome-2);
+  }
+  .stamp{
+    position:absolute; top:18px; font-size:22px; font-weight:900; letter-spacing:.1em;
+    border:4px solid; border-radius:8px; padding:2px 10px; opacity:0; transform:rotate(-14deg);
+    transition:opacity .2s;
+  }
+  .stamp.ok{right:16px; color:var(--green); border-color:var(--green);}
+  .stamp.ng{left:16px; color:var(--red); border-color:var(--red); transform:rotate(14deg);}
+  .deck-actions{display:flex; justify-content:center; gap:22px; margin-top:16px;}
+  .deck-btn{
+    width:56px; height:56px; border-radius:50%; border:1px solid #000; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700;
+    background:linear-gradient(180deg,#232325,#131315);
+    box-shadow:0 4px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .deck-btn.ng{color:var(--red);}
+  .deck-btn.ok{color:var(--green);}
+  .deck-counter{text-align:center; font-size:10px; color:var(--chrome-3); margin-top:10px; letter-spacing:.1em;}
+
+  /* Quick actions grid (buttons >=64px) */
+  .grid-actions{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .action-btn{
+    min-height:64px; border-radius:12px; border:1px solid #000;
+    background:linear-gradient(180deg,#1b1c1e,#101012);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 10px rgba(0,0,0,0.45);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    color:var(--chrome-1); font-size:11.5px; letter-spacing:.03em;
+    cursor:pointer;
+  }
+  .action-btn:active{transform:translateY(1px); box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);}
+  .action-btn svg{width:22px;height:22px;}
+  .action-btn.active-red{border-color:var(--red-dim);}
+  .action-btn.active-red svg{stroke:var(--red);}
+
+  /* Mic FAB */
+  .mic-fab{
+    position:fixed; z-index:50; bottom:96px; left:50%;
+    transform:translateX(calc(-195px + 50%));
+  }
+  #app .mic-fab{position:absolute; bottom:96px; left:50%; transform:translateX(-50%);}
+  .mic-btn{
+    width:78px;height:78px; border-radius:50%; border:3px solid #000;
+    background:radial-gradient(circle at 35% 30%, #ff5b5b, #b60d0d 60%, #4a0505 100%);
+    box-shadow:0 0 0 4px #0a0a0c, 0 0 0 5px var(--chrome-3), 0 10px 28px rgba(255,43,43,0.45), inset 0 2px 4px rgba(255,255,255,0.3);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    animation:micPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes micPulse{
+    0%,100%{box-shadow:0 0 0 4px #0a0a0c, 0 0 0 5px var(--chrome-3), 0 10px 28px rgba(255,43,43,0.45), inset 0 2px 4px rgba(255,255,255,0.3);}
+    50%{box-shadow:0 0 0 4px #0a0a0c, 0 0 0 5px var(--chrome-3), 0 10px 40px rgba(255,43,43,0.75), inset 0 2px 4px rgba(255,255,255,0.3);}
+  }
+  .mic-btn svg{width:32px;height:32px;}
+
+  /* Bottom nav */
+  nav.bottom{
+    position:fixed; bottom:0; left:50%; transform:translateX(-195px);
+    width:390px; display:flex; justify-content:space-around; align-items:center;
+    padding:10px 6px 14px; z-index:40;
+    background:linear-gradient(0deg, #0a0a0b 60%, rgba(10,10,11,0.0));
+    border-top:1px solid #000;
+  }
+  #app nav.bottom{position:absolute; transform:none; left:0;}
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--chrome-3); font-size:9px;}
+  .nav-item.active{color:var(--red);}
+  .nav-item svg{width:20px;height:20px;}
+
+  .toast{
+    position:absolute; left:16px; right:16px; bottom:190px; z-index:60;
+    background:linear-gradient(180deg,#1d1e20,#111113); border:1px solid var(--chrome-3);
+    border-radius:10px; padding:10px 14px; font-size:11.5px; color:var(--white-meter);
+    box-shadow:0 8px 20px rgba(0,0,0,0.6); opacity:0; transform:translateY(8px);
+    transition:all .3s ease; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+
+  .catch-copy{
+    text-align:center; font-size:11px; letter-spacing:.12em; color:var(--chrome-3);
+    margin-top:22px; padding-bottom:4px;
+  }
+  .catch-copy b{color:var(--red);}
+
+  ::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- IGNITION SPLASH -->
+  <div id="ignition">
+    <svg class="ign-logo" viewBox="0 0 120 120">
+      <polygon class="ign-ring" points="60,6 108,33 108,87 60,114 12,87 12,33" fill="none" stroke="#ff2b2b" stroke-width="2.5"/>
+      <polygon class="ign-ring2" points="60,18 98,39 98,81 60,102 22,81 22,39" fill="none" stroke="#9a9ca1" stroke-width="1.4"/>
+      <line x1="60" y1="46" x2="60" y2="74" stroke="#f4f2ea" stroke-width="4" stroke-linecap="round"/>
+      <line x1="46" y1="60" x2="74" y2="60" stroke="#f4f2ea" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <div class="ign-text">G E N B A</div>
+    <div class="ign-catch">現場が、経営を超えていく。</div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-row">
+      <svg class="logo-svg" viewBox="0 0 120 120">
+        <polygon points="60,6 108,33 108,87 60,114 12,87 12,33" fill="none" stroke="#e8e9eb" stroke-width="3"/>
+        <polygon points="60,18 98,39 98,81 60,102 22,81 22,39" fill="none" stroke="#ff2b2b" stroke-width="2"/>
+        <line x1="60" y1="46" x2="60" y2="74" stroke="#e8e9eb" stroke-width="6" stroke-linecap="round"/>
+        <line x1="46" y1="60" x2="74" y2="60" stroke="#e8e9eb" stroke-width="6" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-text">
+        <div class="brand-name">GENBA</div>
+        <div class="brand-sub">FLOW COCKPIT</div>
+      </div>
+      <div class="project-chip">南青山3丁目 新築案件</div>
+    </div>
+
+    <!-- KPI GAUGES -->
+    <div class="kpi-strip">
+      <!-- 見積 -->
+      <div class="gauge">
+        <svg viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="34" fill="none" stroke="#2a2a2d" stroke-width="7"/>
+          <path d="M 14 62 A 34 34 0 1 1 74 62" fill="none" stroke="#3a3a3d" stroke-width="7" stroke-linecap="round"/>
+          <path id="arc-est" d="M 14 62 A 34 34 0 1 1 74 62" fill="none" stroke="#ff2b2b" stroke-width="7" stroke-linecap="round"
+                stroke-dasharray="160" stroke-dashoffset="40"/>
+          <g class="needle" style="transform:rotate(58deg)">
+            <line x1="44" y1="44" x2="44" y2="16" stroke="#ff2b2b" stroke-width="2.5"/>
+            <circle cx="44" cy="44" r="4" fill="#e8e9eb"/>
+          </g>
+        </svg>
+        <div class="gauge-value">¥1,234,000</div>
+        <div class="gauge-sub">見積金額</div>
+        <div class="gauge-label">ESTIMATE</div>
+      </div>
+      <!-- 人工 -->
+      <div class="gauge">
+        <svg viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="34" fill="none" stroke="#2a2a2d" stroke-width="7"/>
+          <path d="M 14 62 A 34 34 0 1 1 74 62" fill="none" stroke="#3a3a3d" stroke-width="7" stroke-linecap="round"/>
+          <path d="M 14 62 A 34 34 0 1 1 74 62" fill="none" stroke="#ffb020" stroke-width="7" stroke-linecap="round"
+                stroke-dasharray="160" stroke-dashoffset="70"/>
+          <g class="needle" style="transform:rotate(95deg)">
+            <line x1="44" y1="44" x2="44" y2="16" stroke="#ffb020" stroke-width="2.5"/>
+            <circle cx="44" cy="44" r="4" fill="#e8e9eb"/>
+          </g>
+        </svg>
+        <div class="gauge-value">12.5</div>
+        <div class="gauge-sub">延べ人工</div>
+        <div class="gauge-label">MAN-DAYS</div>
+      </div>
+      <!-- 粗利 -->
+      <div class="gauge">
+        <svg viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="34" fill="none" stroke="#2a2a2d" stroke-width="7"/>
+          <path d="M 14 62 A 34 34 0 1 1 74 62" fill="none" stroke="#3a3a3d" stroke-width="7" stroke-linecap="round"/>
+          <path d="M 14 62 A 34 34 0 1 1 74 62" fill="none" stroke="#3ddc84" stroke-width="7" stroke-linecap="round"
+                stroke-dasharray="160" stroke-dashoffset="115"/>
+          <g class="needle" style="transform:rotate(135deg)">
+            <line x1="44" y1="44" x2="44" y2="16" stroke="#3ddc84" stroke-width="2.5"/>
+            <circle cx="44" cy="44" r="4" fill="#e8e9eb"/>
+          </g>
+        </svg>
+        <div class="gauge-value">28%</div>
+        <div class="gauge-sub">粗利率</div>
+        <div class="gauge-label">MARGIN</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb" id="breadcrumb">
+    <span>GENBA</span><span class="sep">›</span><span>南青山3丁目案件</span><span class="sep">›</span><b id="crumb-current">今日のボード</b>
+  </div>
+
+  <main>
+    <!-- TODAY BOARD -->
+    <div class="section-title">今日やることボード</div>
+    <div class="board-wrap">
+      <div class="progress-ring-wrap">
+        <svg viewBox="0 0 92 92">
+          <circle cx="46" cy="46" r="38" fill="none" stroke="#2a2a2d" stroke-width="8"/>
+          <circle cx="46" cy="46" r="38" fill="none" stroke="#ff2b2b" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="238.7" stroke-dashoffset="95.5" transform="rotate(-90 46 46)" id="task-ring"/>
+        </svg>
+        <div class="progress-ring-center">
+          <b id="task-ratio">2/5</b>
+          <span>完了</span>
+        </div>
+      </div>
+      <div class="task-list" id="task-list">
+        <div class="task-item done" data-task="KY記録"><div class="task-check">✓</div><span>KY記録</span></div>
+        <div class="task-item done" data-task="施工写真"><div class="task-check">✓</div><span>施工写真</span></div>
+        <div class="task-item" data-task="拾い出し"><div class="task-check"></div><span>拾い出し</span></div>
+        <div class="task-item" data-task="見積確認"><div class="task-check"></div><span>見積確認</span></div>
+        <div class="task-item" data-task="日報"><div class="task-check"></div><span>日報</span></div>
+      </div>
+    </div>
+
+    <!-- SWIPE DECK -->
+    <div class="section-title">拾い出し確認</div>
+    <div class="deck" id="deck">
+      <div class="swipe-card" data-idx="0">
+        <div class="stamp ok">OK</div>
+        <div class="stamp ng">NG</div>
+        <div class="mat-badge">M-01 躯体材</div>
+        <div>
+          <div class="mat-name">構造用合板 12mm</div>
+          <div class="mat-detail">910×1820 / 積算：38枚<br>単価 ¥2,150 / 拾い出しAI推定</div>
+        </div>
+        <div class="mat-qty">38 枚</div>
+      </div>
+      <div class="swipe-card" data-idx="1">
+        <div class="stamp ok">OK</div>
+        <div class="stamp ng">NG</div>
+        <div class="mat-badge">M-02 金物</div>
+        <div>
+          <div class="mat-name">羽子板ボルト M12</div>
+          <div class="mat-detail">長さ400 / 積算：64本<br>単価 ¥480 / 拾い出しAI推定</div>
+        </div>
+        <div class="mat-qty">64 本</div>
+      </div>
+      <div class="swipe-card" data-idx="2">
+        <div class="stamp ok">OK</div>
+        <div class="stamp ng">NG</div>
+        <div class="mat-badge">M-03 断熱材</div>
+        <div>
+          <div class="mat-name">高性能グラスウール 105mm</div>
+          <div class="mat-detail">壁量：210㎡<br>単価 ¥1,320/㎡ / 拾い出しAI推定</div>
+        </div>
+        <div class="mat-qty">210 ㎡</div>
+      </div>
+    </div>
+    <div class="deck-actions">
+      <div class="deck-btn ng" onclick="judge('ng')">✗</div>
+      <div class="deck-btn ok" onclick="judge('ok')">✓</div>
+    </div>
+    <div class="deck-counter" id="deck-counter">カード 1 / 3 — 左右スワイプ or ボタンで判定</div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="section-title">クイックアクション</div>
+    <div class="grid-actions">
+      <div class="action-btn" onclick="nav('KY記録')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8e9eb" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        KY記録
+      </div>
+      <div class="action-btn" onclick="nav('施工写真')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8e9eb" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+        施工写真
+      </div>
+      <div class="action-btn active-red" onclick="nav('拾い出し確認')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff2b2b" stroke-width="1.6"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="19" cy="17" r="3"/></svg>
+        拾い出し確認
+      </div>
+      <div class="action-btn" onclick="nav('見積確認')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8e9eb" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+        見積確認
+      </div>
+      <div class="action-btn" onclick="nav('日報')" style="grid-column:1 / span 2;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e8e9eb" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+        日報を作成する
+      </div>
+    </div>
+
+    <div class="catch-copy">現場が、経営を<b>超えていく。</b></div>
+  </main>
+
+  <!-- MIC FAB -->
+  <div class="mic-fab">
+    <div class="mic-btn" onclick="micTap()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f4f2ea" stroke-width="1.8">
+        <rect x="9" y="2" width="6" height="12" rx="3" fill="#f4f2ea" stroke="none"/>
+        <path d="M5 11a7 7 0 0 0 14 0"/>
+        <line x1="12" y1="18" x2="12" y2="22"/>
+        <line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom">
+    <div class="nav-item active" onclick="nav('今日のボード')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      ホーム
+    </div>
+    <div class="nav-item" onclick="nav('拾い出し確認')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+      拾い出し
+    </div>
+    <div class="nav-item" onclick="nav('見積確認')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2h9l5 5v15H6z"/></svg>
+      見積
+    </div>
+    <div class="nav-item" onclick="nav('日報')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      マイページ
+    </div>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  // Ignition splash
+  window.addEventListener('load', ()=>{
+    setTimeout(()=>{ document.getElementById('ignition').classList.add('hide'); }, 2000);
+  });
+
+  // Breadcrumb / navigation demo
+  function nav(label){
+    document.getElementById('crumb-current').textContent = label;
+    showToast(label + ' に移動しました');
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 1600);
+  }
+
+  function micTap(){
+    showToast('🎙 音声入力を開始します…（ダミー）');
+  }
+
+  // Task board toggle
+  document.querySelectorAll('.task-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      item.classList.toggle('done');
+      item.querySelector('.task-check').textContent = item.classList.contains('done') ? '✓' : '';
+      updateRing();
+    });
+  });
+  function updateRing(){
+    const items = document.querySelectorAll('.task-item');
+    const done = document.querySelectorAll('.task-item.done').length;
+    document.getElementById('task-ratio').textContent = done + '/' + items.length;
+    const circumference = 238.7;
+    const offset = circumference - (circumference * (done/items.length));
+    document.getElementById('task-ring').style.strokeDashoffset = offset;
+  }
+
+  // Swipe deck logic
+  const cards = Array.from(document.querySelectorAll('.swipe-card'));
+  let activeIndex = 0;
+  const counterEl = document.getElementById('deck-counter');
+
+  function layoutCards(){
+    cards.forEach((c, i)=>{
+      const rel = i - activeIndex;
+      if(rel < 0){ c.style.opacity=0; c.style.transform='translateY(0) scale(0.9)'; c.style.zIndex=0; c.style.pointerEvents='none'; return;}
+      c.style.pointerEvents = rel===0 ? 'auto' : 'none';
+      c.style.zIndex = 10 - rel;
+      c.style.opacity = rel < 3 ? 1 - rel*0.18 : 0;
+      c.style.transform = `translateY(${rel*10}px) scale(${1 - rel*0.05})`;
+    });
+    if(activeIndex >= cards.length){
+      counterEl.textContent = '全カードの判定が完了しました';
+    } else {
+      counterEl.textContent = `カード ${activeIndex+1} / ${cards.length} — 左右スワイプ or ボタンで判定`;
+    }
+  }
+  layoutCards();
+
+  function judge(dir){
+    if(activeIndex >= cards.length) return;
+    const card = cards[activeIndex];
+    const stamp = card.querySelector(dir==='ok' ? '.stamp.ok' : '.stamp.ng');
+    stamp.style.opacity = 1;
+    card.style.transition = 'transform .4s ease, opacity .4s ease';
+    card.style.transform = dir==='ok' ? 'translateX(420px) rotate(18deg)' : 'translateX(-420px) rotate(-18deg)';
+    card.style.opacity = 0;
+    showToast(dir==='ok' ? '✓ 承認しました' : '✗ 差し戻しました');
+    setTimeout(()=>{ activeIndex++; layoutCards(); }, 380);
+  }
+
+  // Drag / swipe support
+  cards.forEach(card=>{
+    let startX=0, curX=0, dragging=false;
+    const onDown = (x)=>{ if(cards.indexOf(card)!==activeIndex) return; dragging=true; startX=x; card.style.transition='none';};
+    const onMove = (x)=>{
+      if(!dragging) return;
+      curX = x - startX;
+      card.style.transform = `translateX(${curX}px) rotate(${curX/18}deg)`;
+      const okStamp = card.querySelector('.stamp.ok'), ngStamp = card.querySelector('.stamp.ng');
+      okStamp.style.opacity = Math.max(0, curX/80);
+      ngStamp.style.opacity = Math.max(0, -curX/80);
+    };
+    const onUp = ()=>{
+      if(!dragging) return; dragging=false;
+      card.style.transition='transform .35s ease, opacity .35s ease';
+      if(curX > 90){ judge('ok'); }
+      else if(curX < -90){ judge('ng'); }
+      else { card.style.transform='translateY(0) scale(1)'; card.querySelector('.stamp.ok').style.opacity=0; card.querySelector('.stamp.ng').style.opacity=0; }
+      curX = 0;
+    };
+    card.addEventListener('mousedown', e=>onDown(e.clientX));
+    window.addEventListener('mousemove', e=>onMove(e.clientX));
+    window.addEventListener('mouseup', onUp);
+    card.addEventListener('touchstart', e=>onDown(e.touches[0].clientX), {passive:true});
+    card.addEventListener('touchmove', e=>onMove(e.touches[0].clientX), {passive:true});
+    card.addEventListener('touchend', onUp);
+  });
+</script>
+</body>
+</html>

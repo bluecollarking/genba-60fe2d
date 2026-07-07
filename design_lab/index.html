@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENBA Design Lab — 世界的デザイン言語 × GENBA Flow</title>
+<style>
+  :root{--ai:#16306e;--ao:#4fb0ff;--dai:#ff8a3d;--bg:#0a0f16;--line:#2e4458;--muted:#8ea3b8}
+  body{margin:0;font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:var(--bg);color:#eef4fb;
+    background-image:linear-gradient(rgba(79,176,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(79,176,255,.05) 1px,transparent 1px);
+    background-size:28px 28px;padding:24px}
+  h1{font-size:20px;letter-spacing:.08em;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:12.5px;margin-bottom:22px;line-height:1.7}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+  a.card,div.card{display:block;background:#101a26;border:1px solid var(--line);border-radius:10px;padding:16px;
+    text-decoration:none;color:#eef4fb;transition:all .15s;position:relative}
+  a.card:hover{border-color:var(--dai);transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+  .sw{position:absolute;right:14px;top:14px;width:44px;height:20px;border-radius:3px;border:1px solid rgba(255,255,255,.2)}
+  .num{font-size:11px;color:var(--dai);font-weight:800;letter-spacing:.1em}
+  .name{font-size:16px;font-weight:800;margin:2px 0 6px}
+  .desc{font-size:12px;color:var(--muted);line-height:1.7}
+  div.card.pending{opacity:.45;border-style:dashed}
+  .hint{margin-top:24px;background:#101a26;border-left:4px solid var(--dai);border-radius:0 8px 8px 0;padding:14px;font-size:13px;line-height:1.8;color:#cdd9e6}
+</style>
+</head>
+<body>
+<h1>⬡ GENBA Design Lab</h1>
+<div class="sub">承認済みの<b>GENBA Flow</b>（経営KPI常時表示・今日やることボード・パンくず・スワイプ確認・マイクFAB）に、世界的デザイン言語を着せた比較。<b>中身の操作はどれも同じ</b>——見た目と手触りだけが違います。</div>
+<div class="grid">
+  <a class="card" href="design_01_rams.html"><span class="sw" style="background:linear-gradient(90deg,#f4f2ed 60%,#ff6a00 60%)"></span><div class="num">D-01</div><div class="name">ラムス / ブラウン</div><div class="desc">「Less, but better」。Appleの源流。オフホワイト×精密ダイヤル、静かな道具。</div></a>
+  <a class="card" href="design_02_swiss.html"><span class="sw" style="background:linear-gradient(90deg,#fff 60%,#e30613 60%)"></span><div class="num">D-02</div><div class="name">スイス様式</div><div class="desc">巨大な数字タイポで経営数値が叫ぶ。白黒赤・厳格グリッドの説得力。</div></a>
+  <a class="card" href="design_03_wa.html"><span class="sw" style="background:linear-gradient(90deg,#f5f1e8 60%,#c8351f 60%)"></span><div class="num">D-03</div><div class="name">日本の道具美</div><div class="desc">生成り×墨×朱。角印の完了マーク。職人の道具箱の静けさ。</div></a>
+  <a class="card" href="design_04_te.html"><span class="sw" style="background:linear-gradient(90deg,#ece9e4 60%,#ff7a00 60%)"></span><div class="num">D-04</div><div class="name">Teenage Engineering</div><div class="desc">押すと沈む物理ボタン。型番表記とノブ。触りたくなる精密機器。</div></a>
+  <a class="card" href="design_05_hud.html"><span class="sw" style="background:linear-gradient(90deg,#05080c 60%,#39ff8b 60%)"></span><div class="num">D-05</div><div class="name">航空HUD</div><div class="desc">発光グリーンの計器。経営KPIを高度計のように読む。夜の現場に映える。</div></a>
+  <a class="card" href="design_06_auto.html"><span class="sw" style="background:linear-gradient(90deg,#0b0b0d 60%,#d0021b 60%)"></span><div class="num">D-06</div><div class="name">車載コックピット</div><div class="desc">タコメーター風KPIゲージ＋イグニッション起動演出。運転席の高揚感。</div></a>
+  <a class="card" href="design_07_heavy.html"><span class="sw" style="background:linear-gradient(90deg,#111 60%,#ffc400 60%)"></span><div class="num">D-07</div><div class="name">重機 / CAT</div><div class="desc">セーフティイエロー×シェブロン。鋼板とボルト。壊れない見た目。</div></a>
+  <a class="card" href="design_08_bauhaus.html"><span class="sw" style="background:linear-gradient(90deg,#e30613 33%,#ffd500 33%,#ffd500 66%,#1a4bb8 66%)"></span><div class="num">D-08</div><div class="name">バウハウス</div><div class="desc">三原色×純粋幾何学。機能ごとに円・三角・四角。構成主義の大胆さ。</div></a>
+  <a class="card" href="design_09_leica.html"><span class="sw" style="background:linear-gradient(90deg,#111 70%,#e20612 70%)"></span><div class="num">D-09</div><div class="name">ライカ精密</div><div class="desc">マットブラック×赤丸。刻印風の白文字。所有欲を刺激する高級光学機器。</div></a>
+  <a class="card" href="design_10_saas.html"><span class="sw" style="background:linear-gradient(90deg,#0a0a0b 60%,#6366f1 60%)"></span><div class="num">D-10</div><div class="name">モダンSaaS</div><div class="desc">Linear/Vercel系。鋭いマイクロインタラクション。洗練の極み。</div></a>
+</div>
+<div class="hint"><b>見るポイント：</b>①朝7時の現場でパッと読めるか ②手袋の親指で押せそうか ③経営KPIが自然に目に入るか ④「毎日開きたい」と思う色気があるか。気に入った番号と理由を教えてください。</div>
+</body>
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENBA — バウハウス</title>
+<style>
+:root{
+  --red:#E3241A;
+  --yellow:#F5C400;
+  --blue:#0B5FC7;
+  --black:#111111;
+  --white:#FCFCF7;
+  --gray:#8a8a80;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:390px;
+  background:var(--black);
+  font-family:"Hiragino Sans","Yu Gothic UI","Segoe UI",system-ui,sans-serif;
+  color:var(--black);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+#app{
+  position:relative;
+  width:390px;
+  min-height:844px;
+  background:var(--white);
+  overflow:hidden;
+}
+
+/* ===== diagonal bg accents ===== */
+.diag-bg{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+.diag-bg span{
+  position:absolute;
+  display:block;
+}
+.diag1{width:520px;height:90px;background:var(--yellow);top:-20px;left:-120px;transform:rotate(-8deg);opacity:.9;}
+.diag2{width:520px;height:14px;background:var(--black);top:64px;left:-120px;transform:rotate(-8deg);}
+.diag3{width:180px;height:180px;border-radius:50%;background:var(--blue);right:-90px;bottom:120px;opacity:.15;}
+.diag4{width:0;height:0;border-left:130px solid transparent;border-right:130px solid transparent;border-bottom:220px solid var(--red);opacity:.06;left:-40px;bottom:-60px;transform:rotate(8deg);}
+
+/* ===== header ===== */
+header{
+  position:relative;
+  z-index:2;
+  padding:18px 18px 14px;
+  background:var(--black);
+  color:var(--white);
+  border-bottom:6px solid var(--red);
+}
+.brand-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.logo-hex{width:40px;height:40px;flex:none;}
+.brand-text{display:flex;flex-direction:column;line-height:1.05;}
+.brand-text b{font-size:20px;letter-spacing:2px;font-weight:900;}
+.brand-text span{font-size:10px;letter-spacing:3px;color:var(--yellow);font-weight:700;}
+.case-name{
+  margin-top:10px;
+  font-size:13px;
+  font-weight:700;
+  background:var(--yellow);
+  color:var(--black);
+  display:inline-block;
+  padding:3px 10px;
+  transform:skewX(-8deg);
+}
+.case-name b{display:inline-block;transform:skewX(8deg);}
+
+.kpi-strip{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1.3fr 1fr 1fr;
+  gap:8px;
+}
+.kpi{
+  border:2px solid var(--white);
+  padding:8px 6px;
+  position:relative;
+}
+.kpi.red{background:var(--red);border-color:var(--red);}
+.kpi.blue{background:var(--blue);border-color:var(--blue);}
+.kpi .lbl{font-size:9px;letter-spacing:1px;opacity:.85;font-weight:700;}
+.kpi .val{font-size:16px;font-weight:900;margin-top:2px;letter-spacing:0;}
+.kpi .val small{font-size:10px;font-weight:700;}
+
+/* ===== breadcrumb ===== */
+.crumb{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:10px 18px;
+  font-size:11px;
+  font-weight:700;
+  background:var(--white);
+  border-bottom:2px solid var(--black);
+  color:var(--black);
+  overflow-x:auto;
+  white-space:nowrap;
+}
+.crumb .seg{color:var(--gray);}
+.crumb .seg.now{color:var(--black);border-bottom:3px solid var(--yellow);}
+.crumb .sep{color:var(--red);font-weight:900;}
+
+/* ===== main ===== */
+main{
+  position:relative;
+  z-index:2;
+  padding:18px 18px 130px;
+}
+.section-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:22px 0 12px;
+}
+.section-title .num{
+  width:26px;height:26px;
+  background:var(--black);
+  color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:13px;
+  transform:rotate(45deg);
+}
+.section-title .num span{transform:rotate(-45deg);display:block;}
+.section-title h2{
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+/* ===== progress ring block ===== */
+.today-block{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  border:3px solid var(--black);
+  padding:14px;
+  position:relative;
+  background:
+    linear-gradient(135deg, transparent 0 48%, var(--yellow) 48% 52%, transparent 52% 100%);
+}
+.ring-wrap{position:relative;width:88px;height:88px;flex:none;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-label{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring-label b{font-size:20px;font-weight:900;}
+.ring-label span{font-size:9px;font-weight:700;color:var(--gray);}
+.today-copy b{font-size:13px;display:block;font-weight:900;}
+.today-copy p{font-size:11px;color:var(--gray);margin-top:4px;line-height:1.5;}
+
+/* ===== task list (今日やることボード) ===== */
+.task-list{display:flex;flex-direction:column;gap:10px;}
+.task{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border:3px solid var(--black);
+  padding:12px 14px;
+  min-height:64px;
+  background:var(--white);
+  position:relative;
+  cursor:pointer;
+  transition:transform .12s ease;
+}
+.task:active{transform:scale(.97);}
+.task.done{opacity:.45;}
+.task.done .task-txt b{text-decoration:line-through;}
+.shape{width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center;}
+.shape.circle{background:var(--blue);border-radius:50%;}
+.shape.square{background:var(--yellow);}
+.shape.triangle{width:38px;height:38px;background:none;position:relative;}
+.shape.triangle::before{
+  content:"";position:absolute;left:0;top:0;
+  border-left:19px solid transparent;
+  border-right:19px solid transparent;
+  border-bottom:34px solid var(--red);
+}
+.shape.cross{background:var(--black);}
+.shape svg{width:20px;height:20px;}
+.task-txt{flex:1;}
+.task-txt b{font-size:13.5px;font-weight:900;display:block;}
+.task-txt span{font-size:10px;color:var(--gray);font-weight:700;}
+.chev{font-size:20px;font-weight:900;color:var(--black);}
+.task-badge{
+  position:absolute;top:-8px;right:10px;
+  background:var(--red);color:var(--white);
+  font-size:9px;font-weight:900;
+  padding:2px 6px;
+  transform:rotate(-4deg);
+}
+
+/* ===== swipe cards (拾い出し確認) ===== */
+.swipe-zone{
+  border:3px dashed var(--black);
+  padding:16px;
+  position:relative;
+  min-height:270px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:14px;
+  background:repeating-linear-gradient(45deg, transparent 0 10px, rgba(0,0,0,.02) 10px 20px);
+}
+.card-stage{
+  position:relative;
+  width:100%;
+  height:150px;
+}
+.pcard{
+  position:absolute;
+  inset:0;
+  border:3px solid var(--black);
+  background:var(--white);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:12px;
+  transition:transform .28s cubic-bezier(.2,.8,.3,1), opacity .28s ease;
+  touch-action:none;
+  user-select:none;
+}
+.pcard .tag{
+  align-self:flex-start;
+  background:var(--yellow);
+  font-size:9px;font-weight:900;
+  padding:2px 8px;
+}
+.pcard h3{font-size:16px;font-weight:900;margin-top:6px;}
+.pcard .meta{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--gray);}
+.pcard .meta b{color:var(--black);}
+.pcard .stamp{
+  position:absolute;
+  top:14px;
+  font-size:26px;
+  font-weight:900;
+  border:5px solid;
+  padding:2px 10px;
+  transform:rotate(-14deg);
+  opacity:0;
+  transition:opacity .15s ease;
+}
+.stamp.ok{left:14px;color:var(--blue);border-color:var(--blue);}
+.stamp.ng{right:14px;color:var(--red);border-color:var(--red);}
+
+.swipe-actions{display:flex;gap:14px;width:100%;}
+.swipe-btn{
+  flex:1;
+  height:64px;
+  border:3px solid var(--black);
+  background:var(--white);
+  font-size:14px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  cursor:pointer;
+}
+.swipe-btn.ng{background:var(--red);color:var(--white);}
+.swipe-btn.ok{background:var(--blue);color:var(--white);}
+.swipe-btn:active{transform:scale(.96);}
+.swipe-count{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:1px;}
+
+/* ===== quick grid ===== */
+.quick-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.qcard{
+  border:3px solid var(--black);
+  min-height:100px;
+  padding:12px;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  cursor:pointer;
+}
+.qcard:active{transform:scale(.97);}
+.qcard.y{background:var(--yellow);}
+.qcard.r{background:var(--red);color:var(--white);}
+.qcard.b{background:var(--blue);color:var(--white);}
+.qcard.k{background:var(--black);color:var(--white);}
+.qcard .qshape{position:absolute;right:-14px;bottom:-14px;opacity:.25;}
+.qcard b{font-size:13px;font-weight:900;position:relative;z-index:1;}
+.qcard span{font-size:10px;font-weight:700;position:relative;z-index:1;}
+
+/* ===== footer catch ===== */
+.catch{
+  position:relative;z-index:2;
+  padding:26px 20px 100px;
+  background:var(--black);
+  color:var(--white);
+  text-align:right;
+  border-top:6px solid var(--blue);
+}
+.catch p{
+  font-size:19px;
+  font-weight:900;
+  letter-spacing:1px;
+  line-height:1.5;
+}
+.catch .mini{
+  margin-top:8px;
+  font-size:10px;
+  color:var(--gray);
+  letter-spacing:2px;
+}
+
+/* ===== mic FAB ===== */
+.mic-fab{
+  position:absolute;
+  right:20px;
+  bottom:110px;
+  width:76px;height:76px;
+  border-radius:50%;
+  background:var(--red);
+  border:4px solid var(--black);
+  display:flex;align-items:center;justify-content:center;
+  z-index:5;
+  box-shadow:6px 6px 0 var(--black);
+  cursor:pointer;
+}
+.mic-fab:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--black);}
+.mic-fab svg{width:32px;height:32px;}
+.mic-pulse{
+  position:absolute;inset:-8px;
+  border-radius:50%;
+  border:2px solid var(--red);
+  animation:pulse 2s ease-out infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(.8);opacity:.8;}
+  100%{transform:scale(1.5);opacity:0;}
+}
+
+/* ===== bottom tab bar ===== */
+.tabbar{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:78px;
+  background:var(--white);
+  border-top:4px solid var(--black);
+  display:flex;
+  z-index:6;
+}
+.tab{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:9px;
+  font-weight:900;
+  color:var(--gray);
+  cursor:pointer;
+}
+.tab.active{color:var(--black);}
+.tab .ti{width:24px;height:24px;}
+.tab.active .ti.circle{background:var(--blue);border-radius:50%;}
+.tab.active .ti.square{background:var(--yellow);}
+.tab.active .ti.tri{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:20px solid var(--red);}
+.tab .ti.plain{border:3px solid var(--gray);}
+.tab.active .ti.plain{border-color:var(--black);background:var(--black);}
+
+/* toast */
+.toast{
+  position:absolute;
+  left:50%;
+  bottom:180px;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--black);
+  color:var(--white);
+  font-size:12px;
+  font-weight:900;
+  padding:10px 18px;
+  border:2px solid var(--yellow);
+  opacity:0;
+  transition:all .25s ease;
+  z-index:20;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="diag-bg">
+    <span class="diag1"></span>
+    <span class="diag2"></span>
+    <span class="diag3"></span>
+    <span class="diag4"></span>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-row">
+      <svg class="logo-hex" viewBox="0 0 100 100">
+        <polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#FCFCF7" stroke-width="6"/>
+        <polygon points="50,18 81,34 81,66 50,82 19,66 19,34" fill="none" stroke="#F5C400" stroke-width="5"/>
+        <rect x="44" y="28" width="12" height="44" fill="#E3241A"/>
+        <rect x="28" y="44" width="44" height="12" fill="#E3241A"/>
+      </svg>
+      <div class="brand-text">
+        <b>GENBA</b>
+        <span>FLOW SYSTEM</span>
+      </div>
+    </div>
+    <div class="case-name"><b>案件：世田谷区S様邸 新築工事</b></div>
+
+    <div class="kpi-strip">
+      <div class="kpi red">
+        <div class="lbl">見積金額</div>
+        <div class="val">¥1,234,000</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">延べ人工</div>
+        <div class="val">12.5<small>人日</small></div>
+      </div>
+      <div class="kpi blue">
+        <div class="lbl">粗利率</div>
+        <div class="val">28<small>%</small></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BREADCRUMB -->
+  <nav class="crumb" id="crumb">
+    <span class="seg">GENBA</span><span class="sep">/</span>
+    <span class="seg now" id="crumbNow">今日のボード</span>
+  </nav>
+
+  <main>
+
+    <!-- TODAY BOARD -->
+    <div class="today-block">
+      <div class="ring-wrap">
+        <svg width="88" height="88">
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#e8e6d8" stroke-width="10"/>
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#0B5FC7" stroke-width="10"
+            stroke-dasharray="238.7" stroke-dashoffset="95.5" stroke-linecap="round" id="progRing"/>
+        </svg>
+        <div class="ring-label"><b id="progNum">2/5</b><span>完了</span></div>
+      </div>
+      <div class="today-copy">
+        <b>今日やることボード</b>
+        <p>現場を止めずに経営を進める。5つのタスクをタップして進行状況を更新。</p>
+      </div>
+    </div>
+
+    <div class="section-title"><div class="num"><span>1</span></div><h2>今日のタスク</h2></div>
+    <div class="task-list" id="taskList">
+      <div class="task done" data-task="KY記録">
+        <div class="shape triangle"></div>
+        <div class="task-txt"><b>KY記録</b><span>危険予知活動・完了報告</span></div>
+        <div class="chev">✓</div>
+      </div>
+      <div class="task done" data-task="施工写真">
+        <div class="shape circle">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+        <div class="task-txt"><b>施工写真</b><span>基礎配筋・14枚アップ済</span></div>
+        <div class="chev">✓</div>
+      </div>
+      <div class="task" data-task="拾い出し">
+        <div class="task-badge">要確認</div>
+        <div class="shape square">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" stroke="#111" stroke-width="2"/></svg>
+        </div>
+        <div class="task-txt"><b>拾い出し確認</b><span>資材3件をスワイプ判定へ</span></div>
+        <div class="chev">›</div>
+      </div>
+      <div class="task" data-task="見積確認">
+        <div class="shape square" style="background:var(--red);">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="5" width="14" height="14" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+        <div class="task-txt"><b>見積確認</b><span>粗利28% 承認待ち</span></div>
+        <div class="chev">›</div>
+      </div>
+      <div class="task" data-task="日報">
+        <div class="shape cross">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="3"/></svg>
+        </div>
+        <div class="task-txt"><b>日報</b><span>本日の作業内容を入力</span></div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+
+    <!-- PICKUP SWIPE -->
+    <div class="section-title"><div class="num"><span>2</span></div><h2>拾い出し確認</h2></div>
+    <div class="swipe-zone">
+      <div class="card-stage" id="cardStage">
+        <div class="pcard" data-i="0">
+          <span class="tag">構造材</span>
+          <div class="stamp ok">OK</div>
+          <div class="stamp ng">NG</div>
+          <h3>集成材 105角 4m</h3>
+          <div class="meta"><span>数量</span><b>24本</b></div>
+          <div class="meta"><span>単価</span><b>¥3,200</b></div>
+        </div>
+        <div class="pcard" data-i="1">
+          <span class="tag">仕上材</span>
+          <div class="stamp ok">OK</div>
+          <div class="stamp ng">NG</div>
+          <h3>石膏ボード 12.5mm</h3>
+          <div class="meta"><span>数量</span><b>68枚</b></div>
+          <div class="meta"><span>単価</span><b>¥980</b></div>
+        </div>
+        <div class="pcard" data-i="2">
+          <span class="tag">設備</span>
+          <div class="stamp ok">OK</div>
+          <div class="stamp ng">NG</div>
+          <h3>給水管 VP20</h3>
+          <div class="meta"><span>数量</span><b>40m</b></div>
+          <div class="meta"><span>単価</span><b>¥620</b></div>
+        </div>
+        <div class="pcard done-state" id="doneCard" style="display:none;justify-content:center;align-items:center;text-align:center;">
+          <div>
+            <div class="shape circle" style="margin:0 auto 10px;width:50px;height:50px;background:var(--yellow);"></div>
+            <b style="font-size:15px;">全件判定完了</b>
+            <p style="font-size:11px;color:var(--gray);margin-top:6px;">見積確認へ進めます</p>
+          </div>
+        </div>
+      </div>
+      <div class="swipe-count" id="swipeCount">1 / 3 件・左右にスワイプ、またはボタンで判定</div>
+      <div class="swipe-actions">
+        <div class="swipe-btn ng" id="btnNg">✗ 却下</div>
+        <div class="swipe-btn ok" id="btnOk">✓ 承認</div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="section-title"><div class="num"><span>3</span></div><h2>主要メニュー</h2></div>
+    <div class="quick-grid">
+      <div class="qcard y" data-nav="施工写真">
+        <div class="qshape" style="width:60px;height:60px;border-radius:50%;background:#000;"></div>
+        <b>施工写真</b><span>撮影・アップロード</span>
+      </div>
+      <div class="qcard r" data-nav="見積確認">
+        <div class="qshape" style="width:60px;height:60px;background:#fff;"></div>
+        <b>見積確認</b><span>粗利シミュレーション</span>
+      </div>
+      <div class="qcard b" data-nav="KY記録">
+        <div class="qshape" style="width:0;height:0;border-left:30px solid transparent;border-right:30px solid transparent;border-bottom:52px solid #fff;"></div>
+        <b>KY記録</b><span>危険予知・安全確認</span>
+      </div>
+      <div class="qcard k" data-nav="日報">
+        <div class="qshape" style="width:60px;height:60px;background:var(--yellow);transform:rotate(45deg);"></div>
+        <b>日報</b><span>本日の実績入力</span>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="catch">
+    <p>現場が、<br>経営を超えていく。</p>
+    <div class="mini">GENBA FLOW — BAUHAUS EDITION</div>
+  </div>
+
+  <!-- MIC FAB -->
+  <div class="mic-fab" id="micFab">
+    <div class="mic-pulse"></div>
+    <svg viewBox="0 0 24 24" fill="none">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff"/>
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="ボード"><div class="ti square"></div>ボード</div>
+    <div class="tab" data-tab="写真"><div class="ti circle" style="background:none;border:3px solid var(--gray);"></div>写真</div>
+    <div class="tab" data-tab="見積"><div class="ti plain"></div>見積</div>
+    <div class="tab" data-tab="日報"><div class="ti tri" style="border-bottom-color:transparent;border-left:12px solid transparent;border-right:12px solid transparent;filter:none;"></div>日報</div>
+  </div>
+
+  <div class="toast" id="toast">更新しました</div>
+
+</div>
+
+<script>
+(function(){
+  var doneCount = 2, total = 5;
+  var ring = document.getElementById('progRing');
+  var progNum = document.getElementById('progNum');
+  var CIRC = 238.7;
+
+  function updateRing(){
+    var offset = CIRC * (1 - doneCount/total);
+    ring.style.strokeDashoffset = offset;
+    progNum.textContent = doneCount + '/' + total;
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1400);
+  }
+
+  // task list tap -> toggle done / navigate
+  document.querySelectorAll('.task').forEach(function(el){
+    el.addEventListener('click', function(){
+      if(!el.classList.contains('done')){
+        el.classList.add('done');
+        doneCount = Math.min(total, doneCount+1);
+        updateRing();
+        showToast(el.dataset.task + ' を完了しました');
+        var chev = el.querySelector('.chev');
+        chev.textContent = '✓';
+        var badge = el.querySelector('.task-badge');
+        if(badge) badge.remove();
+      } else {
+        showToast(el.dataset.task + ' の詳細へ');
+      }
+      setBreadcrumb(el.dataset.task);
+    });
+  });
+
+  document.querySelectorAll('.qcard').forEach(function(el){
+    el.addEventListener('click', function(){
+      setBreadcrumb(el.dataset.nav);
+      showToast(el.dataset.nav + ' 画面へ移動');
+    });
+  });
+
+  document.querySelectorAll('.tab').forEach(function(el){
+    el.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+      el.classList.add('active');
+      setBreadcrumb(el.dataset.tab);
+    });
+  });
+
+  function setBreadcrumb(name){
+    document.getElementById('crumbNow').textContent = name;
+  }
+
+  updateRing();
+
+  // ===== swipe cards =====
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.pcard[data-i]'));
+  var idx = 0;
+  var stage = document.getElementById('cardStage');
+  var doneCard = document.getElementById('doneCard');
+  var countEl = document.getElementById('swipeCount');
+  var okCount = 0, ngCount = 0;
+
+  function layout(){
+    cards.forEach(function(c, i){
+      var rel = i - idx;
+      if(rel < 0){ c.style.display='none'; return; }
+      c.style.display='flex';
+      c.style.zIndex = 10 - rel;
+      c.style.transform = 'translateY(' + (rel*8) + 'px) scale(' + (1 - rel*0.04) + ')';
+      c.style.opacity = rel < 3 ? 1 - rel*0.15 : 0;
+    });
+    if(idx >= cards.length){
+      stage.querySelectorAll('.pcard[data-i]').forEach(function(c){c.style.display='none';});
+      doneCard.style.display='flex';
+      countEl.textContent = '判定完了：承認' + okCount + '件・却下' + ngCount + '件';
+    } else {
+      countEl.textContent = (idx+1) + ' / ' + cards.length + ' 件・左右にスワイプ、またはボタンで判定';
+    }
+  }
+
+  function decide(dir){
+    if(idx >= cards.length) return;
+    var c = cards[idx];
+    var stamp = c.querySelector(dir === 'right' ? '.stamp.ok' : '.stamp.ng');
+    stamp.style.opacity = 1;
+    c.style.transition = 'transform .3s ease, opacity .3s ease';
+    c.style.transform = 'translateX(' + (dir === 'right' ? 420 : -420) + 'px) rotate(' + (dir==='right'?18:-18) + 'deg)';
+    c.style.opacity = 0;
+    if(dir === 'right') okCount++; else ngCount++;
+    idx++;
+    setTimeout(layout, 260);
+  }
+
+  document.getElementById('btnOk').addEventListener('click', function(){ decide('right'); });
+  document.getElementById('btnNg').addEventListener('click', function(){ decide('left'); });
+
+  // drag support
+  var startX=0, curX=0, dragging=false, activeCard=null;
+  stage.addEventListener('pointerdown', function(e){
+    if(idx>=cards.length) return;
+    activeCard = cards[idx];
+    dragging = true;
+    startX = e.clientX;
+    activeCard.style.transition='none';
+  });
+  window.addEventListener('pointermove', function(e){
+    if(!dragging || !activeCard) return;
+    curX = e.clientX - startX;
+    activeCard.style.transform = 'translateX(' + curX + 'px) rotate(' + (curX/18) + 'deg)';
+    var ok = activeCard.querySelector('.stamp.ok');
+    var ng = activeCard.querySelector('.stamp.ng');
+    ok.style.opacity = Math.max(0, curX/80);
+    ng.style.opacity = Math.max(0, -curX/80);
+  });
+  window.addEventListener('pointerup', function(){
+    if(!dragging || !activeCard) return;
+    dragging = false;
+    activeCard.style.transition='transform .3s ease, opacity .3s ease';
+    if(curX > 70){ decide('right'); }
+    else if(curX < -70){ decide('left'); }
+    else {
+      activeCard.style.transform='';
+      activeCard.querySelector('.stamp.ok').style.opacity=0;
+      activeCard.querySelector('.stamp.ng').style.opacity=0;
+    }
+    curX = 0;
+    activeCard = null;
+  });
+
+  layout();
+
+  document.getElementById('micFab').addEventListener('click', function(){
+    showToast('音声入力を開始します…');
+  });
+})();
+</script>
+
+</body>
+</html>

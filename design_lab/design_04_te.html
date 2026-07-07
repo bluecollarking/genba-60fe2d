@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>GENBA Flow — EST-01</title>
+<style>
+  :root{
+    --te-off:#eeece5;
+    --te-off2:#e4e1d8;
+    --te-panel:#f4f2ec;
+    --te-line:#c9c5b8;
+    --te-ink:#2c2b28;
+    --te-ink-soft:#6b675d;
+    --te-orange:#ff5a1f;
+    --te-orange-dk:#d94a15;
+    --te-grey:#8c887c;
+    --te-grey-dk:#57544c;
+    --te-green:#3e7d4f;
+    --te-red:#c1432c;
+    --te-shadow-out: 6px 6px 12px rgba(0,0,0,0.18), -4px -4px 10px rgba(255,255,255,0.7);
+    --te-shadow-in: inset 3px 3px 6px rgba(0,0,0,0.22), inset -2px -2px 5px rgba(255,255,255,0.6);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    width:390px;
+    margin:0 auto;
+    background:#d8d5cb;
+    font-family:"Helvetica Neue","Hiragino Sans","Yu Gothic UI",sans-serif;
+    color:var(--te-ink);
+    overflow-x:hidden;
+  }
+  .mono{
+    font-family:"Courier New", ui-monospace, monospace;
+    letter-spacing:0.03em;
+  }
+
+  /* ===== DEVICE SHELL ===== */
+  .device{
+    width:390px;
+    min-height:844px;
+    background:
+      radial-gradient(circle at 20% 0%, #f2f0e8 0%, #e6e3d8 40%, #d9d6cb 100%);
+    position:relative;
+    padding-bottom:110px;
+    border-left:1px solid #fff;
+    border-right:1px solid #bdb9ac;
+  }
+  .screw{
+    position:absolute; width:8px; height:8px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #fff, #b9b5a8 60%, #8d897c);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.15);
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    padding:14px 14px 10px 14px;
+    background:var(--te-panel);
+    border-bottom:2px solid var(--te-line);
+    position:relative;
+  }
+  .top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand .label{
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:0.06em;
+  }
+  .brand .sub{
+    font-size:8px;
+    color:var(--te-ink-soft);
+    display:block;
+    margin-top:1px;
+    letter-spacing:0.08em;
+  }
+  .badge-model{
+    font-size:9px;
+    background:var(--te-ink);
+    color:var(--te-off);
+    padding:3px 7px;
+    border-radius:4px;
+    letter-spacing:0.08em;
+  }
+  .project-name{
+    margin-top:10px;
+    font-size:13px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .project-name .dot{
+    width:7px;height:7px;border-radius:50%;background:var(--te-orange);
+    box-shadow:0 0 0 2px rgba(255,90,31,0.18);
+    display:inline-block; margin-right:6px;
+    animation:pulse 2.4s infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* KPI strip */
+  .kpi-strip{
+    margin-top:10px;
+    display:grid;
+    grid-template-columns:1.2fr 1fr 1fr;
+    gap:8px;
+  }
+  .kpi{
+    background:var(--te-off);
+    border-radius:10px;
+    box-shadow:var(--te-shadow-in);
+    padding:8px 8px 7px;
+    border:1px solid rgba(255,255,255,0.6);
+  }
+  .kpi .k-label{
+    font-size:8px;
+    color:var(--te-ink-soft);
+    letter-spacing:0.05em;
+  }
+  .kpi .k-value{
+    font-size:14px;
+    font-weight:700;
+    margin-top:3px;
+  }
+  .kpi.orange .k-value{color:var(--te-orange-dk);}
+  .kpi.green .k-value{color:var(--te-green);}
+  .kpi .k-tick{
+    margin-top:5px;
+    display:flex;
+    gap:2px;
+  }
+  .kpi .k-tick span{
+    width:3px;height:4px;background:var(--te-line);border-radius:1px;
+  }
+  .kpi .k-tick span.on{background:var(--te-orange);}
+
+  /* Breadcrumb */
+  .breadcrumb{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:10px;
+    color:var(--te-ink-soft);
+    background:var(--te-off2);
+    border-radius:8px;
+    padding:6px 10px;
+    border:1px solid var(--te-line);
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  .breadcrumb .seg{
+    padding:2px 6px;
+    border-radius:5px;
+  }
+  .breadcrumb .seg.current{
+    background:var(--te-ink);
+    color:var(--te-off);
+    font-weight:700;
+  }
+  .breadcrumb .sep{color:var(--te-line);}
+
+  /* ===== MAIN SCREEN AREA ===== */
+  .screen{
+    padding:14px;
+  }
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .section-title{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    color:var(--te-grey-dk);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:6px 2px 8px;
+  }
+  .section-title .tag{
+    font-size:8px;
+    background:var(--te-line);
+    color:#fff;
+    padding:2px 6px;
+    border-radius:4px;
+  }
+
+  /* Progress ring */
+  .ring-wrap{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--te-panel);
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow:var(--te-shadow-out);
+    margin-bottom:14px;
+    border:1px solid rgba(255,255,255,0.7);
+  }
+  .ring-num{
+    font-size:22px;
+    font-weight:800;
+  }
+  .ring-sub{
+    font-size:9px;
+    color:var(--te-ink-soft);
+    margin-top:2px;
+  }
+
+  /* Task board */
+  .task-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .task-card{
+    background:var(--te-panel);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:var(--te-shadow-out);
+    border:1px solid rgba(255,255,255,0.7);
+    cursor:pointer;
+    transition:transform .08s ease, box-shadow .08s ease;
+    position:relative;
+  }
+  .task-card:active{
+    box-shadow:var(--te-shadow-in);
+    transform:translateY(2px);
+  }
+  .task-icon{
+    width:42px;height:42px;
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--te-off2);
+    box-shadow:var(--te-shadow-in);
+    flex-shrink:0;
+  }
+  .task-icon svg{width:22px;height:22px;}
+  .task-body{flex:1; min-width:0;}
+  .task-title{font-size:13.5px; font-weight:700;}
+  .task-meta{font-size:9.5px; color:var(--te-ink-soft); margin-top:2px;}
+  .task-num{
+    font-size:9px;
+    color:var(--te-grey);
+    position:absolute;
+    top:6px; right:10px;
+  }
+  .task-status{
+    width:9px;height:9px;border-radius:50%;
+    flex-shrink:0;
+  }
+  .task-status.done{background:var(--te-green);}
+  .task-status.pending{background:var(--te-orange); box-shadow:0 0 0 3px rgba(255,90,31,0.15);}
+  .task-status.idle{background:var(--te-line);}
+
+  /* Buttons */
+  .btn{
+    min-height:64px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.6);
+    background:var(--te-off);
+    box-shadow:var(--te-shadow-out);
+    font-size:14px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    color:var(--te-ink);
+    cursor:pointer;
+    transition:transform .06s ease, box-shadow .06s ease;
+  }
+  .btn:active{
+    box-shadow:var(--te-shadow-in);
+    transform:translateY(3px);
+  }
+  .btn.primary{
+    background:linear-gradient(180deg, #ff6a35, var(--te-orange));
+    color:#fff5ee;
+    border-color:rgba(255,255,255,0.35);
+  }
+  .btn.ghost{
+    background:transparent;
+    box-shadow:none;
+    border:1.5px solid var(--te-line);
+  }
+  .btn-row{display:flex; gap:10px; margin-top:12px;}
+
+  /* Back nav button in view */
+  .back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-size:11px;
+    color:var(--te-ink-soft);
+    margin-bottom:10px;
+    cursor:pointer;
+  }
+
+  /* ===== SWIPE CARDS (拾い出し確認) ===== */
+  .swipe-stage{
+    position:relative;
+    height:230px;
+    margin-bottom:14px;
+  }
+  .swipe-card{
+    position:absolute;
+    inset:0;
+    background:var(--te-panel);
+    border-radius:16px;
+    box-shadow:var(--te-shadow-out);
+    border:1px solid rgba(255,255,255,0.7);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    transition:transform .3s ease, opacity .3s ease;
+    user-select:none;
+  }
+  .swipe-card .item-name{font-size:15px; font-weight:800;}
+  .swipe-card .item-spec{font-size:10px; color:var(--te-ink-soft); margin-top:4px;}
+  .swipe-card .item-qty{
+    font-size:30px; font-weight:800; color:var(--te-orange-dk);
+    margin-top:10px;
+  }
+  .swipe-card .item-qty span{font-size:12px; color:var(--te-ink-soft); font-weight:600;}
+  .swipe-card .stamp{
+    position:absolute; top:14px; right:14px;
+    font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px;
+    border:2px solid; opacity:0; transform:rotate(-8deg) scale(1.2);
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .swipe-card .stamp.ok{color:var(--te-green); border-color:var(--te-green);}
+  .swipe-card .stamp.ng{color:var(--te-red); border-color:var(--te-red);}
+  .swipe-card.show-ok .stamp.ok{opacity:1; transform:rotate(-8deg) scale(1);}
+  .swipe-card.show-ng .stamp.ng{opacity:1; transform:rotate(-8deg) scale(1);}
+  .swipe-card.fly-right{transform:translateX(420px) rotate(18deg); opacity:0;}
+  .swipe-card.fly-left{transform:translateX(-420px) rotate(-18deg); opacity:0;}
+  .swipe-hint{
+    font-size:9px; color:var(--te-ink-soft); text-align:center; margin-top:6px;
+  }
+  .swipe-btn-row{display:flex; gap:10px; margin-top:10px;}
+  .swipe-btn{
+    flex:1; min-height:64px; border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow:var(--te-shadow-out);
+    border:1px solid rgba(255,255,255,0.6);
+    font-weight:800; font-size:13px;
+    background:var(--te-off);
+    cursor:pointer;
+  }
+  .swipe-btn:active{box-shadow:var(--te-shadow-in); transform:translateY(3px);}
+  .swipe-btn.ng{color:var(--te-red);}
+  .swipe-btn.ok{color:var(--te-green);}
+  .swipe-progress{
+    display:flex; gap:5px; justify-content:center; margin-top:12px;
+  }
+  .swipe-progress span{
+    width:22px; height:4px; border-radius:2px; background:var(--te-line);
+  }
+  .swipe-progress span.done{background:var(--te-orange);}
+
+  /* Dot gauge decorative */
+  .dot-gauge{
+    display:flex; gap:3px; margin-top:8px;
+  }
+  .dot-gauge span{
+    width:4px;height:4px;border-radius:50%;background:var(--te-line);
+  }
+  .dot-gauge span.lit{background:var(--te-orange);}
+
+  /* Report view (日報) knobs */
+  .knob-row{
+    display:flex; gap:12px; justify-content:space-around;
+    background:var(--te-panel);
+    border-radius:var(--radius);
+    padding:16px;
+    box-shadow:var(--te-shadow-out);
+    margin-bottom:14px;
+  }
+  .knob{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .knob-dial{
+    width:52px; height:52px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--te-off2) 55%, #cfcabb);
+    box-shadow:var(--te-shadow-out);
+    position:relative;
+  }
+  .knob-dial::after{
+    content:'';
+    position:absolute;
+    width:3px; height:16px;
+    background:var(--te-orange);
+    top:6px; left:50%;
+    margin-left:-1.5px;
+    border-radius:2px;
+    transform-origin:50% 20px;
+  }
+  .knob-label{font-size:8px; color:var(--te-ink-soft); letter-spacing:0.04em;}
+
+  /* Slider (見積確認) */
+  .slider-block{
+    background:var(--te-panel);
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow:var(--te-shadow-out);
+    margin-bottom:12px;
+  }
+  .slider-block .row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:11px; margin-bottom:6px;
+  }
+  .slider-block .amt{font-size:15px; font-weight:800;}
+  .track{
+    height:10px; background:var(--te-off2); border-radius:6px;
+    box-shadow:var(--te-shadow-in);
+    position:relative;
+  }
+  .track .fill{
+    position:absolute; left:0; top:0; bottom:0;
+    background:linear-gradient(90deg, var(--te-orange), #ffb083);
+    border-radius:6px;
+  }
+  .track .handle{
+    position:absolute; top:50%; width:16px; height:16px;
+    background:#fff; border-radius:50%;
+    box-shadow:0 2px 4px rgba(0,0,0,0.3), 0 0 0 1px var(--te-line);
+    transform:translate(-50%,-50%);
+  }
+
+  /* Photo grid */
+  .photo-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+  }
+  .photo-cell{
+    aspect-ratio:1;
+    border-radius:10px;
+    background:repeating-linear-gradient(135deg, #cfcabb, #cfcabb 6px, #dcd8cc 6px, #dcd8cc 12px);
+    box-shadow:var(--te-shadow-in);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--te-ink-soft);
+    font-size:9px;
+    position:relative;
+    border:1px solid var(--te-line);
+  }
+  .photo-cell.add{
+    background:var(--te-off);
+    box-shadow:var(--te-shadow-out);
+    font-size:24px;
+    color:var(--te-orange);
+    font-weight:300;
+  }
+
+  /* KY check list */
+  .ky-item{
+    display:flex; align-items:center; gap:10px;
+    background:var(--te-panel);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    box-shadow:var(--te-shadow-in);
+  }
+  .ky-check{
+    width:20px;height:20px;border-radius:5px;
+    border:2px solid var(--te-orange);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    background:#fff;
+  }
+  .ky-check.checked{background:var(--te-orange);}
+  .ky-check.checked::after{content:'✓'; color:#fff; font-size:12px; font-weight:900;}
+  .ky-text{font-size:12px; font-weight:600;}
+
+  /* FAB */
+  .fab{
+    position:absolute;
+    bottom:96px;
+    right:20px;
+    width:74px; height:74px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ff7a48, var(--te-orange) 55%, var(--te-orange-dk));
+    box-shadow:0 8px 18px rgba(255,90,31,0.45), inset 0 2px 3px rgba(255,255,255,0.5);
+    display:flex; align-items:center; justify-content:center;
+    border:3px solid #fff8f2;
+    cursor:pointer;
+    z-index:20;
+    transition:transform .1s ease;
+  }
+  .fab:active{transform:scale(0.92);}
+  .fab svg{width:30px;height:30px;}
+  .fab-ring{
+    position:absolute; inset:-6px; border-radius:50%;
+    border:2px dashed rgba(255,90,31,0.4);
+    animation:spin 8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Bottom tab bar */
+  .tabbar{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:78px;
+    background:var(--te-panel);
+    border-top:2px solid var(--te-line);
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding:0 6px;
+  }
+  .tab{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:8.5px;
+    color:var(--te-ink-soft);
+    cursor:pointer;
+    width:60px;
+  }
+  .tab.active{color:var(--te-orange-dk); font-weight:700;}
+  .tab .tab-dot{width:5px;height:5px;border-radius:50%; background:transparent;}
+  .tab.active .tab-dot{background:var(--te-orange);}
+  .tab svg{width:20px;height:20px;}
+
+  /* Catch copy footer strip on home */
+  .catch-strip{
+    margin-top:16px;
+    text-align:center;
+    padding:14px 10px;
+    border-top:1px dashed var(--te-line);
+  }
+  .catch-strip .jp{
+    font-size:13px; font-weight:800; letter-spacing:0.03em;
+  }
+  .catch-strip .en{
+    font-size:8px; color:var(--te-ink-soft); margin-top:4px; letter-spacing:0.12em;
+  }
+</style>
+</head>
+<body>
+<div class="device" id="device">
+  <div class="screw" style="top:8px;left:8px;"></div>
+  <div class="screw" style="top:8px;right:8px;"></div>
+
+  <!-- ===================== HEADER ===================== -->
+  <header>
+    <div class="top-row">
+      <div class="brand">
+        <svg width="30" height="30" viewBox="0 0 60 60">
+          <polygon points="30,3 54,16.5 54,43.5 30,57 6,43.5 6,16.5" fill="none" stroke="#2c2b28" stroke-width="2.4"/>
+          <polygon points="30,10 47.5,20 47.5,40 30,50 12.5,40 12.5,20" fill="none" stroke="#ff5a1f" stroke-width="2"/>
+          <line x1="30" y1="24" x2="30" y2="36" stroke="#2c2b28" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="24" y1="30" x2="36" y2="30" stroke="#2c2b28" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <span class="label mono">GENBA</span>
+          <span class="sub mono">FLOW / EST-01</span>
+        </div>
+      </div>
+      <div class="badge-model mono">NO. 004</div>
+    </div>
+
+    <div class="project-name">
+      <span><span class="dot"></span>山田邸 新築工事</span>
+      <span class="mono" style="font-size:9px; color:var(--te-ink-soft);">#JB-2026-091</span>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi orange">
+        <div class="k-label mono">見積金額 EST</div>
+        <div class="k-value">¥1,234,000</div>
+        <div class="k-tick">
+          <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="k-label mono">延べ人工</div>
+        <div class="k-value">12.5<span style="font-size:9px;">人日</span></div>
+        <div class="k-tick"><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+      </div>
+      <div class="kpi green">
+        <div class="k-label mono">粗利 GP</div>
+        <div class="k-value">28%</div>
+        <div class="k-tick"><span class="on"></span><span class="on"></span><span></span><span></span></div>
+      </div>
+    </div>
+
+    <div class="breadcrumb mono" id="breadcrumb">
+      <span class="seg current">HOME</span>
+    </div>
+  </header>
+
+  <!-- ===================== SCREEN ===================== -->
+  <div class="screen">
+
+    <!-- ---------- VIEW: HOME ---------- -->
+    <div class="view active" id="view-home">
+      <div class="ring-wrap">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#e4e1d8" stroke-width="8"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#ff5a1f" stroke-width="8"
+            stroke-dasharray="188.4" stroke-dashoffset="66" stroke-linecap="round"
+            transform="rotate(-90 36 36)"/>
+          <text x="36" y="41" text-anchor="middle" font-size="18" font-weight="800" fill="#2c2b28">65%</text>
+        </svg>
+        <div>
+          <div class="ring-num">3<span style="font-size:13px;color:var(--te-ink-soft);"> / 5 完了</span></div>
+          <div class="ring-sub mono">TODAY'S PROGRESS — 07 JUL</div>
+        </div>
+      </div>
+
+      <div class="section-title">今日やることボード <span class="tag mono">TASK×5</span></div>
+      <div class="task-list">
+        <div class="task-card" onclick="nav('ky')">
+          <span class="task-num mono">01</span>
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5a1f" stroke-width="2"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5z"/><path d="M9 12l2 2 4-4" stroke="#2c2b28"/></svg></div>
+          <div class="task-body">
+            <div class="task-title">KY記録</div>
+            <div class="task-meta">危険予知 ・ 朝礼チェック</div>
+          </div>
+          <span class="task-status done"></span>
+        </div>
+        <div class="task-card" onclick="nav('photo')">
+          <span class="task-num mono">02</span>
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2c2b28" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5" stroke="#ff5a1f"/><path d="M8 7l1.5-3h5L16 7"/></svg></div>
+          <div class="task-body">
+            <div class="task-title">施工写真</div>
+            <div class="task-meta">基礎配筋 ・ 4枚アップロード済</div>
+          </div>
+          <span class="task-status done"></span>
+        </div>
+        <div class="task-card" onclick="nav('swipe')">
+          <span class="task-num mono">03</span>
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5a1f" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
+          <div class="task-body">
+            <div class="task-title">拾い出し確認</div>
+            <div class="task-meta">未確認 3件 ・ スワイプ判定</div>
+          </div>
+          <span class="task-status pending"></span>
+        </div>
+        <div class="task-card" onclick="nav('estimate')">
+          <span class="task-num mono">04</span>
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2c2b28" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke="#ff5a1f"/></svg></div>
+          <div class="task-body">
+            <div class="task-title">見積確認</div>
+            <div class="task-meta">承認待ち ・ ¥1,234,000</div>
+          </div>
+          <span class="task-status pending"></span>
+        </div>
+        <div class="task-card" onclick="nav('report')">
+          <span class="task-num mono">05</span>
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2c2b28" stroke-width="2"><path d="M6 2h9l3 3v17H6z"/><path d="M9 11h6M9 15h6" stroke="#ff5a1f"/></svg></div>
+          <div class="task-body">
+            <div class="task-title">日報</div>
+            <div class="task-meta">未作成 ・ 音声入力可</div>
+          </div>
+          <span class="task-status idle"></span>
+        </div>
+      </div>
+
+      <div class="catch-strip">
+        <div class="jp">現場が、経営を超えていく。</div>
+        <div class="en mono">GENBA FLOW — SITE OVER MANAGEMENT</div>
+      </div>
+    </div>
+
+    <!-- ---------- VIEW: KY ---------- -->
+    <div class="view" id="view-ky">
+      <div class="back-btn" onclick="nav('home')">← HOMEへ戻る</div>
+      <div class="section-title">KY記録 <span class="tag mono">01 / 05</span></div>
+      <div class="ky-item"><div class="ky-check checked"></div><div class="ky-text">高所作業 ・ 安全帯着用確認</div></div>
+      <div class="ky-item"><div class="ky-check checked"></div><div class="ky-text">重機周辺 ・ 立入禁止区画設定</div></div>
+      <div class="ky-item"><div class="ky-check checked"></div><div class="ky-text">天候確認 ・ 強風時の中断基準</div></div>
+      <div class="ky-item"><div class="ky-check"></div><div class="ky-text">搬入経路 ・ 誘導員配置</div></div>
+      <div class="btn primary" style="margin-top:14px;" onclick="nav('home')">記録を完了する</div>
+    </div>
+
+    <!-- ---------- VIEW: PHOTO ---------- -->
+    <div class="view" id="view-photo">
+      <div class="back-btn" onclick="nav('home')">← HOMEへ戻る</div>
+      <div class="section-title">施工写真 <span class="tag mono">02 / 05</span></div>
+      <div class="photo-grid">
+        <div class="photo-cell">IMG_01</div>
+        <div class="photo-cell">IMG_02</div>
+        <div class="photo-cell">IMG_03</div>
+        <div class="photo-cell">IMG_04</div>
+        <div class="photo-cell add">＋</div>
+      </div>
+      <div class="btn primary" style="margin-top:14px;" onclick="nav('home')">アップロード完了</div>
+    </div>
+
+    <!-- ---------- VIEW: SWIPE (拾い出し確認) ---------- -->
+    <div class="view" id="view-swipe">
+      <div class="back-btn" onclick="nav('home')">← HOMEへ戻る</div>
+      <div class="section-title">拾い出し確認 <span class="tag mono">03 / 05</span></div>
+
+      <div class="swipe-stage" id="swipe-stage">
+        <div class="swipe-card" data-idx="0">
+          <span class="stamp ok">承認</span>
+          <span class="stamp ng">差戻</span>
+          <div>
+            <div class="item-name mono">構造用合板 t12</div>
+            <div class="item-spec">910×1820 ・ 拾い出しNo.014</div>
+          </div>
+          <div class="item-qty">86<span>枚</span></div>
+        </div>
+        <div class="swipe-card" data-idx="1">
+          <span class="stamp ok">承認</span>
+          <span class="stamp ng">差戻</span>
+          <div>
+            <div class="item-name mono">集成材 105角</div>
+            <div class="item-spec">4000mm ・ 拾い出しNo.015</div>
+          </div>
+          <div class="item-qty">42<span>本</span></div>
+        </div>
+        <div class="swipe-card" data-idx="2">
+          <span class="stamp ok">承認</span>
+          <span class="stamp ng">差戻</span>
+          <div>
+            <div class="item-name mono">断熱材 高性能GW</div>
+            <div class="item-spec">105mm厚 ・ 拾い出しNo.016</div>
+          </div>
+          <div class="item-qty">120<span>㎡</span></div>
+        </div>
+      </div>
+      <div class="swipe-hint mono">← 左スワイプで差戻 ／ 右スワイプで承認 →</div>
+
+      <div class="swipe-btn-row">
+        <div class="swipe-btn ng" onclick="judge('ng')">✕ 差戻</div>
+        <div class="swipe-btn ok" onclick="judge('ok')">✓ 承認</div>
+      </div>
+      <div class="swipe-progress" id="swipe-progress">
+        <span class="p0"></span><span class="p1"></span><span class="p2"></span>
+      </div>
+    </div>
+
+    <!-- ---------- VIEW: ESTIMATE ---------- -->
+    <div class="view" id="view-estimate">
+      <div class="back-btn" onclick="nav('home')">← HOMEへ戻る</div>
+      <div class="section-title">見積確認 <span class="tag mono">04 / 05</span></div>
+
+      <div class="slider-block">
+        <div class="row"><span>本体工事費</span><span class="amt">¥980,000</span></div>
+        <div class="track"><div class="fill" style="width:79%"></div><div class="handle" style="left:79%"></div></div>
+      </div>
+      <div class="slider-block">
+        <div class="row"><span>諸経費</span><span class="amt">¥174,000</span></div>
+        <div class="track"><div class="fill" style="width:34%"></div><div class="handle" style="left:34%"></div></div>
+      </div>
+      <div class="slider-block">
+        <div class="row"><span>粗利 <span class="mono" style="color:var(--te-green);">GP 28%</span></span><span class="amt">¥80,000</span></div>
+        <div class="track"><div class="fill" style="width:28%; background:linear-gradient(90deg,#3e7d4f,#7ec98f);"></div><div class="handle" style="left:28%"></div></div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn ghost" onclick="nav('home')">修正依頼</div>
+        <div class="btn primary" onclick="nav('home')">承認する</div>
+      </div>
+    </div>
+
+    <!-- ---------- VIEW: REPORT (日報) ---------- -->
+    <div class="view" id="view-report">
+      <div class="back-btn" onclick="nav('home')">← HOMEへ戻る</div>
+      <div class="section-title">日報作成 <span class="tag mono">05 / 05</span></div>
+
+      <div class="knob-row">
+        <div class="knob">
+          <div class="knob-dial" style="transform:rotate(20deg)"></div>
+          <div class="knob-label mono">天候</div>
+        </div>
+        <div class="knob">
+          <div class="knob-dial" style="transform:rotate(90deg)"></div>
+          <div class="knob-label mono">進捗度</div>
+        </div>
+        <div class="knob">
+          <div class="knob-dial" style="transform:rotate(-40deg)"></div>
+          <div class="knob-label mono">人員数</div>
+        </div>
+      </div>
+
+      <div class="slider-block">
+        <div class="row"><span>作業内容メモ</span><span class="mono" style="font-size:9px; color:var(--te-orange-dk);">● REC 00:12</span></div>
+        <div class="dot-gauge">
+          <span class="lit"></span><span class="lit"></span><span class="lit"></span><span class="lit"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div class="btn primary" onclick="nav('home')">日報を送信する</div>
+    </div>
+
+  </div>
+
+  <!-- ===================== FAB (巨大マイク) ===================== -->
+  <div class="fab" onclick="alert('音声入力を開始します（デモ）')">
+    <div class="fab-ring"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+      <rect x="9" y="2" width="6" height="12" rx="3"/>
+      <path d="M5 11a7 7 0 0 0 14 0"/>
+      <line x1="12" y1="18" x2="12" y2="22"/>
+      <line x1="8" y1="22" x2="16" y2="22"/>
+    </svg>
+  </div>
+
+  <!-- ===================== TAB BAR ===================== -->
+  <div class="tabbar">
+    <div class="tab active" onclick="nav('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span class="tab-dot"></span>HOME
+    </div>
+    <div class="tab" onclick="nav('estimate')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span class="tab-dot"></span>見積
+    </div>
+    <div class="tab" onclick="nav('swipe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+      <span class="tab-dot"></span>拾い出し
+    </div>
+    <div class="tab" onclick="nav('report')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l3 3v17H6z"/></svg>
+      <span class="tab-dot"></span>日報
+    </div>
+  </div>
+</div>
+
+<script>
+  const crumbs = {
+    home:'HOME',
+    ky:'HOME &gt; KY記録',
+    photo:'HOME &gt; 施工写真',
+    swipe:'HOME &gt; 拾い出し確認',
+    estimate:'HOME &gt; 見積確認',
+    report:'HOME &gt; 日報'
+  };
+
+  function nav(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+id).classList.add('active');
+
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    const map = {home:0, estimate:1, swipe:2, report:3};
+    if(map[id]!==undefined){
+      document.querySelectorAll('.tab')[map[id]].classList.add('active');
+    }
+
+    const parts = crumbs[id].split(' &gt; ');
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = parts.map((p,i)=>{
+      const seg = `<span class="seg ${i===parts.length-1?'current':''}">${p}</span>`;
+      return i===0? seg : `<span class="sep">›</span>${seg}`;
+    }).join('');
+
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // ---- Swipe card demo logic ----
+  let swipeIdx = 0;
+  const total = 3;
+
+  function updateProgress(){
+    document.querySelectorAll('#swipe-progress span').forEach((s,i)=>{
+      s.classList.toggle('done', i < swipeIdx);
+    });
+  }
+
+  function judge(dir){
+    const stage = document.getElementById('swipe-stage');
+    const cards = stage.querySelectorAll('.swipe-card');
+    const current = cards[swipeIdx];
+    if(!current) return;
+
+    current.classList.add(dir==='ok' ? 'show-ok' : 'show-ng');
+    setTimeout(()=>{
+      current.classList.add(dir==='ok' ? 'fly-right' : 'fly-left');
+    }, 180);
+
+    setTimeout(()=>{
+      swipeIdx++;
+      updateProgress();
+      if(swipeIdx >= total){
+        stage.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:8px;">'
+          + '<div style="font-size:15px;font-weight:800;">全件確認完了</div>'
+          + '<div class="mono" style="font-size:9px;color:var(--te-ink-soft);">ALL ITEMS VERIFIED</div></div>';
+      }
+    }, 550);
+  }
+
+  // touch swipe support
+  (function(){
+    let startX = 0, dragging = false, activeCard = null;
+
+    document.getElementById('swipe-stage').addEventListener('pointerdown', e=>{
+      const cards = document.querySelectorAll('#swipe-stage .swipe-card');
+      activeCard = cards[swipeIdx];
+      if(!activeCard) return;
+      dragging = true;
+      startX = e.clientX;
+    });
+    window.addEventListener('pointermove', e=>{
+      if(!dragging || !activeCard) return;
+      const dx = e.clientX - startX;
+      activeCard.style.transform = `translateX(${dx}px) rotate(${dx/20}deg)`;
+      activeCard.classList.toggle('show-ok', dx>40);
+      activeCard.classList.toggle('show-ng', dx<-40);
+    });
+    window.addEventListener('pointerup', e=>{
+      if(!dragging || !activeCard) return;
+      dragging = false;
+      const dx = e.clientX - startX;
+      if(dx > 70){ activeCard.style.transform=''; judge('ok'); }
+      else if(dx < -70){ activeCard.style.transform=''; judge('ng'); }
+      else { activeCard.style.transform=''; activeCard.classList.remove('show-ok','show-ng'); }
+      activeCard = null;
+    });
+  })();
+</script>
+</body>
+</html>

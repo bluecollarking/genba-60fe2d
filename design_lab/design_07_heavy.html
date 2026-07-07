@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENBA Flow — 重機グレード管理画面</title>
+<style>
+:root{
+  --safety-yellow:#ffc400;
+  --safety-yellow-dark:#d9a600;
+  --black:#111214;
+  --black-2:#1b1c1f;
+  --steel:#3a3d42;
+  --steel-light:#5a5e66;
+  --rivet:#242527;
+  --white:#f3f3f0;
+  --danger:#e0311c;
+  --ok:#1f9d55;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  background:#000;
+  font-family:"Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",system-ui,-apple-system,sans-serif;
+  color:var(--white);
+  -webkit-font-smoothing:antialiased;
+}
+.device{
+  width:390px;
+  margin:24px auto;
+  background:var(--black);
+  min-height:844px;
+  position:relative;
+  overflow:hidden;
+  border:3px solid var(--steel);
+  border-radius:14px;
+  box-shadow:0 0 0 6px var(--rivet), 0 20px 60px rgba(0,0,0,.8);
+}
+
+/* ---------- chevron pattern ---------- */
+.chevron{
+  background-image:repeating-linear-gradient(45deg,
+    var(--safety-yellow) 0 14px,
+    var(--black) 14px 28px);
+}
+.chevron-thin{
+  background-image:repeating-linear-gradient(45deg,
+    var(--safety-yellow) 0 8px,
+    var(--black) 8px 16px);
+}
+
+/* ---------- rivets ---------- */
+.rivet{
+  width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 32% 32%, #999 0%, #4a4a4a 45%, #1a1a1a 100%);
+  box-shadow:0 1px 1px rgba(0,0,0,.8), inset 0 0 2px rgba(0,0,0,.6);
+}
+.rivet-row{display:flex;justify-content:space-between;padding:0 6px;}
+
+/* ---------- hex bolt ---------- */
+.bolt{
+  width:16px;height:16px;
+  background:
+    linear-gradient(135deg, #8a8d92, #2c2d30 60%);
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+  position:relative;
+  box-shadow:inset 0 0 3px rgba(0,0,0,.7), 0 1px 2px rgba(0,0,0,.6);
+}
+.bolt::after{
+  content:"";position:absolute;inset:35%;
+  background:#1a1a1a;border-radius:1px;
+}
+
+/* ---------- steel plate panel ---------- */
+.steel-panel{
+  background:
+    linear-gradient(160deg, #4a4d52 0%, #2c2e32 40%, #1c1d20 100%);
+  border:1px solid #060606;
+  border-radius:8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -2px 4px rgba(0,0,0,.6),
+    0 4px 10px rgba(0,0,0,.5);
+  position:relative;
+}
+
+/* ---------- stencil text ---------- */
+.stencil{
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+  font-weight:900;
+  letter-spacing:0.06em;
+  text-shadow:1px 1px 0 rgba(0,0,0,.6);
+}
+
+/* ================= HEADER ================= */
+.header{
+  background:var(--black-2);
+  border-bottom:4px solid var(--safety-yellow);
+  padding:10px 14px 8px;
+  position:relative;
+  z-index:5;
+}
+.header-chevron-strip{
+  height:6px;
+  margin:0 -14px;
+}
+.header-top{
+  display:flex;align-items:center;gap:10px;margin-top:6px;
+}
+.logo-hex{
+  width:42px;height:42px;flex:none;
+}
+.brand-block{flex:1;min-width:0;}
+.brand-name{
+  font-size:20px;font-weight:900;letter-spacing:0.12em;
+  color:var(--safety-yellow);
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+}
+.project-name{
+  font-size:11px;color:#c9cacb;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.status-chip{
+  background:var(--safety-yellow);
+  color:#000;font-size:10px;font-weight:900;
+  padding:4px 8px;border-radius:3px;
+  clip-path:polygon(6px 0,100% 0,100% 100%,0 100%,0 6px);
+  white-space:nowrap;
+}
+
+/* KPI strip */
+.kpi-strip{
+  display:flex;
+  margin-top:10px;
+  border:2px solid var(--safety-yellow);
+  border-radius:6px;
+  overflow:hidden;
+  background:var(--rivet);
+}
+.kpi{
+  flex:1;text-align:center;padding:7px 4px;
+  border-right:1px solid rgba(255,196,0,.35);
+  position:relative;
+}
+.kpi:last-child{border-right:none;}
+.kpi-label{
+  font-size:9px;color:var(--safety-yellow);letter-spacing:.05em;font-weight:700;
+}
+.kpi-value{
+  font-size:15px;font-weight:900;margin-top:2px;color:#fff;
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+}
+.kpi-value.profit{color:var(--safety-yellow);}
+
+/* breadcrumb */
+.breadcrumb{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 14px;
+  background:#0c0c0d;
+  font-size:11px;color:#9a9b9d;
+  border-bottom:1px solid #000;
+  overflow-x:auto;white-space:nowrap;
+}
+.breadcrumb b{color:var(--safety-yellow);}
+.breadcrumb .sep{color:var(--steel-light);}
+
+/* ================= MAIN SCROLL ================= */
+.screen{
+  display:none;
+  padding-bottom:110px;
+}
+.screen.active{display:block;}
+.main-scroll{
+  height:calc(844px - 168px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.section-title{
+  display:flex;align-items:center;gap:8px;
+  padding:16px 14px 8px;
+}
+.section-title .bar{
+  width:5px;height:16px;background:var(--safety-yellow);
+}
+.section-title h2{
+  font-size:14px;letter-spacing:.05em;font-weight:900;
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+}
+
+/* progress ring */
+.ring-wrap{
+  display:flex;align-items:center;gap:16px;
+  margin:6px 14px 14px;
+  padding:14px;
+  background:var(--black-2);
+  border:1px solid var(--steel);
+  border-radius:10px;
+}
+.ring-svg{flex:none;}
+.ring-info{flex:1;}
+.ring-info .big{font-size:26px;font-weight:900;color:var(--safety-yellow);font-family:"Arial Black","Yu Gothic UI",sans-serif;}
+.ring-info .small{font-size:11px;color:#aaa;margin-top:2px;}
+
+/* task board */
+.task-list{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
+.task-card{
+  display:flex;align-items:center;gap:12px;
+  padding:14px;
+  cursor:pointer;
+  transition:transform .1s;
+}
+.task-card:active{transform:scale(.98);}
+.task-icon{
+  width:44px;height:44px;flex:none;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--rivet);
+  border:2px solid var(--safety-yellow);
+  font-size:20px;
+}
+.task-body{flex:1;min-width:0;}
+.task-title{font-size:14px;font-weight:700;color:#fff;}
+.task-sub{font-size:11px;color:#9a9b9d;margin-top:2px;}
+.task-badge{
+  font-size:9px;font-weight:900;padding:3px 7px;border-radius:3px;flex:none;
+}
+.badge-pending{background:var(--danger);color:#fff;}
+.badge-done{background:var(--ok);color:#fff;}
+.badge-progress{background:var(--safety-yellow);color:#000;}
+.task-arrow{color:var(--safety-yellow);font-size:18px;flex:none;}
+
+/* Swipe deck */
+.swipe-stage{
+  position:relative;
+  height:360px;
+  margin:10px 14px 6px;
+}
+.swipe-card{
+  position:absolute;inset:0;
+  border-radius:14px;
+  border:3px solid var(--steel);
+  background:linear-gradient(160deg,#333 0%, #1a1a1a 100%);
+  display:flex;flex-direction:column;
+  box-shadow:0 10px 30px rgba(0,0,0,.6);
+  transition:transform .35s ease, opacity .35s ease;
+  user-select:none;
+}
+.swipe-card:nth-child(1){z-index:3;}
+.swipe-card:nth-child(2){z-index:2;transform:scale(.95) translateY(10px);}
+.swipe-card:nth-child(3){z-index:1;transform:scale(.9) translateY(20px);}
+.swipe-card .photo{
+  flex:1;
+  background:repeating-linear-gradient(135deg,#2a2a2a 0 10px,#222 10px 20px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:46px;
+  border-bottom:3px solid var(--safety-yellow);
+}
+.swipe-card .info{padding:12px 14px;}
+.swipe-card .info .name{font-weight:900;font-size:15px;color:#fff;}
+.swipe-card .info .qty{font-size:12px;color:var(--safety-yellow);margin-top:4px;font-weight:700;}
+.stamp{
+  position:absolute;top:20px;font-weight:900;font-size:26px;
+  padding:6px 14px;border:5px solid;border-radius:10px;
+  transform:rotate(-18deg);opacity:0;pointer-events:none;
+  font-family:"Arial Black",sans-serif;letter-spacing:.05em;
+}
+.stamp-ok{right:20px;color:var(--ok);border-color:var(--ok);}
+.stamp-ng{left:20px;color:var(--danger);border-color:var(--danger);}
+
+.swipe-actions{
+  display:flex;gap:14px;justify-content:center;margin:14px 14px 4px;
+}
+.action-btn{
+  width:64px;height:64px;border-radius:50%;
+  border:3px solid;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:900;
+  background:var(--black-2);
+  box-shadow:0 4px 10px rgba(0,0,0,.5);
+}
+.action-btn.ng{border-color:var(--danger);color:var(--danger);}
+.action-btn.ok{border-color:var(--ok);color:var(--ok);}
+.swipe-hint{
+  text-align:center;font-size:11px;color:#888;margin-bottom:10px;
+}
+
+/* KY / report generic panel */
+.detail-panel{margin:10px 14px;padding:16px;}
+.detail-panel .row{
+  display:flex;justify-content:space-between;
+  padding:10px 0;border-bottom:1px dashed var(--steel);
+  font-size:13px;
+}
+.detail-panel .row:last-child{border-bottom:none;}
+.detail-panel .row span:first-child{color:#9a9b9d;}
+.detail-panel .row span:last-child{font-weight:700;color:#fff;}
+
+.warning-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--safety-yellow);color:#000;
+  font-weight:900;font-size:11px;
+  padding:5px 10px;margin:12px 14px 0;border-radius:4px;
+  clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px);
+}
+
+.big-btn{
+  display:block;width:calc(100% - 28px);
+  margin:16px 14px;
+  min-height:64px;
+  background:var(--safety-yellow);
+  color:#000;font-weight:900;font-size:15px;
+  border:none;border-radius:8px;
+  letter-spacing:.04em;
+  box-shadow:0 6px 0 var(--safety-yellow-dark), 0 10px 16px rgba(0,0,0,.5);
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+  cursor:pointer;
+}
+.big-btn:active{
+  box-shadow:0 2px 0 var(--safety-yellow-dark), 0 4px 8px rgba(0,0,0,.5);
+  transform:translateY(4px);
+}
+.big-btn.outline{
+  background:transparent;color:var(--safety-yellow);
+  border:3px solid var(--safety-yellow);
+  box-shadow:none;
+}
+
+/* photo grid */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px;}
+.photo-cell{
+  aspect-ratio:1;border-radius:6px;
+  background:repeating-linear-gradient(45deg,#2b2b2b 0 8px,#222 8px 16px);
+  border:1px solid var(--steel);
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:#666;
+}
+
+/* footer nav */
+.bottom-nav{
+  position:absolute;left:0;right:0;bottom:0;
+  height:74px;
+  background:var(--black-2);
+  border-top:3px solid var(--safety-yellow);
+  display:flex;
+  z-index:20;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:#8a8b8d;font-size:9px;font-weight:700;
+  cursor:pointer;
+}
+.nav-item.active{color:var(--safety-yellow);}
+.nav-item .ic{font-size:20px;}
+
+/* mic FAB */
+.mic-fab{
+  position:absolute;
+  right:18px;bottom:92px;
+  width:76px;height:76px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #ffd94d, var(--safety-yellow) 55%, var(--safety-yellow-dark) 100%);
+  border:4px solid #000;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;
+  box-shadow:0 8px 20px rgba(0,0,0,.6), 0 0 0 4px rgba(255,196,0,.25);
+  z-index:30;
+  cursor:pointer;
+  animation:pulse 2.4s infinite;
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 8px 20px rgba(0,0,0,.6), 0 0 0 4px rgba(255,196,0,.25);}
+  50%{box-shadow:0 8px 20px rgba(0,0,0,.6), 0 0 0 10px rgba(255,196,0,.12);}
+}
+.mic-fab:active{transform:scale(.94);}
+
+/* catch copy footer strip on dashboard */
+.catch-strip{
+  margin:20px 14px 6px;
+  text-align:center;
+  padding:14px;
+  border-top:2px solid var(--steel);
+  border-bottom:2px solid var(--steel);
+}
+.catch-strip .jp{
+  font-size:15px;font-weight:900;color:var(--safety-yellow);
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+  letter-spacing:.03em;
+}
+.catch-strip .en{
+  font-size:9px;color:#777;letter-spacing:.15em;margin-top:4px;text-transform:uppercase;
+}
+
+/* toast */
+.toast{
+  position:absolute;left:50%;bottom:180px;transform:translateX(-50%) translateY(20px);
+  background:#000;border:2px solid var(--safety-yellow);color:#fff;
+  padding:10px 18px;border-radius:6px;font-size:12px;font-weight:700;
+  opacity:0;pointer-events:none;transition:.3s;z-index:60;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* screen header title (for sub screens) */
+.sub-header{
+  padding:14px 14px 4px;display:flex;align-items:center;justify-content:space-between;
+}
+.sub-header h1{
+  font-size:16px;font-weight:900;letter-spacing:.03em;
+  font-family:"Arial Black","Yu Gothic UI",sans-serif;
+}
+.back-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--rivet);border:1px solid var(--steel);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--safety-yellow);font-size:16px;cursor:pointer;
+}
+</style>
+</head>
+<body>
+<div class="device" id="device">
+
+  <!-- ================= HEADER (persistent) ================= -->
+  <div class="header">
+    <div class="header-chevron-strip chevron-thin"></div>
+    <div class="header-top">
+      <svg class="logo-hex" viewBox="0 0 100 100">
+        <polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="none" stroke="#ffc400" stroke-width="6"/>
+        <polygon points="50,15 82,32 82,68 50,85 18,68 18,32" fill="none" stroke="#ffc400" stroke-width="3"/>
+        <rect x="42" y="28" width="16" height="44" fill="#ffc400"/>
+        <rect x="28" y="42" width="44" height="16" fill="#ffc400"/>
+      </svg>
+      <div class="brand-block">
+        <div class="brand-name">GENBA</div>
+        <div class="project-name" id="projectName">南本町4丁目 新築工事現場</div>
+      </div>
+      <div class="status-chip">稼働中</div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="kpi-label">見積金額</div>
+        <div class="kpi-value">¥1,234,000</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">延べ人工</div>
+        <div class="kpi-value">12.5人工</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">粗利率</div>
+        <div class="kpi-value profit">28%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- breadcrumb persistent -->
+  <div class="breadcrumb" id="breadcrumb">
+    <span>GENBA</span><span class="sep">›</span><b id="crumbCurrent">今日やることボード</b>
+  </div>
+
+  <div class="main-scroll">
+
+    <!-- ============ SCREEN 1: DASHBOARD ============ -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="ring-wrap steel-panel">
+        <svg class="ring-svg" width="90" height="90" viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="38" stroke="#333" stroke-width="10" fill="none"/>
+          <circle cx="45" cy="45" r="38" stroke="#ffc400" stroke-width="10" fill="none"
+            stroke-dasharray="238.7" stroke-dashoffset="71.6" stroke-linecap="round"
+            transform="rotate(-90 45 45)"/>
+          <text x="45" y="51" text-anchor="middle" font-size="20" font-weight="900" fill="#fff">70%</text>
+        </svg>
+        <div class="ring-info">
+          <div class="big">3 / 5 完了</div>
+          <div class="small">本日の必須タスク進捗。残り2件で本日ノルマ達成。</div>
+        </div>
+      </div>
+
+      <div class="section-title"><div class="bar"></div><h2>今日やることボード</h2></div>
+      <div class="task-list">
+        <div class="task-card steel-panel" onclick="goScreen('ky')">
+          <div class="task-icon">⚠</div>
+          <div class="task-body">
+            <div class="task-title">KY記録（危険予知）</div>
+            <div class="task-sub">朝礼前に必須入力</div>
+          </div>
+          <div class="task-badge badge-done">完了</div>
+          <div class="task-arrow">›</div>
+        </div>
+        <div class="task-card steel-panel" onclick="goScreen('photo')">
+          <div class="task-icon">📷</div>
+          <div class="task-body">
+            <div class="task-title">施工写真</div>
+            <div class="task-sub">基礎配筋部 8枚 未送信</div>
+          </div>
+          <div class="task-badge badge-progress">進行中</div>
+          <div class="task-arrow">›</div>
+        </div>
+        <div class="task-card steel-panel" onclick="goScreen('pickup')">
+          <div class="task-icon">📦</div>
+          <div class="task-body">
+            <div class="task-title">拾い出し確認</div>
+            <div class="task-sub">資材3件の数量チェック待ち</div>
+          </div>
+          <div class="task-badge badge-pending">未対応</div>
+          <div class="task-arrow">›</div>
+        </div>
+        <div class="task-card steel-panel" onclick="goScreen('estimate')">
+          <div class="task-icon">💴</div>
+          <div class="task-body">
+            <div class="task-title">見積確認</div>
+            <div class="task-sub">粗利率28%・承認待ち</div>
+          </div>
+          <div class="task-badge badge-pending">未対応</div>
+          <div class="task-arrow">›</div>
+        </div>
+        <div class="task-card steel-panel" onclick="goScreen('report')">
+          <div class="task-icon">📝</div>
+          <div class="task-body">
+            <div class="task-title">日報</div>
+            <div class="task-sub">17:00までに提出</div>
+          </div>
+          <div class="task-badge badge-done">完了</div>
+          <div class="task-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="catch-strip">
+        <div class="jp">現場が、経営を超えていく。</div>
+        <div class="en">GENBA FLOW — SITE OVER MANAGEMENT</div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 2: KY記録 ============ -->
+    <div class="screen" id="screen-ky">
+      <div class="sub-header">
+        <div class="back-btn" onclick="goScreen('dashboard')">‹</div>
+        <h1>KY記録（危険予知活動）</h1>
+        <div style="width:36px"></div>
+      </div>
+      <div class="warning-tag">⚠ 高所作業あり・要墜落防止措置</div>
+      <div class="detail-panel steel-panel">
+        <div class="row"><span>作業内容</span><span>2階床型枠組立</span></div>
+        <div class="row"><span>危険要因</span><span>墜落・転落</span></div>
+        <div class="row"><span>対策</span><span>安全帯二丁掛け使用</span></div>
+        <div class="row"><span>記録者</span><span>山田 太郎</span></div>
+        <div class="row"><span>ステータス</span><span style="color:var(--ok)">記録済み ✓</span></div>
+      </div>
+      <button class="big-btn outline" onclick="toast('KY記録を再編集モードにしました')">記録を編集する</button>
+      <button class="big-btn" onclick="toast('本日のKYを確定しました')">本日のKYを確定</button>
+    </div>
+
+    <!-- ============ SCREEN 3: 施工写真 ============ -->
+    <div class="screen" id="screen-photo">
+      <div class="sub-header">
+        <div class="back-btn" onclick="goScreen('dashboard')">‹</div>
+        <h1>施工写真</h1>
+        <div style="width:36px"></div>
+      </div>
+      <div class="section-title"><div class="bar"></div><h2>基礎配筋部（8枚）</h2></div>
+      <div class="photo-grid">
+        <div class="photo-cell">🧱</div><div class="photo-cell">🧱</div><div class="photo-cell">🧱</div>
+        <div class="photo-cell">🧱</div><div class="photo-cell">🧱</div><div class="photo-cell">🧱</div>
+        <div class="photo-cell">🧱</div><div class="photo-cell">🧱</div>
+      </div>
+      <button class="big-btn" onclick="toast('写真8枚をクラウドへ送信しました')">クラウドへ一括送信</button>
+    </div>
+
+    <!-- ============ SCREEN 4: 拾い出し確認（スワイプ） ============ -->
+    <div class="screen" id="screen-pickup">
+      <div class="sub-header">
+        <div class="back-btn" onclick="goScreen('dashboard')">‹</div>
+        <h1>拾い出し確認</h1>
+        <div style="width:36px"></div>
+      </div>
+      <div class="swipe-hint">左右スワイプ、またはボタンで判定 ( <b style="color:var(--safety-yellow)">残り <span id="cardCount">3</span> 件</b> )</div>
+      <div class="swipe-stage" id="swipeStage">
+        <div class="swipe-card" data-idx="0">
+          <div class="photo">🧱</div>
+          <div class="info"><div class="name">コンクリートブロック 150×190×390</div><div class="qty">数量：240個</div></div>
+          <div class="stamp stamp-ok">OK</div>
+          <div class="stamp stamp-ng">NG</div>
+        </div>
+        <div class="swipe-card" data-idx="1">
+          <div class="photo">🔩</div>
+          <div class="info"><div class="name">全ねじボルトM12×300</div><div class="qty">数量：80本</div></div>
+          <div class="stamp stamp-ok">OK</div>
+          <div class="stamp stamp-ng">NG</div>
+        </div>
+        <div class="swipe-card" data-idx="2">
+          <div class="photo">🪵</div>
+          <div class="info"><div class="name">構造用合板 t12</div><div class="qty">数量：60枚</div></div>
+          <div class="stamp stamp-ok">OK</div>
+          <div class="stamp stamp-ng">NG</div>
+        </div>
+      </div>
+      <div class="swipe-actions">
+        <div class="action-btn ng" onclick="judge('ng')">✗</div>
+        <div class="action-btn ok" onclick="judge('ok')">✓</div>
+      </div>
+    </div>
+
+    <!-- ============ SCREEN 5: 見積確認 ============ -->
+    <div class="screen" id="screen-estimate">
+      <div class="sub-header">
+        <div class="back-btn" onclick="goScreen('dashboard')">‹</div>
+        <h1>見積確認</h1>
+        <div style="width:36px"></div>
+      </div>
+      <div class="detail-panel steel-panel">
+        <div class="row"><span>見積金額</span><span>¥1,234,000</span></div>
+        <div class="row"><span>原価</span><span>¥888,480</span></div>
+        <div class="row"><span>粗利</span><span style="color:var(--safety-yellow)">¥345,520（28%）</span></div>
+        <div class="row"><span>延べ人工</span><span>12.5人工</span></div>
+        <div class="row"><span>承認状況</span><span style="color:var(--danger)">承認待ち</span></div>
+      </div>
+      <button class="big-btn" onclick="toast('見積を承認し、発注確定しました')">この内容で承認する</button>
+      <button class="big-btn outline" onclick="toast('修正依頼を担当者に送りました')">修正を依頼する</button>
+    </div>
+
+    <!-- ============ SCREEN 6: 日報 ============ -->
+    <div class="screen" id="screen-report">
+      <div class="sub-header">
+        <div class="back-btn" onclick="goScreen('dashboard')">‹</div>
+        <h1>日報</h1>
+        <div style="width:36px"></div>
+      </div>
+      <div class="detail-panel steel-panel">
+        <div class="row"><span>作業日</span><span>2026/07/07</span></div>
+        <div class="row"><span>作業内容</span><span>基礎配筋・型枠組立</span></div>
+        <div class="row"><span>出面人数</span><span>5名</span></div>
+        <div class="row"><span>天候</span><span>晴れ</span></div>
+        <div class="row"><span>提出状況</span><span style="color:var(--ok)">提出済み ✓</span></div>
+      </div>
+      <button class="big-btn outline" onclick="toast('日報を再編集モードにしました')">日報を編集する</button>
+    </div>
+
+  </div>
+
+  <!-- mic FAB persistent -->
+  <div class="mic-fab" onclick="toast('音声入力を開始しました（デモ）')">🎙</div>
+
+  <!-- bottom nav persistent -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="goScreen('dashboard')"><div class="ic">🏠</div>ボード</div>
+    <div class="nav-item" onclick="goScreen('pickup')"><div class="ic">📦</div>拾い出し</div>
+    <div class="nav-item" onclick="goScreen('estimate')"><div class="ic">💴</div>見積</div>
+    <div class="nav-item" onclick="goScreen('report')"><div class="ic">📝</div>日報</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const crumbMap = {
+  dashboard:'今日やることボード',
+  ky:'KY記録',
+  photo:'施工写真',
+  pickup:'拾い出し確認',
+  estimate:'見積確認',
+  report:'日報'
+};
+const navMap = { dashboard:0, pickup:1, estimate:2, report:3 };
+
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('crumbCurrent').textContent = crumbMap[id] || id;
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{
+    n.classList.toggle('active', navMap[id]===i);
+  });
+  document.querySelector('.main-scroll').scrollTop = 0;
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* swipe deck logic */
+let startX=0, startY=0, dragging=false, curDx=0;
+const stage = document.getElementById('swipeStage');
+
+function topCard(){
+  return stage.querySelector('.swipe-card');
+}
+
+function attachDrag(card){
+  card.addEventListener('pointerdown', e=>{
+    if(card !== topCard()) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    card.setPointerCapture(e.pointerId);
+  });
+  card.addEventListener('pointermove', e=>{
+    if(!dragging || card !== topCard()) return;
+    curDx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const rot = curDx/18;
+    card.style.transform = `translate(${curDx}px, ${dy}px) rotate(${rot}deg)`;
+    const okStamp = card.querySelector('.stamp-ok');
+    const ngStamp = card.querySelector('.stamp-ng');
+    okStamp.style.opacity = Math.max(0, Math.min(1, curDx/80));
+    ngStamp.style.opacity = Math.max(0, Math.min(1, -curDx/80));
+  });
+  ['pointerup','pointercancel'].forEach(ev=>card.addEventListener(ev, e=>{
+    if(!dragging || card !== topCard()) return;
+    dragging = false;
+    if(curDx > 90){ finishSwipe(card,'ok'); }
+    else if(curDx < -90){ finishSwipe(card,'ng'); }
+    else{
+      card.style.transform='';
+      card.querySelector('.stamp-ok').style.opacity=0;
+      card.querySelector('.stamp-ng').style.opacity=0;
+    }
+    curDx = 0;
+  }));
+}
+
+function finishSwipe(card, result){
+  const dir = result==='ok' ? 600 : -600;
+  card.style.transition = 'transform .35s ease, opacity .35s ease';
+  card.style.transform = `translate(${dir}px, -40px) rotate(${dir/12}deg)`;
+  card.style.opacity = 0;
+  toast(result==='ok' ? '判定：OK ✓ を記録しました' : '判定：NG ✗ を記録しました');
+  setTimeout(()=>{
+    card.remove();
+    updateCount();
+    if(stage.children.length===0){
+      toast('全ての拾い出し確認が完了しました');
+    }
+  }, 320);
+}
+
+function judge(result){
+  const card = topCard();
+  if(!card) return;
+  finishSwipe(card, result);
+}
+
+function updateCount(){
+  document.getElementById('cardCount').textContent = stage.children.length;
+}
+
+document.querySelectorAll('.swipe-card').forEach(attachDrag);
+updateCount();
+</script>
+</body>
+</html>

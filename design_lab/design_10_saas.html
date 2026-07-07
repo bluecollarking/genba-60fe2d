@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENBA — 現場が、経営を超えていく。</title>
+<style>
+  :root{
+    --bg:#0a0a0b;
+    --bg-elev-1:#111113;
+    --bg-elev-2:#17171a;
+    --bg-elev-3:#1e1e22;
+    --border-subtle:rgba(255,255,255,0.08);
+    --border-strong:rgba(255,255,255,0.14);
+    --text-1:#f4f4f5;
+    --text-2:#a1a1aa;
+    --text-3:#6b6b70;
+    --accent:#6366f1;
+    --accent-2:#8b5cf6;
+    --accent-soft:rgba(99,102,241,0.15);
+    --success:#22c55e;
+    --danger:#f43f5e;
+    --warn:#f59e0b;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text-1);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .device{
+    width:390px;
+    height:844px;
+    max-height:100vh;
+    background:
+      radial-gradient(ellipse 600px 300px at 50% -10%, rgba(99,102,241,0.10), transparent 60%),
+      var(--bg);
+    position:relative;
+    overflow:hidden;
+    border-left:1px solid var(--border-subtle);
+    border-right:1px solid var(--border-subtle);
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ===== HEADER ===== */
+  header.app-header{
+    flex:0 0 auto;
+    padding:14px 16px 12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+    border-bottom:1px solid var(--border-subtle);
+    position:relative;
+    z-index:20;
+  }
+  .brand-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .logo-mark{
+    width:30px;height:30px;flex:0 0 auto;
+    filter:drop-shadow(0 0 6px rgba(99,102,241,0.5));
+  }
+  .brand-name{
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:0.5px;
+    background:linear-gradient(120deg,#fff, #b8b8ff 60%, var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .project-chip{
+    font-size:11px;
+    color:var(--text-2);
+    background:var(--bg-elev-2);
+    border:1px solid var(--border-subtle);
+    padding:4px 9px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .project-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success);}
+
+  .kpi-strip{
+    display:grid;
+    grid-template-columns:1.2fr 1fr 1fr;
+    gap:8px;
+  }
+  .kpi{
+    background:linear-gradient(160deg, var(--bg-elev-2), var(--bg-elev-1));
+    border:1px solid var(--border-subtle);
+    border-radius:var(--radius-sm);
+    padding:9px 10px;
+    position:relative;
+    overflow:hidden;
+  }
+  .kpi::before{
+    content:"";
+    position:absolute;inset:0;
+    border-radius:var(--radius-sm);
+    padding:1px;
+    background:linear-gradient(135deg, rgba(99,102,241,0.4), transparent 60%);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    pointer-events:none;
+  }
+  .kpi-label{
+    font-size:9.5px;
+    color:var(--text-3);
+    letter-spacing:0.4px;
+    margin-bottom:3px;
+    display:flex;align-items:center;gap:3px;
+  }
+  .kpi-value{
+    font-size:15px;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-0.3px;
+  }
+  .kpi-value small{font-size:10px;font-weight:600;color:var(--text-2);margin-left:2px;}
+  .kpi.profit .kpi-value{color:var(--success);}
+
+  /* ===== BREADCRUMB ===== */
+  .breadcrumb{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 16px;
+    font-size:11px;
+    color:var(--text-3);
+    background:var(--bg-elev-1);
+    border-bottom:1px solid var(--border-subtle);
+    overflow-x:auto;
+    white-space:nowrap;
+    z-index:15;
+  }
+  .breadcrumb .seg{color:var(--text-2);}
+  .breadcrumb .seg.current{color:var(--text-1); font-weight:600;}
+  .breadcrumb .sep{color:var(--text-3); opacity:0.5;}
+  .breadcrumb kbd{
+    font-size:9px;
+    border:1px solid var(--border-strong);
+    background:var(--bg-elev-2);
+    border-radius:4px;
+    padding:1px 4px;
+    color:var(--text-3);
+    margin-left:auto;
+    font-family:inherit;
+  }
+
+  /* ===== MAIN SCROLL ===== */
+  main{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:16px 16px 120px;
+    position:relative;
+  }
+  main::-webkit-scrollbar{width:0;}
+
+  .section-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text-1);
+    margin:4px 0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .section-title .hint{
+    font-size:10px;
+    color:var(--text-3);
+    font-weight:500;
+  }
+
+  /* progress ring block */
+  .progress-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:linear-gradient(160deg, var(--bg-elev-2), var(--bg-elev-1) 70%);
+    border:1px solid var(--border-subtle);
+    border-radius:var(--radius-lg);
+    padding:14px;
+    margin-bottom:18px;
+  }
+  .ring-wrap{position:relative; width:64px;height:64px; flex:0 0 auto;}
+  .ring-wrap svg{width:100%;height:100%; transform:rotate(-90deg);}
+  .ring-bg{fill:none; stroke:var(--bg-elev-3); stroke-width:6;}
+  .ring-fg{fill:none; stroke:url(#ringGrad); stroke-width:6; stroke-linecap:round;
+    stroke-dasharray:175.9; stroke-dashoffset:70.4; transition:stroke-dashoffset .6s var(--ease);}
+  .ring-center{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:800; font-variant-numeric:tabular-nums;
+  }
+  .progress-copy .p-title{font-size:13px; font-weight:700; margin-bottom:2px;}
+  .progress-copy .p-sub{font-size:11px; color:var(--text-2);}
+
+  /* today board */
+  .task-list{display:flex; flex-direction:column; gap:8px; margin-bottom:22px;}
+  .task-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 14px;
+    background:var(--bg-elev-2);
+    border:1px solid var(--border-subtle);
+    border-radius:var(--radius-md);
+    cursor:pointer;
+    transition:transform 120ms var(--ease), border-color 120ms var(--ease), background 120ms var(--ease);
+  }
+  .task-item:active{transform:scale(0.97); background:var(--bg-elev-3);}
+  .task-item:hover{border-color:var(--border-strong);}
+  .task-icon{
+    width:38px;height:38px;flex:0 0 auto;
+    border-radius:11px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px;
+    background:var(--accent-soft);
+  }
+  .task-body{flex:1; min-width:0;}
+  .task-name{font-size:13.5px; font-weight:700; margin-bottom:2px;}
+  .task-meta{font-size:10.5px; color:var(--text-3);}
+  .task-status{
+    font-size:9.5px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .status-done{background:rgba(34,197,94,0.15); color:var(--success);}
+  .status-pending{background:rgba(245,158,11,0.15); color:var(--warn);}
+  .status-todo{background:var(--bg-elev-3); color:var(--text-3);}
+  .task-chevron{color:var(--text-3); font-size:14px;}
+
+  /* swipe deck */
+  .deck-wrap{
+    position:relative;
+    height:210px;
+    margin-bottom:16px;
+  }
+  .swipe-card{
+    position:absolute;
+    inset:0;
+    border-radius:var(--radius-lg);
+    background:linear-gradient(160deg, var(--bg-elev-2), var(--bg-elev-1));
+    border:1px solid var(--border-subtle);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    transition:transform 260ms var(--ease), opacity 260ms var(--ease);
+    user-select:none;
+    touch-action:pan-y;
+  }
+  .swipe-card:nth-child(1){z-index:3;}
+  .swipe-card:nth-child(2){z-index:2; transform:translateY(8px) scale(0.96); opacity:0.8;}
+  .swipe-card:nth-child(3){z-index:1; transform:translateY(16px) scale(0.92); opacity:0.6;}
+  .swipe-card .sc-tag{
+    font-size:9.5px; font-weight:700; color:var(--accent-2);
+    letter-spacing:0.5px; text-transform:uppercase;
+    display:flex; align-items:center; gap:4px;
+  }
+  .swipe-card .sc-title{font-size:16px; font-weight:800; margin:8px 0 4px;}
+  .swipe-card .sc-detail{font-size:12px; color:var(--text-2); line-height:1.5;}
+  .swipe-card .sc-numbers{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-top:10px;
+  }
+  .sc-num{font-size:20px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .sc-unit{font-size:10px; color:var(--text-3); font-weight:600;}
+  .stamp{
+    position:absolute; top:16px; font-size:13px; font-weight:900;
+    padding:5px 12px; border-radius:8px; border:2.5px solid; letter-spacing:2px;
+    opacity:0; transform:rotate(-12deg) scale(0.8);
+    transition:opacity 150ms, transform 150ms;
+    pointer-events:none;
+  }
+  .stamp.ok{right:16px; color:var(--success); border-color:var(--success);}
+  .stamp.ng{left:16px; color:var(--danger); border-color:var(--danger);}
+
+  .swipe-actions{
+    display:flex; justify-content:center; gap:16px; margin-bottom:22px;
+  }
+  .swipe-btn{
+    width:56px;height:56px; border-radius:50%;
+    border:1px solid var(--border-strong);
+    background:var(--bg-elev-2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+    cursor:pointer;
+    transition:transform 120ms var(--ease), background 120ms var(--ease), box-shadow 120ms var(--ease);
+  }
+  .swipe-btn:active{transform:scale(0.9);}
+  .swipe-btn.reject{color:var(--danger);}
+  .swipe-btn.reject:hover{box-shadow:0 0 0 6px rgba(244,63,94,0.12); border-color:var(--danger);}
+  .swipe-btn.accept{color:var(--success);}
+  .swipe-btn.accept:hover{box-shadow:0 0 0 6px rgba(34,197,94,0.12); border-color:var(--success);}
+  .deck-progress{
+    text-align:center; font-size:10.5px; color:var(--text-3); margin:-14px 0 20px;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* bottom nav */
+  nav.bottom-nav{
+    position:absolute; left:0; right:0; bottom:0;
+    display:flex;
+    background:rgba(17,17,19,0.85);
+    backdrop-filter:blur(16px);
+    border-top:1px solid var(--border-subtle);
+    padding:10px 6px calc(10px + env(safe-area-inset-bottom));
+    z-index:30;
+  }
+  .nav-item{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    font-size:9.5px; color:var(--text-3);
+    padding:6px 2px;
+    border-radius:10px;
+    transition:color 120ms var(--ease), background 120ms var(--ease);
+    cursor:pointer;
+  }
+  .nav-item.active{color:var(--text-1); background:rgba(99,102,241,0.1);}
+  .nav-item .ic{font-size:18px;}
+
+  /* mic fab */
+  .mic-fab{
+    position:absolute;
+    right:18px; bottom:96px;
+    width:72px;height:72px;
+    border-radius:50%;
+    background:linear-gradient(150deg, var(--accent), var(--accent-2));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 30px rgba(99,102,241,0.45), 0 0 0 1px rgba(255,255,255,0.08) inset;
+    cursor:pointer;
+    z-index:40;
+    transition:transform 120ms var(--ease), box-shadow 120ms var(--ease);
+  }
+  .mic-fab::after{
+    content:"";
+    position:absolute; inset:-6px;
+    border-radius:50%;
+    border:1.5px solid rgba(139,92,246,0.4);
+    animation:pulse 2.4s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{transform:scale(0.9); opacity:0.8;}
+    100%{transform:scale(1.35); opacity:0;}
+  }
+  .mic-fab:active{transform:scale(0.92); box-shadow:0 4px 16px rgba(99,102,241,0.5);}
+  .mic-fab svg{width:28px;height:28px;}
+
+  .toast{
+    position:absolute; left:50%; bottom:190px;
+    transform:translateX(-50%) translateY(10px);
+    background:var(--bg-elev-3);
+    border:1px solid var(--border-strong);
+    padding:9px 16px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 200ms var(--ease), transform 200ms var(--ease);
+    z-index:50;
+    white-space:nowrap;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .tagline{
+    text-align:center;
+    font-size:11px;
+    color:var(--text-3);
+    letter-spacing:1px;
+    margin:18px 0 4px;
+    font-weight:600;
+  }
+</style>
+</head>
+<body>
+<div class="device">
+
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="brand">
+        <svg class="logo-mark" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#8b5cf6"/>
+              <stop offset="100%" stop-color="#6366f1"/>
+            </linearGradient>
+          </defs>
+          <polygon points="24,3 41,13.5 41,34.5 24,45 7,34.5 7,13.5" fill="none" stroke="url(#logoGrad)" stroke-width="2.4"/>
+          <polygon points="24,9 35.5,16 35.5,32 24,39 12.5,32 12.5,16" fill="none" stroke="url(#logoGrad)" stroke-width="1.4" opacity="0.6"/>
+          <line x1="24" y1="17" x2="24" y2="31" stroke="url(#logoGrad)" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="17" y1="24" x2="31" y2="24" stroke="url(#logoGrad)" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">GENBA</span>
+      </div>
+      <div class="project-chip"><span class="dot"></span>青葉台 新築工事</div>
+    </div>
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="kpi-label">💴 見積金額</div>
+        <div class="kpi-value">¥1,234,000</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">👷 延べ人工</div>
+        <div class="kpi-value">12.5<small>人工</small></div>
+      </div>
+      <div class="kpi profit">
+        <div class="kpi-label">📈 粗利率</div>
+        <div class="kpi-value">28<small>%</small></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb" id="breadcrumb">
+    <span class="seg">GENBA</span><span class="sep">/</span>
+    <span class="seg">青葉台新築工事</span><span class="sep">/</span>
+    <span class="seg current" id="crumbCurrent">今日やること</span>
+    <kbd>⌘K</kbd>
+  </div>
+
+  <main>
+    <div class="progress-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 64 64">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#8b5cf6"/>
+              <stop offset="100%" stop-color="#22c55e"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="32" cy="32" r="28"/>
+          <circle class="ring-fg" cx="32" cy="32" r="28" id="progRing"/>
+        </svg>
+        <div class="ring-center" id="progText">60%</div>
+      </div>
+      <div class="progress-copy">
+        <div class="p-title">本日の進捗 3/5 完了</div>
+        <div class="p-sub">残り2件で本日のタスクが完了します</div>
+      </div>
+    </div>
+
+    <div class="section-title">今日やることボード <span class="hint">タップで詳細</span></div>
+    <div class="task-list" id="taskList">
+      <div class="task-item" data-name="KY記録" onclick="openTask(this,'done')">
+        <div class="task-icon">⚠️</div>
+        <div class="task-body">
+          <div class="task-name">KY記録</div>
+          <div class="task-meta">危険予知確認 · 08:12 完了</div>
+        </div>
+        <div class="task-status status-done">完了</div>
+        <div class="task-chevron">›</div>
+      </div>
+      <div class="task-item" data-name="施工写真" onclick="openTask(this,'done')">
+        <div class="task-icon">📷</div>
+        <div class="task-body">
+          <div class="task-name">施工写真</div>
+          <div class="task-meta">基礎配筋 12枚アップ済み</div>
+        </div>
+        <div class="task-status status-done">完了</div>
+        <div class="task-chevron">›</div>
+      </div>
+      <div class="task-item" data-name="拾い出し確認" onclick="openTask(this,'pending')">
+        <div class="task-icon">📐</div>
+        <div class="task-body">
+          <div class="task-name">拾い出し確認</div>
+          <div class="task-meta">3件のスワイプ判定待ち</div>
+        </div>
+        <div class="task-status status-pending">確認中</div>
+        <div class="task-chevron">›</div>
+      </div>
+      <div class="task-item" data-name="見積確認" onclick="openTask(this,'todo')">
+        <div class="task-icon">🧾</div>
+        <div class="task-body">
+          <div class="task-name">見積確認</div>
+          <div class="task-meta">承認待ち · 期限 今日17時</div>
+        </div>
+        <div class="task-status status-todo">未着手</div>
+        <div class="task-chevron">›</div>
+      </div>
+      <div class="task-item" data-name="日報" onclick="openTask(this,'todo')">
+        <div class="task-icon">📝</div>
+        <div class="task-body">
+          <div class="task-name">日報</div>
+          <div class="task-meta">音声入力で1分作成</div>
+        </div>
+        <div class="task-status status-todo">未着手</div>
+        <div class="task-chevron">›</div>
+      </div>
+    </div>
+
+    <div class="section-title">拾い出し確認 <span class="hint">← 却下 / 承認 →</span></div>
+    <div class="deck-wrap" id="deckWrap">
+      <div class="swipe-card" data-idx="0">
+        <div class="stamp ok">承認</div>
+        <div class="stamp ng">却下</div>
+        <div>
+          <div class="sc-tag">🧱 躯体材料</div>
+          <div class="sc-title">構造用合板 t12</div>
+          <div class="sc-detail">図面C-03より自動拾い出し。既存発注と数量差異 +4枚。</div>
+        </div>
+        <div class="sc-numbers">
+          <div><div class="sc-num">86<span class="sc-unit">枚</span></div></div>
+          <div><div class="sc-num" style="color:var(--text-2); font-size:14px;">¥198,400</div></div>
+        </div>
+      </div>
+      <div class="swipe-card" data-idx="1">
+        <div class="stamp ok">承認</div>
+        <div class="stamp ng">却下</div>
+        <div>
+          <div class="sc-tag">🔩 金物</div>
+          <div class="sc-title">羽子板ボルト M12</div>
+          <div class="sc-detail">継手仕様変更に伴う追加分。在庫と照合済み。</div>
+        </div>
+        <div class="sc-numbers">
+          <div><div class="sc-num">40<span class="sc-unit">本</span></div></div>
+          <div><div class="sc-num" style="color:var(--text-2); font-size:14px;">¥52,000</div></div>
+        </div>
+      </div>
+      <div class="swipe-card" data-idx="2">
+        <div class="stamp ok">承認</div>
+        <div class="stamp ng">却下</div>
+        <div>
+          <div class="sc-tag">🪵 木材</div>
+          <div class="sc-title">managed 105角 米松</div>
+          <div class="sc-detail">土台材。単価改定後の再見積。前回比 +3.2%。</div>
+        </div>
+        <div class="sc-numbers">
+          <div><div class="sc-num">28<span class="sc-unit">本</span></div></div>
+          <div><div class="sc-num" style="color:var(--text-2); font-size:14px;">¥134,000</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="deck-progress" id="deckProgress">1 / 3 件を判定中</div>
+
+    <div class="swipe-actions">
+      <div class="swipe-btn reject" onclick="judge('ng')">✕</div>
+      <div class="swipe-btn accept" onclick="judge('ok')">✓</div>
+    </div>
+
+    <div class="tagline">現場が、経営を超えていく。</div>
+  </main>
+
+  <div class="mic-fab" onclick="micTap()">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="white"/>
+      <path d="M5 11a7 7 0 0 0 14 0" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="18" x2="12" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="22" x2="16" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="setNav(this,'今日やること')"><div class="ic">🏠</div>ホーム</div>
+    <div class="nav-item" onclick="setNav(this,'案件一覧')"><div class="ic">📁</div>案件</div>
+    <div class="nav-item" onclick="setNav(this,'見積')"><div class="ic">🧾</div>見積</div>
+    <div class="nav-item" onclick="setNav(this,'経営レポート')"><div class="ic">📊</div>経営</div>
+    <div class="nav-item" onclick="setNav(this,'設定')"><div class="ic">⚙️</div>設定</div>
+  </nav>
+
+</div>
+
+<script>
+  const RING_LEN = 175.9;
+  function setProgress(done,total){
+    const pct = Math.round(done/total*100);
+    document.getElementById('progRing').style.strokeDashoffset = RING_LEN * (1 - done/total);
+    document.getElementById('progText').textContent = pct + '%';
+  }
+  let doneCount = 3, totalCount = 5;
+  setProgress(doneCount,totalCount);
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=>t.classList.remove('show'), 1600);
+  }
+
+  function setNav(el,label){
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('crumbCurrent').textContent = label;
+    showToast(label + ' へ移動');
+  }
+
+  function openTask(el,state){
+    const name = el.getAttribute('data-name');
+    document.getElementById('crumbCurrent').textContent = name;
+    if(state==='todo'){
+      el.querySelector('.task-status').className='task-status status-pending';
+      el.querySelector('.task-status').textContent='確認中';
+      showToast(name + ' を開始しました');
+    } else if(state==='pending'){
+      showToast(name + ' — 詳細を表示');
+      document.getElementById('deckWrap').scrollIntoView({behavior:'smooth', block:'center'});
+    } else {
+      showToast(name + ' の詳細を表示');
+    }
+  }
+
+  // ---- swipe deck ----
+  let deckOrder = [0,1,2];
+  const cardData = [
+    {title:'構造用合板 t12', amount:'¥198,400'},
+    {title:'羽子板ボルト M12', amount:'¥52,000'},
+    {title:'105角 米松', amount:'¥134,000'}
+  ];
+  let judgedCount = 0;
+  const total = 3;
+
+  function updateDeckProgress(){
+    const remain = total - judgedCount;
+    const el = document.getElementById('deckProgress');
+    if(remain<=0){ el.textContent = '全件判定が完了しました ✓'; return; }
+    el.textContent = (judgedCount+1) + ' / ' + total + ' 件を判定中';
+  }
+
+  function judge(dir){
+    const wrap = document.getElementById('deckWrap');
+    const top = wrap.querySelector('.swipe-card:nth-child(1)');
+    if(!top) return;
+    const stampSel = dir==='ok' ? '.stamp.ok' : '.stamp.ng';
+    const stamp = top.querySelector(stampSel);
+    stamp.style.opacity = '1';
+    stamp.style.transform = 'rotate(0deg) scale(1)';
+    const moveX = dir==='ok' ? 420 : -420;
+    top.style.transform = `translate(${moveX}px, -10px) rotate(${dir==='ok'?18:-18}deg)`;
+    top.style.opacity = '0';
+    judgedCount++;
+    showToast(dir==='ok' ? '承認しました ✓' : '却下しました ✕');
+    setTimeout(()=>{
+      top.remove();
+      updateDeckProgress();
+      if(judgedCount>=total){
+        wrap.innerHTML = '<div class="swipe-card" style="align-items:center;justify-content:center;text-align:center;"><div><div style="font-size:32px;">✅</div><div style="font-weight:800;margin-top:8px;">拾い出し確認 完了</div><div style="font-size:11px;color:var(--text-2);margin-top:4px;">3件すべて処理済み</div></div></div>';
+        // mark today board item done
+        const item = document.querySelector('.task-item[data-name="拾い出し確認"]');
+        if(item){
+          item.querySelector('.task-status').className='task-status status-done';
+          item.querySelector('.task-status').textContent='完了';
+          doneCount = 4;
+          setProgress(doneCount,totalCount);
+        }
+      }
+    }, 280);
+  }
+
+  // simple drag support
+  (function enableDrag(){
+    let startX=0, startY=0, dragging=false, currentEl=null;
+    const wrap = document.getElementById('deckWrap');
+    wrap.addEventListener('pointerdown', e=>{
+      const card = wrap.querySelector('.swipe-card:nth-child(1)');
+      if(!card || !wrap.contains(e.target)) return;
+      currentEl = card;
+      startX = e.clientX; startY = e.clientY;
+      dragging = true;
+      card.style.transition='none';
+    });
+    window.addEventListener('pointermove', e=>{
+      if(!dragging || !currentEl) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      currentEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx/18}deg)`;
+      const okStamp = currentEl.querySelector('.stamp.ok');
+      const ngStamp = currentEl.querySelector('.stamp.ng');
+      if(dx>20){ okStamp.style.opacity=Math.min(dx/80,1); okStamp.style.transform='rotate(0deg) scale(1)'; ngStamp.style.opacity=0;}
+      else if(dx<-20){ ngStamp.style.opacity=Math.min(-dx/80,1); ngStamp.style.transform='rotate(0deg) scale(1)'; okStamp.style.opacity=0;}
+      else { okStamp.style.opacity=0; ngStamp.style.opacity=0; }
+    });
+    window.addEventListener('pointerup', e=>{
+      if(!dragging || !currentEl) return;
+      dragging=false;
+      const dx = e.clientX - startX;
+      currentEl.style.transition='';
+      if(dx>90){ judge('ok'); }
+      else if(dx<-90){ judge('ng'); }
+      else {
+        currentEl.style.transform='';
+        currentEl.querySelector('.stamp.ok').style.opacity=0;
+        currentEl.querySelector('.stamp.ng').style.opacity=0;
+      }
+      currentEl=null;
+    });
+  })();
+
+  function micTap(){
+    showToast('🎙️ 音声入力を開始しました');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GENBA — 現場が、経営を超えていく。</title>
+<style>
+  :root{
+    --bg:#f4f2ed;
+    --panel:#ffffff;
+    --ink:#2b2926;
+    --ink-soft:#6b675f;
+    --line:#dedad0;
+    --accent:#d9611b;
+    --accent-dim:#f0d9c8;
+    --radius:2px;
+    --shadow: 0 1px 2px rgba(43,41,38,0.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:#e4e1d8;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Segoe UI",sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    width:390px; margin:0 auto; min-height:100vh;
+    background:var(--bg);
+    position:relative;
+    overflow-x:hidden;
+    border-left:1px solid #d3cfc4;
+    border-right:1px solid #d3cfc4;
+  }
+  /* ===== HEADER ===== */
+  header.gtop{
+    position:sticky; top:0; z-index:50;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    padding:14px 16px 10px;
+  }
+  .brandrow{
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo-hex{flex:none;}
+  .brandname{
+    font-size:15px; font-weight:700; letter-spacing:0.14em;
+    color:var(--ink);
+  }
+  .projectname{
+    margin-left:auto;
+    font-size:11px; color:var(--ink-soft);
+    text-align:right; line-height:1.3;
+    letter-spacing:0.02em;
+  }
+  .projectname b{display:block; color:var(--ink); font-size:12px; font-weight:600;}
+
+  /* KPI strip — Braun dial style */
+  .kpi-strip{
+    margin-top:12px;
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .kpi-cell{
+    background:var(--panel);
+    padding:10px 8px 8px;
+    position:relative;
+  }
+  .kpi-label{
+    font-size:9px; letter-spacing:0.08em; color:var(--ink-soft);
+    text-transform:uppercase; margin-bottom:4px;
+  }
+  .kpi-value{
+    font-size:16px; font-weight:700; color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-0.01em;
+  }
+  .kpi-value .unit{font-size:10px; font-weight:500; color:var(--ink-soft); margin-left:2px;}
+  .kpi-dial{
+    margin-top:6px; height:3px; background:#eae7de; border-radius:2px; overflow:hidden;
+    position:relative;
+  }
+  .kpi-dial i{
+    display:block; height:100%; background:var(--accent);
+  }
+  .kpi-ticks{
+    display:flex; justify-content:space-between; margin-top:3px;
+  }
+  .kpi-ticks span{width:1px; height:3px; background:var(--line);}
+
+  /* breadcrumb */
+  .crumbs{
+    display:flex; align-items:center; gap:6px;
+    padding:8px 16px;
+    font-size:11px; color:var(--ink-soft);
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    letter-spacing:0.02em;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  .crumbs .seg{color:var(--ink-soft);}
+  .crumbs .seg.current{color:var(--accent); font-weight:600;}
+  .crumbs .sep{color:var(--line); font-weight:400;}
+
+  main{padding:18px 16px 120px;}
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadein .18s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  h2.section-title{
+    font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--ink-soft); margin:0 0 10px 2px; font-weight:600;
+  }
+
+  /* progress ring */
+  .ring-wrap{
+    display:flex; align-items:center; gap:16px;
+    background:var(--panel); border:1px solid var(--line);
+    padding:16px; margin-bottom:20px;
+  }
+  .ring-text{flex:1;}
+  .ring-text .big{font-size:20px; font-weight:700; letter-spacing:-0.01em;}
+  .ring-text .sub{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+
+  /* task board */
+  .task-list{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:22px;}
+  .task-item{
+    background:var(--panel);
+    display:flex; align-items:center; gap:12px;
+    padding:14px 14px; cursor:pointer;
+    min-height:64px;
+  }
+  .task-item:active{background:#f7f5f0;}
+  .task-icon{
+    flex:none; width:36px; height:36px;
+    border:1.5px solid var(--ink); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .task-icon svg{width:18px; height:18px;}
+  .task-item.done .task-icon{border-color:var(--accent); background:var(--accent);}
+  .task-item.done .task-icon svg{stroke:#fff;}
+  .task-mid{flex:1; min-width:0;}
+  .task-name{font-size:14px; font-weight:600; color:var(--ink);}
+  .task-desc{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+  .task-item.done .task-name{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--line);}
+  .task-chevron{flex:none; color:var(--line);}
+
+  /* catch copy */
+  .catch{
+    text-align:center; padding:26px 10px 6px;
+    font-size:13px; letter-spacing:0.06em; color:var(--ink-soft);
+    border-top:1px solid var(--line); margin-top:10px;
+  }
+  .catch b{display:block; font-size:15px; color:var(--ink); font-weight:700; margin-top:4px; letter-spacing:0.02em;}
+
+  /* generic panel */
+  .panel{background:var(--panel); border:1px solid var(--line); padding:16px; margin-bottom:16px;}
+  .btn{
+    min-height:64px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--ink); color:#fff; font-size:15px; font-weight:600;
+    border:none; width:100%; letter-spacing:0.04em; cursor:pointer;
+    border-radius:var(--radius);
+  }
+  .btn:active{opacity:0.85;}
+  .btn.outline{
+    background:transparent; color:var(--ink); border:1.5px solid var(--ink);
+  }
+  .btn.accent{background:var(--accent);}
+  .btn-row{display:flex; gap:10px; margin-top:12px;}
+  .back-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; color:var(--ink-soft); margin-bottom:14px; cursor:pointer;
+    letter-spacing:0.02em;
+  }
+
+  /* swipe cards (拾い出し確認) */
+  .swipe-stage{
+    position:relative; height:360px; margin-bottom:14px;
+  }
+  .swipe-card{
+    position:absolute; inset:0;
+    background:var(--panel); border:1px solid var(--line);
+    padding:20px; display:flex; flex-direction:column;
+    box-shadow:0 2px 6px rgba(43,41,38,0.08);
+    transition:transform .25s ease, opacity .25s ease;
+    user-select:none;
+  }
+  .swipe-card .tag{font-size:10px; letter-spacing:0.1em; color:var(--accent); font-weight:700; text-transform:uppercase;}
+  .swipe-card .item-name{font-size:19px; font-weight:700; margin-top:8px;}
+  .swipe-card .item-spec{font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.6;}
+  .swipe-card .item-qty{
+    margin-top:auto; display:flex; justify-content:space-between; align-items:baseline;
+    border-top:1px solid var(--line); padding-top:12px;
+  }
+  .swipe-card .item-qty .num{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .swipe-card .item-qty .unit2{font-size:12px; color:var(--ink-soft);}
+  .swipe-card .stamp{
+    position:absolute; top:20px; right:20px; font-size:13px; font-weight:800;
+    padding:4px 10px; border:2px solid; border-radius:3px; letter-spacing:0.08em;
+    opacity:0; transform:rotate(8deg);
+  }
+  .stamp.ok{color:#3a7a4e; border-color:#3a7a4e;}
+  .stamp.ng{color:#b3402f; border-color:#b3402f;}
+
+  .decision-row{display:flex; gap:10px; margin-bottom:18px;}
+  .dec-btn{
+    flex:1; min-height:64px; border:1.5px solid var(--ink); background:var(--panel);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    font-size:13px; font-weight:700; cursor:pointer; border-radius:var(--radius);
+  }
+  .dec-btn.ng{color:#b3402f; border-color:#b3402f;}
+  .dec-btn.ok{color:#3a7a4e; border-color:#3a7a4e;}
+  .dec-btn:active{background:#f2f0ea;}
+  .dec-btn .glyph{font-size:20px; line-height:1;}
+
+  .stack-dots{display:flex; justify-content:center; gap:6px; margin-bottom:6px;}
+  .stack-dots span{width:6px; height:6px; border-radius:50%; background:var(--line);}
+  .stack-dots span.active{background:var(--accent);}
+
+  /* KY / photo / report simple detail screens */
+  .field{margin-bottom:14px;}
+  .field label{font-size:11px; color:var(--ink-soft); letter-spacing:0.04em; display:block; margin-bottom:6px;}
+  .field .fake-input{
+    border:1px solid var(--line); background:var(--panel); padding:12px 10px; font-size:13px; color:var(--ink);
+  }
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{
+    font-size:11px; padding:8px 12px; border:1px solid var(--line); background:var(--panel); color:var(--ink-soft);
+  }
+  .chip.on{border-color:var(--accent); color:var(--accent); font-weight:700;}
+
+  .photo-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:16px;}
+  .photo-cell{aspect-ratio:1; background:#e8e5dc; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:22px;}
+
+  .estimate-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .estimate-row .l{color:var(--ink-soft);}
+  .estimate-row .v{font-weight:700; font-variant-numeric:tabular-nums;}
+  .estimate-total{display:flex; justify-content:space-between; padding-top:14px; margin-top:4px; font-size:16px; font-weight:800;}
+  .estimate-total .v{color:var(--accent);}
+
+  /* mic FAB */
+  .mic-fab{
+    position:fixed; right:20px; bottom:26px; z-index:60;
+    width:72px; height:72px; border-radius:50%;
+    background:var(--ink); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 10px rgba(43,41,38,0.25);
+    border:none; cursor:pointer;
+  }
+  .mic-fab:active{background:var(--accent); transform:scale(0.97);}
+  .mic-fab .ring{
+    position:absolute; inset:-6px; border:1.5px solid var(--accent); border-radius:50%;
+    opacity:0;
+  }
+  .mic-fab.listening .ring{opacity:1; animation:pulse 1.2s ease-out infinite;}
+  @keyframes pulse{
+    0%{transform:scale(0.9); opacity:0.8;}
+    100%{transform:scale(1.35); opacity:0;}
+  }
+  .mic-toast{
+    position:fixed; left:50%; bottom:112px; transform:translateX(-50%);
+    background:var(--ink); color:#fff; font-size:12px; padding:8px 16px;
+    border-radius:3px; opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:61;
+    white-space:nowrap;
+  }
+  .mic-toast.show{opacity:1;}
+
+  #app::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="gtop">
+    <div class="brandrow">
+      <svg class="logo-hex" width="34" height="34" viewBox="0 0 34 34">
+        <polygon points="17,1.5 30,9 30,25 17,32.5 4,25 4,9" fill="none" stroke="#2b2926" stroke-width="1.6"/>
+        <polygon points="17,5.5 26.3,11 26.3,23 17,28.5 7.7,23 7.7,11" fill="none" stroke="#2b2926" stroke-width="1"/>
+        <line x1="17" y1="12" x2="17" y2="22" stroke="#d9611b" stroke-width="2"/>
+        <line x1="12" y1="17" x2="22" y2="17" stroke="#d9611b" stroke-width="2"/>
+      </svg>
+      <div class="brandname">GENBA</div>
+      <div class="projectname"><b>青葉台 新築工事</b>現場ID GB-2026-0417</div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-cell">
+        <div class="kpi-label">見積金額</div>
+        <div class="kpi-value">¥1,234,000</div>
+        <div class="kpi-dial"><i style="width:62%"></i></div>
+        <div class="kpi-ticks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">延べ人工</div>
+        <div class="kpi-value">12.5<span class="unit">人工</span></div>
+        <div class="kpi-dial"><i style="width:45%"></i></div>
+        <div class="kpi-ticks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">粗利率</div>
+        <div class="kpi-value">28<span class="unit">%</span></div>
+        <div class="kpi-dial"><i style="width:28%"></i></div>
+        <div class="kpi-ticks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="crumbs" id="crumbs">
+    <span class="seg current" data-crumb="home">今日やること</span>
+  </nav>
+
+  <main>
+
+    <!-- ================= HOME ================= -->
+    <section class="screen active" id="screen-home">
+      <div class="ring-wrap">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#eae7de" stroke-width="6"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#d9611b" stroke-width="6"
+            stroke-dasharray="188.4" stroke-dashoffset="75.3" stroke-linecap="round"
+            transform="rotate(-90 36 36)"/>
+          <text x="36" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="#2b2926">60%</text>
+        </svg>
+        <div class="ring-text">
+          <div class="big">本日の進捗 3/5 完了</div>
+          <div class="sub">残り：拾い出し確認・日報</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">今日やることボード</h2>
+      <div class="task-list">
+        <div class="task-item done" onclick="go('ky')">
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d9611b" stroke-width="2.4"><path d="M5 12l4 4 10-10"/></svg></div>
+          <div class="task-mid">
+            <div class="task-name">KY記録</div>
+            <div class="task-desc">危険予知確認 済 08:12</div>
+          </div>
+          <span class="task-chevron">›</span>
+        </div>
+        <div class="task-item done" onclick="go('photo')">
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d9611b" stroke-width="2.4"><path d="M5 12l4 4 10-10"/></svg></div>
+          <div class="task-mid">
+            <div class="task-name">施工写真</div>
+            <div class="task-desc">12枚アップロード済</div>
+          </div>
+          <span class="task-chevron">›</span>
+        </div>
+        <div class="task-item" onclick="go('pickup')">
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2926" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="task-mid">
+            <div class="task-name">拾い出し確認</div>
+            <div class="task-desc">未処理 3件</div>
+          </div>
+          <span class="task-chevron">›</span>
+        </div>
+        <div class="task-item done" onclick="go('estimate')">
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d9611b" stroke-width="2.4"><path d="M5 12l4 4 10-10"/></svg></div>
+          <div class="task-mid">
+            <div class="task-name">見積確認</div>
+            <div class="task-desc">承認待ち → 承認済</div>
+          </div>
+          <span class="task-chevron">›</span>
+        </div>
+        <div class="task-item" onclick="go('report')">
+          <div class="task-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2926" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="task-mid">
+            <div class="task-name">日報</div>
+            <div class="task-desc">未提出</div>
+          </div>
+          <span class="task-chevron">›</span>
+        </div>
+      </div>
+
+      <div class="catch">
+        Less, but better.
+        <b>現場が、経営を超えていく。</b>
+      </div>
+    </section>
+
+    <!-- ================= KY ================= -->
+    <section class="screen" id="screen-ky">
+      <div class="back-btn" onclick="go('home')">‹ 今日やることボードへ戻る</div>
+      <h2 class="section-title">KY記録（危険予知）</h2>
+      <div class="panel">
+        <div class="field">
+          <label>本日の作業内容</label>
+          <div class="fake-input">2階梁型枠 建込み作業</div>
+        </div>
+        <div class="field">
+          <label>危険ポイント</label>
+          <div class="chip-row">
+            <span class="chip on">墜落・転落</span>
+            <span class="chip">感電</span>
+            <span class="chip">重機接触</span>
+            <span class="chip">飛来落下</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>対策</label>
+          <div class="fake-input">安全帯二丁掛け徹底／立入禁止区画の再設置</div>
+        </div>
+        <button class="btn accent">記録を確定する</button>
+      </div>
+    </section>
+
+    <!-- ================= PHOTO ================= -->
+    <section class="screen" id="screen-photo">
+      <div class="back-btn" onclick="go('home')">‹ 今日やることボードへ戻る</div>
+      <h2 class="section-title">施工写真</h2>
+      <div class="photo-grid">
+        <div class="photo-cell">📷</div><div class="photo-cell">📷</div><div class="photo-cell">📷</div>
+        <div class="photo-cell">📷</div><div class="photo-cell">📷</div><div class="photo-cell">📷</div>
+        <div class="photo-cell" style="color:#d9611b; font-weight:700; font-size:26px;">＋</div>
+      </div>
+      <button class="btn">アルバムを工事台帳に添付</button>
+    </section>
+
+    <!-- ================= PICKUP (swipe) ================= -->
+    <section class="screen" id="screen-pickup">
+      <div class="back-btn" onclick="go('home')">‹ 今日やることボードへ戻る</div>
+      <h2 class="section-title">拾い出し確認（右＝採用 / 左＝除外）</h2>
+
+      <div class="stack-dots" id="stackDots">
+        <span class="active"></span><span></span><span></span>
+      </div>
+
+      <div class="swipe-stage" id="swipeStage">
+        <div class="swipe-card" data-idx="2" style="transform:translateY(10px) scale(0.96); z-index:1;">
+          <div class="stamp ok">採用</div>
+          <div class="stamp ng">除外</div>
+          <span class="tag">構造材</span>
+          <div class="item-name">集成材 管柱 105角</div>
+          <div class="item-spec">4.0m／スギ／KD材<br>設計図 S-03 記載分</div>
+          <div class="item-qty"><span class="num">48</span><span class="unit2">本</span></div>
+        </div>
+        <div class="swipe-card" data-idx="1" style="transform:translateY(5px) scale(0.98); z-index:2;">
+          <div class="stamp ok">採用</div>
+          <div class="stamp ng">除外</div>
+          <span class="tag">下地材</span>
+          <div class="item-name">構造用合板 t12</div>
+          <div class="item-spec">910×1820／準耐火仕様<br>床下地・耐力壁共通</div>
+          <div class="item-qty"><span class="num">86</span><span class="unit2">枚</span></div>
+        </div>
+        <div class="swipe-card" data-idx="0" style="z-index:3;">
+          <div class="stamp ok">採用</div>
+          <div class="stamp ng">除外</div>
+          <span class="tag">金物</span>
+          <div class="item-name">耐震コーナー金物</div>
+          <div class="item-spec">CP-L相当／基礎連結用<br>N90釘留め指定</div>
+          <div class="item-qty"><span class="num">124</span><span class="unit2">個</span></div>
+        </div>
+      </div>
+
+      <div class="decision-row">
+        <button class="dec-btn ng" onclick="decide('ng')"><span class="glyph">✗</span>除外</button>
+        <button class="dec-btn ok" onclick="decide('ok')"><span class="glyph">✓</span>採用</button>
+      </div>
+
+      <div class="panel" id="pickupDone" style="display:none; text-align:center;">
+        <div style="font-size:13px; color:var(--ink-soft);">全件処理が完了しました</div>
+        <div style="font-size:20px; font-weight:800; margin-top:6px;">採用 <span style="color:#d9611b;" id="okCount">0</span> ／ 除外 <span id="ngCount">0</span></div>
+        <button class="btn" style="margin-top:14px;" onclick="go('home')">今日やることボードへ</button>
+      </div>
+    </section>
+
+    <!-- ================= ESTIMATE ================= -->
+    <section class="screen" id="screen-estimate">
+      <div class="back-btn" onclick="go('home')">‹ 今日やることボードへ戻る</div>
+      <h2 class="section-title">見積確認</h2>
+      <div class="panel">
+        <div class="estimate-row"><span class="l">仮設工事</span><span class="v">¥98,000</span></div>
+        <div class="estimate-row"><span class="l">躯体工事</span><span class="v">¥612,000</span></div>
+        <div class="estimate-row"><span class="l">仕上工事</span><span class="v">¥334,000</span></div>
+        <div class="estimate-row"><span class="l">諸経費</span><span class="v">¥190,000</span></div>
+        <div class="estimate-total"><span>合計（税込）</span><span class="v">¥1,234,000</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn outline" style="flex:1;">差し戻す</button>
+        <button class="btn accent" style="flex:1;">承認する</button>
+      </div>
+    </section>
+
+    <!-- ================= REPORT ================= -->
+    <section class="screen" id="screen-report">
+      <div class="back-btn" onclick="go('home')">‹ 今日やることボードへ戻る</div>
+      <h2 class="section-title">日報</h2>
+      <div class="panel">
+        <div class="field">
+          <label>作業内容</label>
+          <div class="fake-input">2階梁型枠建込み・墨出し</div>
+        </div>
+        <div class="field">
+          <label>作業人工</label>
+          <div class="fake-input">大工2名／見習1名　計 2.5人工</div>
+        </div>
+        <div class="field">
+          <label>天候</label>
+          <div class="chip-row">
+            <span class="chip on">晴</span><span class="chip">曇</span><span class="chip">雨</span>
+          </div>
+        </div>
+        <button class="btn accent">日報を提出する</button>
+      </div>
+    </section>
+
+  </main>
+
+  <button class="mic-fab" id="micFab" onclick="toggleMic()">
+    <span class="ring"></span>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <rect x="9" y="2" width="6" height="12" rx="3"/>
+      <path d="M5 11a7 7 0 0 0 14 0"/>
+      <line x1="12" y1="18" x2="12" y2="22"/>
+      <line x1="8" y1="22" x2="16" y2="22"/>
+    </svg>
+  </button>
+  <div class="mic-toast" id="micToast">音声入力中… 「拾い出しを開始」</div>
+
+</div>
+
+<script>
+  const crumbLabels = {
+    home:'今日やること', ky:'今日やること ›  KY記録', photo:'今日やること ›  施工写真',
+    pickup:'今日やること ›  拾い出し確認', estimate:'今日やること ›  見積確認', report:'今日やること ›  日報'
+  };
+
+  function go(name){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+name).classList.add('active');
+    const crumbs = document.getElementById('crumbs');
+    const parts = crumbLabels[name].split(' ›  ');
+    crumbs.innerHTML = parts.map((p,i)=>{
+      const isLast = i===parts.length-1;
+      return (i>0?'<span class="sep">›</span>':'') + '<span class="seg'+(isLast?' current':'')+'">'+p+'</span>';
+    }).join('');
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+
+  // ---- swipe / pickup demo ----
+  let okC=0, ngC=0, remaining=3, activeIdx=0;
+  const stage = document.getElementById('swipeStage');
+
+  function getTopCard(){
+    return stage.querySelector('.swipe-card[data-idx="'+activeIdx+'"]');
+  }
+
+  function decide(kind){
+    const card = getTopCard();
+    if(!card) return;
+    const stamp = card.querySelector(kind==='ok' ? '.stamp.ok' : '.stamp.ng');
+    stamp.style.opacity = '1';
+    card.style.transform = kind==='ok'
+      ? 'translateX(420px) rotate(18deg)'
+      : 'translateX(-420px) rotate(-18deg)';
+    card.style.opacity = '0';
+    if(kind==='ok') okC++; else ngC++;
+    remaining--;
+
+    const dots = document.querySelectorAll('#stackDots span');
+    if(dots[activeIdx]) dots[activeIdx].classList.remove('active');
+    if(dots[activeIdx+1]) dots[activeIdx+1].classList.add('active');
+
+    setTimeout(()=>{
+      activeIdx++;
+      const rest = stage.querySelectorAll('.swipe-card');
+      rest.forEach(c=>{
+        const idx = parseInt(c.getAttribute('data-idx'));
+        const rel = idx - activeIdx;
+        if(rel < 0) return;
+        if(rel===0) c.style.transform = 'translateY(0) scale(1)';
+        else if(rel===1) c.style.transform = 'translateY(5px) scale(0.98)';
+        else c.style.transform = 'translateY(10px) scale(0.96)';
+      });
+      if(remaining<=0){
+        document.querySelector('.decision-row').style.display='none';
+        document.getElementById('okCount').textContent = okC;
+        document.getElementById('ngCount').textContent = ngC;
+        document.getElementById('pickupDone').style.display='block';
+      }
+    }, 260);
+  }
+
+  // simple drag support for swipe cards (pointer events)
+  (function enableDrag(){
+    let startX=0, dx=0, dragging=false, card=null;
+    stage.addEventListener('pointerdown', e=>{
+      card = getTopCard();
+      if(!card) return;
+      dragging = true; startX = e.clientX;
+      card.style.transition = 'none';
+    });
+    window.addEventListener('pointermove', e=>{
+      if(!dragging || !card) return;
+      dx = e.clientX - startX;
+      card.style.transform = 'translateX('+dx+'px) rotate('+(dx/18)+'deg)';
+      const ok = card.querySelector('.stamp.ok'), ng = card.querySelector('.stamp.ng');
+      ok.style.opacity = Math.max(0, dx/80);
+      ng.style.opacity = Math.max(0, -dx/80);
+    });
+    window.addEventListener('pointerup', ()=>{
+      if(!dragging || !card) return;
+      dragging = false;
+      card.style.transition = 'transform .25s ease, opacity .25s ease';
+      if(dx > 70) { decide('ok'); }
+      else if(dx < -70) { decide('ng'); }
+      else {
+        card.style.transform = 'translateY(0) scale(1)';
+        card.querySelector('.stamp.ok').style.opacity=0;
+        card.querySelector('.stamp.ng').style.opacity=0;
+      }
+      dx = 0; card=null;
+    });
+  })();
+
+  // ---- mic fab ----
+  let listening = false;
+  function toggleMic(){
+    listening = !listening;
+    const fab = document.getElementById('micFab');
+    const toast = document.getElementById('micToast');
+    fab.classList.toggle('listening', listening);
+    if(listening){
+      toast.classList.add('show');
+      setTimeout(()=>{ toast.classList.remove('show'); fab.classList.remove('listening'); listening=false; }, 2200);
+    } else {
+      toast.classList.remove('show');
+    }
+  }
+</script>
+</body>
+</html>
