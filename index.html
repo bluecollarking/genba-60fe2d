@@ -169,23 +169,36 @@
   .task .t-chk.done{background:var(--accent2);border-color:var(--accent2)}
   .task .t-chk.done::after{content:"✓";color:#fff;font-size:14px;font-weight:900;
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-  /* ===== イグニッション起動演出（CAT配色）===== */
-  #ignition{position:fixed;inset:0;z-index:9999;
-    background:radial-gradient(ellipse at center,#0c1b2e 0%,#000 85%);
+  /* ===== イグニッション起動演出（06方式アニメ・ブランド配色）===== */
+  #ignition{position:fixed;inset:0;z-index:9999;overflow:hidden;
+    background:radial-gradient(ellipse 80% 60% at center 42%,#12305a 0%,#0a1a30 45%,#050c16 90%);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    transition:opacity .7s ease,visibility .7s ease}
+    transition:opacity .6s ease,visibility .6s ease}
   #ignition.hide{opacity:0;visibility:hidden;pointer-events:none}
-  #ignition .chev-bar{position:absolute;left:0;right:0;height:16px;
-    background:repeating-linear-gradient(-45deg,#e0b23c 0 16px,#0c1b2e 16px 32px);opacity:.9}
-  #ignition .chev-top{top:0}#ignition .chev-bot{bottom:0}
-  .ign-logo{width:120px;height:120px;filter:drop-shadow(0 0 22px rgba(255,196,0,.4))}
-  .ign-ring{stroke-dasharray:340;stroke-dashoffset:340;animation:ignSweep 1.2s cubic-bezier(.2,.8,.2,1) forwards}
-  .ign-ring2{stroke-dasharray:300;stroke-dashoffset:300;animation:ignSweep 1.2s .15s cubic-bezier(.2,.8,.2,1) forwards}
-  @keyframes ignSweep{to{stroke-dashoffset:0}}
-  .ign-text{margin-top:22px;letter-spacing:.5em;font-size:16px;font-weight:800;color:#f3f3f0;opacity:0;animation:ignFade .8s .9s forwards}
-  .ign-catch{margin-top:10px;font-size:12.5px;color:var(--accent);opacity:0;letter-spacing:.06em;animation:ignFade .8s 1.25s forwards}
-  .ign-boot{position:absolute;bottom:46px;font-size:10px;letter-spacing:.25em;color:var(--muted);opacity:0;animation:ignFade .8s 1.5s forwards}
+  #ignition .chev-bar{position:absolute;left:0;right:0;height:14px;
+    background:repeating-linear-gradient(-45deg,#e0b23c 0 14px,#0a1a30 14px 28px);opacity:.85}
+  #ignition .chev-top{top:0;transform:translateY(-100%);animation:chevIn .55s .1s cubic-bezier(.2,.9,.3,1) forwards}
+  #ignition .chev-bot{bottom:0;transform:translateY(100%);animation:chevIn .55s .1s cubic-bezier(.2,.9,.3,1) forwards}
+  @keyframes chevIn{to{transform:none}}
+  .ign-stage{position:relative;width:210px;height:210px;display:flex;align-items:center;justify-content:center}
+  .ign-hex{position:absolute;inset:0;width:100%;height:100%}
+  .ign-hexring{fill:none;stroke:var(--blue);stroke-width:3;stroke-linejoin:round;
+    stroke-dasharray:560;stroke-dashoffset:560;filter:drop-shadow(0 0 7px rgba(84,179,255,.65));
+    animation:hexDraw 1.15s cubic-bezier(.3,.9,.3,1) forwards}
+  @keyframes hexDraw{to{stroke-dashoffset:0}}
+  .ign-badge{width:152px;height:auto;opacity:0;transform:scale(.7) rotate(-4deg);
+    filter:drop-shadow(0 8px 30px rgba(84,179,255,.5));
+    animation:badgeIn .95s .5s cubic-bezier(.18,.9,.25,1.05) forwards}
+  @keyframes badgeIn{60%{opacity:1;transform:scale(1.04) rotate(1deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+  .ign-word{margin-top:18px;font-size:32px;font-weight:900;color:#fff;opacity:0;letter-spacing:.05em;
+    animation:wordIn .7s 1.2s cubic-bezier(.2,.9,.3,1) forwards}
+  @keyframes wordIn{to{opacity:1;letter-spacing:.34em;text-indent:.34em}}
+  .ign-catch{margin-top:12px;font-size:13px;color:var(--accent);opacity:0;letter-spacing:.08em;font-weight:700;
+    animation:ignFade .7s 1.55s forwards}
+  .ign-boot{position:absolute;bottom:44px;font-size:9.5px;letter-spacing:.3em;color:var(--muted);opacity:0;
+    animation:bootBlink 1.4s 1.7s steps(1) infinite}
   @keyframes ignFade{to{opacity:1}}
+  @keyframes bootBlink{0%,60%{opacity:.85}61%,100%{opacity:.2}}
   @media print{#ignition{display:none!important}}
   /* ===== 図枠風コーナーマーク（建築図面ディテール）===== */
   .card::after{content:"";position:absolute;right:9px;top:9px;width:13px;height:13px;
@@ -276,10 +289,13 @@
 <!-- イグニッション起動演出 -->
 <div id="ignition">
   <div class="chev-bar chev-top"></div>
-  <img src="logo_badge.png" alt="GENBA" style="width:132px;height:auto;filter:drop-shadow(0 6px 24px rgba(84,179,255,.4));opacity:0;animation:ignFade .9s .2s forwards">
-  <div style="margin-top:14px;font-size:26px;font-weight:900;letter-spacing:.34em;color:#fff;text-indent:.34em;opacity:0;animation:ignFade .8s .7s forwards">GENBA</div>
+  <div class="ign-stage">
+    <svg class="ign-hex" viewBox="0 0 200 200"><polygon class="ign-hexring" points="100,10 178,55 178,145 100,190 22,145 22,55"/></svg>
+    <img class="ign-badge" src="logo_badge.png" alt="GENBA">
+  </div>
+  <div class="ign-word">GENBA</div>
   <div class="ign-catch">現場が、経営を超えていく。</div>
-  <div class="ign-boot">SYSTEM START ...</div>
+  <div class="ign-boot">SYSTEM START</div>
   <div class="chev-bar chev-bot"></div>
 </div>
 <script>/* 起動演出のハード安全網（load失敗時も必ず解除）*/setTimeout(function(){var g=document.getElementById("ignition");if(g)g.classList.add("hide");},3500);</script>
@@ -973,7 +989,7 @@ function load(){
   const php=safeLS.getItem("rw_phproject");if(php){const el=document.getElementById("ph_project");if(el){el.value=php;document.getElementById("phTitlePrint").textContent=php;}}
   if(!document.getElementById("f_date").value) document.getElementById("f_date").value = wareki(new Date());
   renderMaster(); renderEstimate(); renderDatalist(); renderCases(); updateHdrCase();
-  setTimeout(()=>{var g=document.getElementById("ignition");if(g)g.classList.add("hide");},2100); // 起動演出フェードアウト
+  setTimeout(()=>{var g=document.getElementById("ignition");if(g)g.classList.add("hide");},2700); // 起動演出フェードアウト
   showLauncher(); // 起動時は必ず「今日の現場」を選ぶ
   if(!safeLS.persistent){
     dzStatus("ℹ️ この環境では保存（localStorage）が無効のため、入力はメモリ上のみ保持されます。データを残すには index.html を Chrome 等で直接開いてください。");
