@@ -130,6 +130,45 @@
   ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
   ::-webkit-scrollbar-track{background:transparent}
   datalist{display:none}
+  /* ===== 経営KPIストリップ ===== */
+  #kpiStrip{flex-basis:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  #kpiStrip .kpi{background:#111214;border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:5px;padding:7px 10px}
+  #kpiStrip .kpi-l{font-size:9.5px;color:var(--muted);letter-spacing:.04em}
+  #kpiStrip .kpi-v{font-size:16px;font-weight:800;color:#fff;line-height:1.2;margin-top:1px}
+  /* ===== パンくず ===== */
+  #crumb{background:#111214;border-bottom:1px solid var(--line);padding:7px 20px;font-size:12px;
+    display:flex;gap:6px;align-items:center}
+  #crumb .cr-home{color:var(--accent);font-weight:700;cursor:pointer}
+  #crumb #crumbCur{color:var(--muted)}
+  #crumb #crumbCur:not(:empty)::before{content:"›";margin-right:6px;color:var(--line2)}
+  /* ===== ボード ===== */
+  .board-head{display:flex;justify-content:space-between;align-items:center;
+    background:linear-gradient(180deg,#232427,#151618);border:1px solid var(--line2);
+    border-radius:8px;padding:16px 18px;margin-bottom:16px}
+  .board-title{font-size:11px;color:var(--muted);letter-spacing:.1em}
+  .board-case{font-size:20px;font-weight:800;color:#fff;margin-top:3px}
+  .ring{position:relative;width:72px;height:72px;flex:0 0 auto}
+  .ring svg{transform:rotate(-90deg)}
+  .ring-bg{fill:none;stroke:#2a2c30;stroke-width:7}
+  .ring-fg{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;
+    stroke-dasharray:188.5;stroke-dashoffset:188.5;transition:stroke-dashoffset .5s ease}
+  .ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;color:#fff}
+  .board-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .task{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+    min-height:104px;padding:16px;border-radius:10px;cursor:pointer;text-align:left;
+    background:linear-gradient(180deg,#232427,#191a1c);border:1px solid var(--line2);
+    border-left:5px solid var(--accent);color:#fff;transition:transform .12s,box-shadow .12s}
+  .task:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.5)}
+  .task.alt{border-left-color:var(--steel-light,#5a5e66);opacity:.9}
+  .task .t-ic{font-size:30px;line-height:1}
+  .task .t-l{font-size:15px;font-weight:800;line-height:1.35}
+  .task .t-chk{position:absolute;right:12px;top:12px;width:22px;height:22px;border-radius:50%;
+    border:2px solid var(--line2)}
+  .task .t-chk.done{background:var(--accent2);border-color:var(--accent2)}
+  .task .t-chk.done::after{content:"✓";color:#fff;font-size:14px;font-weight:900;
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
   /* ===== イグニッション起動演出（CAT配色）===== */
   #ignition{position:fixed;inset:0;z-index:9999;
     background:radial-gradient(ellipse at center,#1b1c1f 0%,#000 85%);
@@ -271,26 +310,59 @@
     <span style="letter-spacing:.18em">GENBA <span style="font-size:11px;color:var(--blue);letter-spacing:.2em;font-weight:700">現場</span></span>
     <span class="muted" style="font-size:11px;letter-spacing:.08em;font-weight:600">現場が、経営を超えていく。</span>
   </h1>
-  <span class="tag" id="hdrCase" style="border-color:var(--accent);color:#ffd9bd;cursor:pointer" onclick="showLauncher()" title="クリックで案件を切替">📁 （案件未選択）</span>
-  <span class="tag">有限会社 両磐電気 仕様</span>
-  <span class="tag">プロトタイプ v0.2</span>
+  <span class="tag" id="hdrCase" style="border-color:var(--accent);color:#ffe08a;cursor:pointer" onclick="showLauncher()" title="クリックで案件を切替">📁 （案件未選択）</span>
+  <span class="tag">両磐電気</span>
+  <!-- 経営KPIストリップ（常時表示） -->
+  <div id="kpiStrip">
+    <div class="kpi"><div class="kpi-l">御見積(税込)</div><div class="kpi-v mono" id="kpi_total">¥0</div></div>
+    <div class="kpi"><div class="kpi-l">延べ人工</div><div class="kpi-v mono" id="kpi_ninku">0.0</div></div>
+    <div class="kpi"><div class="kpi-l">概算工期</div><div class="kpi-v mono" id="kpi_days">0日</div></div>
+    <div class="kpi"><div class="kpi-l">明細</div><div class="kpi-v mono" id="kpi_rows">0</div></div>
+  </div>
 </header>
 
+<!-- パンくずナビ（常時：現在地と戻り先） -->
+<div id="crumb"><span class="cr-home" onclick="goBoard()">🏠 ボード</span><span id="crumbCur"></span></div>
+
 <nav>
-  <button data-v="ai" class="active">① AI下書き</button>
-  <button data-v="estimate">② 見積作成</button>
-  <button data-v="master">③ 単価マスタ</button>
-  <button data-v="cable">④ 電線長補正</button>
-  <button data-v="bench">⑤ 概算人工チェック</button>
-  <button data-v="photo">⑥ 施工写真</button>
-  <button data-v="docs">⑦ 書類作成</button>
-  <button data-v="cases">💼 案件・保存</button>
-  <button data-v="about">ℹ️ これは何？</button>
+  <button data-v="board" class="active">🏠 ボード</button>
+  <button data-v="ai">🔍 拾い出し</button>
+  <button data-v="estimate">💴 見積</button>
+  <button data-v="photo">📸 写真</button>
+  <button data-v="docs">📝 書類</button>
+  <button data-v="master">単価</button>
+  <button data-v="cable">電線長</button>
+  <button data-v="bench">人工</button>
+  <button data-v="cases">💼 案件</button>
+  <button data-v="about">ℹ️</button>
 </nav>
 
 <main>
+  <!-- 今日やることボード（幹画面） -->
+  <section id="v-board" class="view active">
+    <div class="board-head">
+      <div>
+        <div class="board-title">本日の現場</div>
+        <div class="board-case" id="boardCaseName">（案件未選択）</div>
+      </div>
+      <div class="ring" id="boardRing">
+        <svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" class="ring-bg"/><circle cx="36" cy="36" r="30" class="ring-fg" id="ringFg"/></svg>
+        <div class="ring-num" id="ringNum">0/5</div>
+      </div>
+    </div>
+    <div class="board-grid">
+      <button class="task" onclick="goTask('docs','ky')"><span class="t-ic">🦺</span><span class="t-l">KY記録<br>安全指示</span><span class="t-chk" id="chk_ky"></span></button>
+      <button class="task" onclick="goTask('ai')"><span class="t-ic">🔍</span><span class="t-l">拾い出し<br>図面・音声</span><span class="t-chk" id="chk_pick"></span></button>
+      <button class="task" onclick="goTask('estimate')"><span class="t-ic">💴</span><span class="t-l">見積確認<br>金額・人工</span><span class="t-chk" id="chk_est"></span></button>
+      <button class="task" onclick="goTask('photo')"><span class="t-ic">📸</span><span class="t-l">施工写真<br>台帳</span><span class="t-chk" id="chk_photo"></span></button>
+      <button class="task" onclick="goTask('docs','daily')"><span class="t-ic">📝</span><span class="t-l">日報<br>報告書</span><span class="t-chk" id="chk_report"></span></button>
+      <button class="task alt" onclick="showLauncher()"><span class="t-ic">📁</span><span class="t-l">現場を<br>切替</span></button>
+    </div>
+    <div class="hint" style="margin-top:14px">各ボタンで作業へ。上のリングが本日の進捗、ヘッダーの数字が常に最新の経営指標です。</div>
+  </section>
+
   <!-- AI下書き -->
-  <section id="v-ai" class="view active">
+  <section id="v-ai" class="view">
     <div class="card">
       <h2>① 要件テキスト → 明細を自動拾い出し</h2>
       <div class="hint">図面の注記・仕様メモ・現場で口頭でもらった内容などを貼り付け、「拾い出す」を押すと、単価マスタと照合して見積明細の候補を自動生成します。数量は「100m」「3個」「5箇所」のような表記を自動で読み取ります。</div>
@@ -920,19 +992,52 @@ function wareki(d){
 function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP");}
 
 // ---------- ナビ ----------
-document.querySelectorAll("nav button").forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-    document.getElementById("v-"+b.dataset.v).classList.add("active");
-    if(b.dataset.v==="cable")calcCable();
-    if(b.dataset.v==="bench")calcBench();
-    if(b.dataset.v==="photo")renderPhotos();
-    if(b.dataset.v==="cases")renderCases();
-    if(b.dataset.v==="docs"&&!document.getElementById("docDate").value)document.getElementById("docDate").value=new Date().toISOString().slice(0,10);
+const VIEW_NAMES={board:"",ai:"拾い出し",estimate:"見積",photo:"施工写真",docs:"書類",master:"単価マスタ",cable:"電線長補正",bench:"概算人工",cases:"案件・保存",about:"ヘルプ"};
+function switchView(v){
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.v===v));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  const sec=document.getElementById("v-"+v);if(sec)sec.classList.add("active");
+  document.getElementById("crumbCur").textContent=VIEW_NAMES[v]||"";
+  if(v==="board"){updateBoard();}
+  if(v==="cable")calcCable();
+  if(v==="bench")calcBench();
+  if(v==="photo")renderPhotos();
+  if(v==="cases")renderCases();
+  if(v==="docs"&&!document.getElementById("docDate").value)document.getElementById("docDate").value=new Date().toISOString().slice(0,10);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav button").forEach(b=>{ b.onclick=()=>switchView(b.dataset.v); });
+// ---------- GENBA Flow: ボード＆パンくず ----------
+function goBoard(){switchView("board");}
+function goTask(view,sub){
+  switchView(view);
+  if(view==="docs"&&sub){
+    const dt=document.getElementById("docType");
+    if(dt){dt.value=(sub==="ky")?"safety":"daily";}
+  }
+}
+function updateBoard(){
+  const cn=document.getElementById("boardCaseName");if(cn)cn.textContent=caseName();
+  // 完了判定
+  let photoN=0;try{/* 非同期: renderPhotosのphCountを流用 */photoN=+(document.getElementById("phCount")||{}).textContent||0;}catch(_){}
+  const done={
+    pick: rows.length>0,
+    est:  rows.some(r=>r.qty*r.price>0)||rows.some(r=>r.bu>0),
+    photo: photoN>0,
+    ky:   !!safeLS.getItem("rw_done_ky_"+(curCaseId||"x")),
+    report: !!safeLS.getItem("rw_done_report_"+(curCaseId||"x"))
   };
-});
+  const map={chk_pick:done.pick,chk_est:done.est,chk_photo:done.photo,chk_ky:done.ky,chk_report:done.report};
+  let n=0;for(const id in map){const el=document.getElementById(id);if(el){el.classList.toggle("done",!!map[id]);}if(map[id])n++;}
+  const rn=document.getElementById("ringNum");if(rn)rn.textContent=n+"/5";
+  const fg=document.getElementById("ringFg");if(fg)fg.style.strokeDashoffset=(188.5*(1-n/5)).toFixed(1);
+  // 写真枚数は非同期取得して反映
+  phAll().then(list=>{
+    const p=list.filter(x=>(x.caseId||null)===(curCaseId||null)).length;
+    const el=document.getElementById("chk_photo");if(el&&p>0){el.classList.add("done");
+      const cur=document.getElementById("ringNum").textContent.split("/")[0];}
+  }).catch(()=>{});
+}
 
 // ---------- 単価マスタ ----------
 function renderMaster(){
@@ -1080,6 +1185,12 @@ function recalc(){
     <div class="totline"><span>合計（税抜）</span><b>${yen(zeinuki)}</b></div>
     <div class="totline"><span>消費税（${Math.round(taxrate*100)}%・切捨）</span><span>${yen(tax)}</span></div>
     <div class="totline grand"><span>御見積金額</span><span>${yen(zeikomi)}</span></div>`;
+  // 経営KPIストリップを常時更新
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set("kpi_total",yen(zeikomi));
+  set("kpi_ninku",ninku.toFixed(1));
+  set("kpi_days",days+"日");
+  set("kpi_rows",rows.filter(r=>r.name).length);
 }
 
 // ---------- 書類作成（報告書・日報・指示書）----------
@@ -1110,6 +1221,9 @@ async function genDoc(useAI){
   const date=document.getElementById("docDate").value||new Date().toISOString().slice(0,10);
   const who=document.getElementById("docWho").value;
   const ctx=caseContext();
+  // ボードの完了フラグを記録（KY記録／日報）
+  if(type==="safety")safeLS.setItem("rw_done_ky_"+(curCaseId||"x"),"1");
+  if(type==="daily"||type==="report")safeLS.setItem("rw_done_report_"+(curCaseId||"x"),"1");
   const base=docTemplate(type,ctx,date,who);
   const ta=document.getElementById("docBody");
   document.getElementById("docPrintTitle").textContent=base.split("\n")[0].replace(/[【】]/g,"");
@@ -1181,18 +1295,18 @@ async function renderLauncher(){
     }).join("");
 }
 function showLauncher(){renderLauncher();document.getElementById("launcher").classList.add("on");}
-function hideLauncher(){document.getElementById("launcher").classList.remove("on");updateHdrCase();}
+function hideLauncher(){document.getElementById("launcher").classList.remove("on");updateHdrCase();switchView("board");}
 function lxOpen(id){openCase(id);hideLauncher();}
 function lxNew(){
   const name=prompt("案件名（現場名）を入力してください","○○様邸 電気工事");
   if(name===null)return;
   rows=[];cats=[...DEFAULT_CATS];curCaseId=null;
   setHead({f_to:"株式会社 ○○ 御中",f_title:name||"新規案件",f_place:"",f_staff:"担当　加藤　優太",
-    f_misc:"0",f_welfare:"0",f_discount:"0",f_taxrate:"0.1",f_roumu:"25834",f_welrate:"0",f_crew:"2",f_kind:"1.0"});
+    f_misc:"0",f_welfare:"0",f_discount:"0",f_taxrate:"0.1",f_roumu:"30900",f_welrate:"0",f_crew:"2",f_kind:"1.0"});
   persist();renderEstimate();
   saveCase(true);
   hideLauncher();
-  document.querySelector('nav button[data-v="ai"]').click();
+  switchView("board");
 }
 function newCase(){
   if(!confirm("新規案件を開始します。現在の見積内容は消えます（保存済みなら残ります）。よろしいですか？"))return;
@@ -1207,7 +1321,7 @@ function openCase(id){
   rows=JSON.parse(JSON.stringify(c.data.rows||[]));
   setHead(c.data.head);curCaseId=id;safeLS.setItem("rw_curcase",id);
   persist();renderEstimate();renderCases();
-  document.querySelector('nav button[data-v="estimate"]').click();
+  switchView("board");
 }
 function deleteCase(id){
   if(!confirm("この案件を削除します。よろしいですか？"))return;
