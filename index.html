@@ -1027,6 +1027,15 @@ function load(){
   master = m ? JSON.parse(m) : JSON.parse(JSON.stringify(SAMPLE_MASTER));
   const c = safeLS.getItem("rw_cats");
   cats = c ? JSON.parse(c) : [...DEFAULT_CATS];
+  // アプリ更新で増えた標準項目・カテゴリを、保存済みデータを壊さず自動補充
+  let _added=0;
+  SAMPLE_MASTER.forEach(s=>{
+    if(!master.some(m=>m.name===s.name && (m.spec||"")===(s.spec||""))){
+      master.push(JSON.parse(JSON.stringify(s)));_added++;
+    }
+  });
+  DEFAULT_CATS.forEach(cc=>{ if(!cats.includes(cc)) cats.push(cc); });
+  if(_added>0){ safeLS.setItem("rw_master",JSON.stringify(master)); safeLS.setItem("rw_cats",JSON.stringify(cats)); }
   const r = safeLS.getItem("rw_rows");
   rows = r ? JSON.parse(r) : [];
   const head = safeLS.getItem("rw_head");
@@ -1658,14 +1667,18 @@ ${txt}`;
 // ---------- AI下書き ----------
 function parseQty(line){
   // 単位付きの数字を優先（末尾側を採用）。φ22 等の寸法や日付は拾わない
-  const re=/([0-9]+(?:\.[0-9]+)?)\s*(メートル|ﾒｰﾄﾙ|m|ｍ|個|台|面|箇所|か所|本|式|枚|セット|回路|灯)/gi;
+  const re=/([0-9]+(?:\.[0-9]+)?)\s*(平方メートル|立方メートル|平米|立米|リューベ|㎥|㎡|メートル|ﾒｰﾄﾙ|セット|箇所|か所|回路|トン|坪|個|台|面|本|式|枚|灯|kg|m3|m|ｍ|t)/gi;
   let m,last=null;
   while((m=re.exec(line))!==null){
     const n=parseFloat(m[1]);
     if(n>0 && n<10000) last=m; // 日付やコード(>=10000)は除外
   }
   if(last){
-    let u=last[2].replace("ｍ","m").replace(/メートル|ﾒｰﾄﾙ/,"m");
+    let u=last[2]
+      .replace(/平方メートル|平米/,"㎡")
+      .replace(/立方メートル|立米|リューベ|㎥/,"m3")
+      .replace(/トン/,"t")
+      .replace(/メートル|ﾒｰﾄﾙ|ｍ/,"m");
     if(u==="灯")u="台"; // 「9灯」→台
     return{qty:parseFloat(last[1]),unit:u};
   }
@@ -1746,7 +1759,11 @@ function applyDraft(res){
       return;
     }
     if(o.best&&o.bestSc>0){
-      rows.push({cat:o.best.cat,name:o.best.name,spec:o.best.spec||"",unit:o.unit||o.best.unit,qty:o.qty,price:o.best.price,bu:o.best.bu||0});
+      // 単位が坪⇄㎡で食い違う場合は数量を自動換算（1坪=3.306㎡）してマスタ単価と整合させる
+      let q=o.qty, u=o.unit||o.best.unit;
+      if(o.best.unit==="坪" && u==="㎡"){ q=+(q/3.306).toFixed(2); u="坪"; }
+      else if(o.best.unit==="㎡" && u==="坪"){ q=+(q*3.306).toFixed(1); u="㎡"; }
+      rows.push({cat:o.best.cat,name:o.best.name,spec:o.best.spec||"",unit:u,qty:q,price:o.best.price,bu:o.best.bu||0});
     }else{
       // マスタ未登録でも労務は止めない：種別から標準歩掛を推定して計上（材料単価のみ後入力）
       const kind=classifyDevice(o.line,"");
