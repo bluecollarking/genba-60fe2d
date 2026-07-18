@@ -123,6 +123,14 @@
   .suggest .item:last-child{border-bottom:none}
   .pill{font-size:10.5px;background:var(--chip);padding:2px 8px;border-radius:3px;color:#b6c6d6;border:1px solid var(--line2);
     font-variant-numeric:tabular-nums}
+  /* ===== 折りたたみ（詳細オプション） ===== */
+  details.opts{margin:10px 0;border:1px solid var(--line2);border-radius:6px;background:#0c1620;overflow:hidden}
+  details.opts summary{cursor:pointer;padding:9px 12px;font-size:12.5px;font-weight:700;color:#cdd9e6;
+    list-style:none;display:flex;align-items:center;gap:6px;user-select:none}
+  details.opts summary::-webkit-details-marker{display:none}
+  details.opts summary::before{content:"▸";color:var(--accent);transition:transform .15s}
+  details.opts[open] summary::before{transform:rotate(90deg)}
+  details.opts .opts-body{padding:2px 12px 12px}
   /* dropzone hover state handled inline; add base polish */
   #dropZone{transition:all .18s ease}
   #dropZone:hover{border-color:var(--accent)!important;background:rgba(255,138,61,.04)!important}
@@ -389,59 +397,58 @@
       <div class="row noprint" style="margin-bottom:10px">
         <button class="ghost" onclick="document.getElementById('camInput').click()">📷 カメラで図面を撮影して読み取る</button>
         <input id="camInput" type="file" accept="image/*" capture="environment" style="display:none">
-        <span class="muted" style="font-size:11.5px;align-self:center">スマホ/タブレットならカメラが起動。紙図面を撮るだけでAIが拾い出します（要APIキー）</span>
+        <button class="ghost" id="micBtn" onclick="toggleMic()">🎤 音声で入力</button>
       </div>
-      <div class="row" style="margin:6px 0">
-        <div><label>拾い出し範囲（全部拾わず絞り込める）</label>
-          <select id="scopeMode">
-            <option value="all">全数拾い（新築向け）</option>
-            <option value="changes">変更・追加・撤去のみ（改修・リフォーム向け）</option>
-            <option value="lighting">照明器具のみ</option>
-            <option value="outlet">コンセント・スイッチのみ</option>
-            <option value="weak">通信・弱電・防災のみ</option>
-            <option value="power">動力・幹線・盤のみ</option>
-          </select>
-        </div>
-      </div>
-      <div style="margin:6px 0"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-        <input type="checkbox" id="hwMode" style="width:auto"> ✍️ 手書き注記モード（印刷図面ではなく、手書きの追加/変更/削除指示だけを読み取る）
-      </label></div>
-      <div id="dropStatus" class="muted" style="font-size:12px;margin-bottom:8px"></div>
-
-      <div class="row noprint" style="margin-bottom:4px">
-        <button class="ghost" id="micBtn" onclick="toggleMic()">🎤 音声で入力（作業・材料・人数を話す）</button>
-      </div>
+      <div id="dropStatus" class="muted" style="font-size:12px;margin-bottom:4px"></div>
       <div id="micStatus" class="muted" style="font-size:12px;margin-bottom:6px"></div>
+
       <label>要件・仕様テキスト（音声・PDF・手入力なんでもOK。ここに溜まります）</label>
-      <textarea id="aiInput">PF管22 露出 80m
-VVF2.0-2C 配線 120m
-アウトレットボックス 中形四角 12個
-プルボックス 300×300×200 2個
-LED照明器具 40W相当 取付 18台
-既設電灯設備 撤去 1式
-ケーブルラック 200幅 25m</textarea>
+      <textarea id="aiInput" placeholder="例）PF管22 露出 80m&#10;VVF2.0-2C 配線 120m&#10;LED照明器具 40W相当 取付 18台&#10;（「コンセント5個、2人で6時間」のように話しても🎤で拾えます）"></textarea>
       <div class="row" style="margin-top:10px">
         <button class="act" onclick="runDraft()">🔍 拾い出す</button>
         <button class="act" style="background:linear-gradient(180deg,var(--blue),#2563c4);color:#04121f" onclick="aiDraft()">🤖 AIで解釈して拾い出す</button>
         <button class="ghost" onclick="document.getElementById('aiInput').value=''">クリア</button>
       </div>
-      <div class="hint" style="margin-top:8px">🎤の使い方：「コンセント5個、VVF100メートル、撤去が1式、<b>2人で6時間</b>」のように話す →「🤖AIで解釈」→ 材料明細＋労務（人工）まで自動で組み立てます。</div>
       <div id="draftResult"></div>
+
+      <details class="opts">
+        <summary>🔧 詳細オプション（範囲を絞る・手書き注記モード）</summary>
+        <div class="opts-body">
+          <div class="row" style="margin:6px 0">
+            <div><label>拾い出し範囲（全部拾わず絞り込める）</label>
+              <select id="scopeMode">
+                <option value="all">全数拾い（新築向け）</option>
+                <option value="changes">変更・追加・撤去のみ（改修・リフォーム向け）</option>
+                <option value="lighting">照明器具のみ</option>
+                <option value="outlet">コンセント・スイッチのみ</option>
+                <option value="weak">通信・弱電・防災のみ</option>
+                <option value="power">動力・幹線・盤のみ</option>
+              </select>
+            </div>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;margin-top:2px">
+            <input type="checkbox" id="hwMode" style="width:auto"> ✍️ 手書き注記モード（印刷図面ではなく、手書きの追加/変更/削除指示だけを読み取る）
+          </label>
+          <div class="hint" style="margin-top:8px">🎤の使い方：「コンセント5個、VVF100メートル、撤去が1式、<b>2人で6時間</b>」のように話す →「🤖AIで解釈」→ 材料明細＋労務（人工）まで自動で組み立てます。</div>
+        </div>
+      </details>
     </div>
-    <div class="card">
-      <h2>🤖 画像認識オプション（Gemini / Claude 対応）</h2>
-      <div class="hint">スキャン図面（画像PDF）の読み取りにはAPIキーが必要です。キーの種類で自動判定します：<b>Gemini(Google)＝「AIza…」</b> ／ <b>Claude(Anthropic)＝「sk-ant…」</b>。キーはこの端末のブラウザ内にのみ保存されます。<br>⚠️ <b>http://localhost で開いている場合のみ</b>API呼び出しが通ります（file:// は不可）。</div>
-      <label>プロバイダ（手動選択）</label>
-      <select id="provider">
-        <option value="auto">自動判定（AIza→Gemini / sk-ant→Claude）</option>
-        <option value="google">Gemini（Google）を使う</option>
-        <option value="anthropic">Claude（Anthropic）を使う</option>
-      </select>
-      <label>API キー</label>
-      <input id="apiKey" type="password" placeholder="APIキーを貼り付け">
-      <button class="mini" style="margin-top:8px" onclick="saveKey()">キーを保存</button>
-      <span id="keyStatus" class="muted" style="margin-left:8px"></span>
-    </div>
+    <details class="opts">
+      <summary>🤖 画像認識オプション（Gemini / Claude 対応・図面のスキャン画像を読ませる場合のみ）</summary>
+      <div class="opts-body">
+        <div class="hint">スキャン図面（画像PDF）の読み取りにはAPIキーが必要です。キーの種類で自動判定します：<b>Gemini(Google)＝「AIza…」</b> ／ <b>Claude(Anthropic)＝「sk-ant…」</b>。キーはこの端末のブラウザ内にのみ保存されます。<br>⚠️ <b>http://localhost で開いている場合のみ</b>API呼び出しが通ります（file:// は不可）。</div>
+        <label>プロバイダ（手動選択）</label>
+        <select id="provider">
+          <option value="auto">自動判定（AIza→Gemini / sk-ant→Claude）</option>
+          <option value="google">Gemini（Google）を使う</option>
+          <option value="anthropic">Claude（Anthropic）を使う</option>
+        </select>
+        <label>API キー</label>
+        <input id="apiKey" type="password" placeholder="APIキーを貼り付け">
+        <button class="mini" style="margin-top:8px" onclick="saveKey()">キーを保存</button>
+        <span id="keyStatus" class="muted" style="margin-left:8px"></span>
+      </div>
+    </details>
   </section>
 
   <!-- 見積作成 -->
