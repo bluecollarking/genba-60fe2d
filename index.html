@@ -814,7 +814,7 @@ async function visionExtract(b64,mime,label){
   let isGoogle, isAnthropic;
   if(prov==="google"){ isGoogle=true; isAnthropic=false; }
   else if(prov==="anthropic"){ isGoogle=false; isAnthropic=true; }
-  else { isGoogle=key.startsWith("AIza"); isAnthropic=key.startsWith("sk-ant"); }
+  else { isAnthropic=key.startsWith("sk-ant"); isGoogle=!isAnthropic; } // sk-ant以外(AIza…/AQ…)はGemini
   try{
     let text=null;
     if(isGoogle){
@@ -1317,7 +1317,8 @@ async function genDoc(useAI){
 }
 async function aiText(prompt,key){
   const prov=safeLS.getItem("rw_provider")||"auto";
-  const isGoogle=prov==="google"||(prov==="auto"&&key.startsWith("AIza"));
+  // sk-ant のみClaude、それ以外（AIza… / AQ…新形式 等）はGeminiへ。手動指定を優先
+  const isGoogle=prov==="google"||(prov!=="anthropic"&&!key.startsWith("sk-ant"));
   if(isGoogle){
     const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
     const r=await fetchT(url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
@@ -1922,17 +1923,23 @@ async function send(){
   }
   setState('thinking');
   const convo=history.map(m=>(m.role==='user'?'ユーザー: ':'アオイ: ')+m.text).join('\n');
-  const prompt='あなたはGENBAの見積アシスタント「蒼龍アオイ」。日本の電気・建築工事の積算担当として、ユーザーと会話しながら見積に必要な情報（材料・数量・仕様・人工）を聞き取ります。親しみやすく簡潔に。\n'+
+  const prompt='あなたはGENBAの見積アシスタント「蒼龍アオイ」。日本の電気・建築工事の積算担当。ユーザーの話し言葉から見積明細を組み立てます。親しみやすく簡潔（1〜2文、絵文字は控えめ）。\n'+
+    '重要な方針:\n'+
+    '- ユーザーが具体的な品目と数量を1つでも言ったら、聞き返しすぎず done=true で lines を出す。仕様が不明ならJISの標準的な仕様を推定して補う（例: コンセント→2P15A、VVF→2.0-2C、スイッチ→1P）。\n'+
+    '- 本当に数量が全く分からない時だけ done=false にして、不足点を1つだけ短く質問する。\n'+
+    '- 「○人で○時間」「○人×○日」「○人工」など人手の話があれば必ず労務行を入れる。\n'+
+    '- 話し言葉のゆらぎ（「コンセント5個くらい」「だいたい100メートル」等）も数量として拾う。\n'+
     'これまでの会話:\n'+convo+'\n\n'+
-    '次のJSON**だけ**を返答してください（前後に説明文やコードフェンスを付けない）:\n'+
-    '{"say":"アオイの返答。1〜2文。","done":false,"lines":[]}\n'+
-    'ルール:\n'+
-    '- 情報が不足しているうちは done=false, lines=[] とし、say で不足している点を1つだけ質問する\n'+
-    '- 材料・数量（必要なら人工）が十分に揃ったら done=true とし、lines に見積明細を1行1項目で入れる\n'+
-    '- lines の各行の形式は「名称 仕様 数量単位」。例:「コンセント取付 2P15A 5個」「VVFケーブル配線 2.0-2C 100m」「労務 2人×6時間 1式」';
+    '出力は次のJSONのみ（前後に説明文・コードフェンス禁止）:\n'+
+    '{"say":"返答文","done":true,"lines":["コンセント取付 2P15A 5個","VVFケーブル配線 2.0-2C 100m","労務 2人×6時間 1式"]}\n'+
+    'lines各行の形式は「名称 仕様 数量単位」。done=false の時は lines は空配列 [] にする。';
   let out;
   try{ out=await aiText(prompt,key); }
   catch(e){ addMsg('bot','通信でエラーが出ました…（localhostで開いているか、キーが正しいか確認してね）'); setState('error');setTimeout(()=>setState('idle'),1600);return; }
+  if(!out || !String(out).trim()){
+    addMsg('bot','AIから応答が空でした。「🔍拾い出し」タブ下部でプロバイダを「Gemini（Google）を使う」に設定してキーを保存し直すと直ることが多いです（新形式AQ…キーにも対応済み）。');
+    setState('error');setTimeout(()=>setState('idle'),1800);return;
+  }
   let obj=null;
   try{
     let s=(out||'').trim();
@@ -1948,10 +1955,12 @@ async function send(){
   if(obj.done && Array.isArray(obj.lines) && obj.lines.length){
     setState('happy');
     const ai=document.getElementById('aiInput');
-    if(ai){ ai.value=(ai.value?ai.value+'\n':'')+obj.lines.filter(x=>typeof x==='string').join('\n'); }
+    const shown=obj.lines.filter(x=>typeof x==='string');
+    if(ai){ ai.value=(ai.value?ai.value+'\n':'')+shown.join('\n'); }
+    addMsg('bot','こう解釈しました：\n・'+shown.join('\n・'));
     try{ if(typeof runDraft==='function')runDraft(); }catch(_){}
     const navAi=document.querySelector('nav button[data-v="ai"]');if(navAi)navAi.click();
-    addMsg('bot','「🔍 拾い出し」タブに候補を出したよ！内容を確認してチェック→「見積に追加」でOK✨');
+    addMsg('bot','「🔍 拾い出し」タブに候補を出したよ！内容を確認してチェック→「見積に追加」でOK。違ってたら教えてね。');
     setTimeout(()=>setState('idle'),2600);
   }else{
     setState('idle');
