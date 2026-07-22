@@ -1811,5 +1811,161 @@ document.addEventListener("input",e=>{if(e.target.closest("#v-estimate"))persist
 
 load();
 </script>
+
+<!-- ===================== 蒼龍アシスタント「アオイ」（対話型見積エージェント） ===================== -->
+<style>
+#genbaAgent{position:fixed;right:18px;bottom:18px;z-index:950;font-family:inherit}
+#genbaAgent .ga-btn{position:relative;width:66px;height:74px;background:transparent;border:none;padding:0;cursor:pointer;display:block;filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+.ga-holder{position:relative;width:66px;height:74px;animation:gaBob 2.6s ease-in-out infinite}
+.ga-holder.thinking{animation-duration:1.2s}
+.ga-holder.happy{animation:gaHop .6s ease-in-out infinite}
+.ga-holder.error{animation:gaShake .45s ease-in-out infinite}
+@keyframes gaBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes gaHop{0%,100%{transform:translateY(0)}45%{transform:translateY(-12px)}}
+@keyframes gaShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.ga-sprite{width:66px;height:74px;image-rendering:pixelated;shape-rendering:crispEdges}
+.ga-orbit,.ga-spark{position:absolute;top:6px;left:3px;width:60px;height:44px;pointer-events:none;opacity:0}
+.ga-holder.thinking .ga-orbit{opacity:1;animation:gaSpin 1.2s linear infinite}
+@keyframes gaSpin{to{transform:rotate(360deg)}}
+.ga-orbit i{position:absolute;width:5px;height:5px;border-radius:1px}
+.ga-orbit i:nth-child(1){top:0;left:28px;background:#54b3ff}
+.ga-orbit i:nth-child(2){top:20px;right:0;background:#e0b23c}
+.ga-orbit i:nth-child(3){bottom:0;left:28px;background:#33c98d}
+.ga-holder.happy .ga-spark{opacity:1}
+.ga-spark i{position:absolute;width:6px;height:6px;background:#e0b23c;animation:gaPop .6s ease-in-out infinite}
+.ga-spark i:nth-child(1){top:0;left:6px;background:#33c98d}
+.ga-spark i:nth-child(2){top:6px;right:2px}
+.ga-spark i:nth-child(3){top:26px;left:0;background:#33c98d}
+@keyframes gaPop{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
+.ga-excl{position:absolute;top:0;right:8px;width:12px;height:20px;opacity:0}
+.ga-holder.error .ga-excl{opacity:1;animation:gaPulse .5s ease-in-out infinite}
+@keyframes gaPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ga-bubble{position:absolute;right:70px;bottom:34px;max-width:210px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--text);box-shadow:0 6px 18px rgba(0,0,0,.45);opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.ga-bubble.show{opacity:1;transform:translateY(0);pointer-events:auto;cursor:pointer}
+.ga-bubble::after{content:"";position:absolute;right:-6px;bottom:16px;width:11px;height:11px;background:var(--panel2);border-right:1px solid var(--line2);border-top:1px solid var(--line2);transform:rotate(45deg)}
+.ga-chat{position:absolute;right:0;bottom:84px;width:296px;max-width:80vw;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.55);overflow:hidden;display:none;flex-direction:column}
+.ga-chat.open{display:flex}
+.ga-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(180deg,#123052,#0c1b2e);border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--accent)}
+.ga-x{background:transparent;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1;padding:0 2px}
+.ga-log{padding:12px;display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;font-size:12.5px}
+.ga-msg{padding:8px 11px;border-radius:9px;max-width:86%;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.ga-msg.bot{background:var(--panel);align-self:flex-start;border:1px solid var(--line)}
+.ga-msg.user{background:var(--blue);color:#04121f;align-self:flex-end}
+.ga-input{display:flex;gap:6px;padding:9px;border-top:1px solid var(--line);background:var(--panel)}
+.ga-input input{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:7px;color:var(--text);font:inherit;font-size:13px;padding:8px 10px}
+.ga-input button{background:var(--accent);border:none;border-radius:7px;color:#1a1205;font-weight:700;font-size:13px;padding:0 14px;cursor:pointer}
+@media(max-width:520px){#genbaAgent{right:10px;bottom:10px}}
+@media print{#genbaAgent{display:none!important}}
+</style>
+<div id="genbaAgent">
+  <div class="ga-bubble" id="gaBubble"></div>
+  <div class="ga-chat" id="gaChat">
+    <div class="ga-hd"><span>🐉 見積アシスタント「アオイ」</span><button class="ga-x" id="gaClose" aria-label="閉じる">×</button></div>
+    <div class="ga-log" id="gaLog"></div>
+    <div class="ga-input">
+      <input id="gaText" type="text" placeholder="現場の内容を話しかけてください" autocomplete="off">
+      <button id="gaSend">送信</button>
+    </div>
+  </div>
+  <button class="ga-btn" id="gaBtn" aria-label="見積アシスタントを開く">
+    <div class="ga-holder" id="gaHolder">
+      <svg class="ga-sprite" id="gaSprite" viewBox="0 0 36 40" aria-hidden="true"></svg>
+      <div class="ga-orbit"><i></i><i></i><i></i></div>
+      <div class="ga-spark"><i></i><i></i><i></i></div>
+      <svg class="ga-excl" viewBox="0 0 4 8" aria-hidden="true"><rect x="1" y="0" width="2" height="5" fill="#ff6b6b"/><rect x="1" y="6" width="2" height="2" fill="#ff6b6b"/></svg>
+    </div>
+  </button>
+</div>
+<script>
+(function(){
+const DRAGON={"w":36,"h":40,"palette":{"a":"#0a1f36","b":"#547fb4","c":"#6f9dd3","d":"#ecc65a","e":"#f6df8f","f":"#c4d8f2","g":"#d9a72f","h":"#b8871c","i":"#7fa9db","j":"#d6f6ff","k":"#aecbef","l":"#d3e5f8","m":"#dcebfb","n":"#8fe3ff","o":"#f0f6fd","p":"#365f8e","q":"#ff6b6b"},"states":{"idle":["     aaa                    aaa     ","     abaa                  aaba     ","     aaba                  abaa     ","      abaa                aaba      ","      aabaa              aabaa      ","aaa    abba    aaaaaa    abba    aaa","aca    aabaa aaadeddaaa aabaa    aca","aaaa    abbaaadddeddddaaabba    aaaa"," afaa   aabaaggddedddggaabaa   aafa "," affaa   abbgggddedddgggbba   aaffa "," affcaa  ahhggggdeddgggghha  aacffa "," afffcaa ahhhhhhhhhhhhhhhha aacfffa "," aafffca aabbijklbblkjibbaa acfffaa ","  afffmaa abbinnkllknnibba aamfffa  ","  afffmmaaabbiakkllkkaibbaaammfffa  ","  afffmmcaaabbiikkkkiibbaaammmfffa  ","  afffmmmcaabbbiikkiibbbaacmmmfffa  ","  afffccmmcaabbaiiiiabbaacmmccfffa  ","  aaffmmccccakkkllllkkkaccccmmffaa  ","   affmmmmmcckkkllllkkkccmmmmmffa   ","   affmmmmmcakkkllllkkkacmmmmmffa   ","   affmmmmcaakkkllllkkkaacmmmmffa   ","   affmmmmaaakkklooklkkaaammmmffa   ","   aafmmmaaaiikloooolkiiaaammmfaa   ","    afmmcaaaiilookoookiiaaacmmfa    ","    afmcaaabiilooooooliibaaacmfa    ","    afmaa abiilkoookoliiba aamfa    ","    afaa  abbiloooooolibba  aafa    ","    aca   abbilookoookibba   acaaaa ","    aaa   abbbiloooolibbba   aaaapa ","          aabbiklooklibbaa      apa ","           apbbillllibbpaaaa   aapa ","         aaaabbbiiiibbbapppaaaaapaa ","         appppbbbiibbbppppapppaapa  ","         apppppbbbbbbpppppaaaapppa  ","         appppppbbbbppppppa  aaaaa  ","         aaapppppbbpppppaaa         ","           aaaaaaaaaaaaaa           ","                                    ","                                    "],"thinking":["     aaa                    aaa     ","     abaa                  aaba     ","     aaba                  abaa     ","      abaa                aaba      ","      aabaa              aabaa      ","aaa    abba    aaaaaa    abba    aaa","aca    aabaa aaadeddaaa aabaa    aca","aaaa    abbaaadddeddddaaabba    aaaa"," afaa   aabaaggddedddggaabaa   aafa "," affaa   abbgggddedddgggbba   aaffa "," affcaa  ahhggggdeddgggghha  aacffa "," afffcaa ahhhhhhhhhhhhhhhha aacfffa "," aafffca aabbinklbblknibbaa acfffaa ","  afffmaa abbiakkllkkaibba aamfffa  ","  afffmmaaabbiikkllkkiibbaaammfffa  ","  afffmmcaaabbiikkkkiibbaaammmfffa  ","  afffmmmcaabbbiikkiibbbaacmmmfffa  ","  afffccmmcaabbaiiiiabbaacmmccfffa  ","  aaffmmccccakkkllllkkkaccccmmffaa  ","   affmmmmmcckkkllllkkkccmmmmmffa   ","   affmmmmmcakkkllllkkkacmmmmmffa   ","   affmmmmcaakkkllllkkkaacmmmmffa   ","   affmmmmaaakkklooklkkaaammmmffa   ","   aafmmmaaaiikloooolkiiaaammmfaa   ","    afmmcaaaiilookoookiiaaacmmfa    ","    afmcaaabiilooooooliibaaacmfa    ","    afmaa abiilkoookoliiba aamfa    ","    afaa  abbiloooooolibba  aafa    ","    aca   abbilookoookibba   acaaaa ","    aaa   abbbiloooolibbba   aaaapa ","          aabbiklooklibbaa      apa ","           apbbillllibbpaaaa   aapa ","         aaaabbbiiiibbbapppaaaaapaa ","         appppbbbiibbbppppapppaapa  ","         apppppbbbbbbpppppaaaapppa  ","         appppppbbbbppppppa  aaaaa  ","         aaapppppbbpppppaaa         ","           aaaaaaaaaaaaaa           ","                                    ","                                    "],"happy":["     aaa                    aaa     ","     abaa                  aaba     ","     aaba                  abaa     ","      abaa                aaba      ","      aabaa              aabaa      ","aaa    abba    aaaaaa    abba    aaa","aca    aabaa aaadeddaaa aabaa    aca","aaaa    abbaaadddeddddaaabba    aaaa"," afaa   aabaaggddedddggaabaa   aafa "," affaa   abbgggddedddgggbba   aaffa "," affcaa  ahhggggdeddgggghha  aacffa "," afffcaa ahhhhhhhhhhhhhhhha aacfffa "," aafffca aabbijklbblkjibbaa acfffaa ","  afffmaa abbninkllkninbba aamfffa  ","  afffmmaaabbiikkllkkiibbaaammfffa  ","  afffmmcaaabbiikkkkiibbaaammmfffa  ","  afffmmmcaabbbiikkiibbbaacmmmfffa  ","  afffccmmcaabbaiiiiabbaacmmccfffa  ","  aaffmmccccakkkllllkkkaccccmmffaa  ","   affmmmmmcckkkllllkkkccmmmmmffa   ","   affmmmmmcakkkllllkkkacmmmmmffa   ","   affmmmmcaakkkllllkkkaacmmmmffa   ","   affmmmmaaakkklooklkkaaammmmffa   ","   aafmmmaaaiikloooolkiiaaammmfaa   ","    afmmcaaaiilookoookiiaaacmmfa    ","    afmcaaabiilooooooliibaaacmfa    ","    afmaa abiilkoookoliiba aamfa    ","    afaa  abbiloooooolibba  aafa    ","    aca   abbilookoookibba   acaaaa ","    aaa   abbbiloooolibbba   aaaapa ","          aabbiklooklibbaa      apa ","           apbbillllibbpaaaa   aapa ","         aaaabbbiiiibbbapppaaaaapaa ","         appppbbbiibbbppppapppaapa  ","         apppppbbbbbbpppppaaaapppa  ","         appppppbbbbppppppa  aaaaa  ","         aaapppppbbpppppaaa         ","           aaaaaaaaaaaaaa           ","                                    ","                                    "],"error":["     aaa                    aaa     ","     abaa                  aaba     ","     aaba                  abaa     ","      abaa                aaba      ","      aabaa              aabaa      ","aaa    abba    aaaaaa    abba    aaa","aca    aabaa aaadeddaaa aabaa    aca","aaaa    abbaaadddeddddaaabba    aaaa"," afaa   aabaaggddedddggaabaa   aafa "," affaa   abbgggddedddgggbba   aaffa "," affcaa  ahhggggdeddgggghha  aacffa "," afffcaa ahhhhhhhhhhhhhhhha aacfffa "," aafffca aabbqkqlbblqkqbbaa acfffaa ","  afffmaa abbiakkllkkaibba aamfffa  ","  afffmmaaabbqiqkllkqiqbbaaammfffa  ","  afffmmcaaabbiikkkkiibbaaammmfffa  ","  afffmmmcaabbbiikkiibbbaacmmmfffa  ","  afffccmmcaabbaiiiiabbaacmmccfffa  ","  aaffmmccccakkkllllkkkaccccmmffaa  ","   affmmmmmcckkkllllkkkccmmmmmffa   ","   affmmmmmcakkkllllkkkacmmmmmffa   ","   affmmmmcaakkkllllkkkaacmmmmffa   ","   affmmmmaaakkklooklkkaaammmmffa   ","   aafmmmaaaiikloooolkiiaaammmfaa   ","    afmmcaaaiilookoookiiaaacmmfa    ","    afmcaaabiilooooooliibaaacmfa    ","    afmaa abiilkoookoliiba aamfa    ","    afaa  abbiloooooolibba  aafa    ","    aca   abbilookoookibba   acaaaa ","    aaa   abbbiloooolibbba   aaaapa ","          aabbiklooklibbaa      apa ","           apbbillllibbpaaaa   aapa ","         aaaabbbiiiibbbapppaaaaapaa ","         appppbbbiibbbppppapppaapa  ","         apppppbbbbbbpppppaaaapppa  ","         appppppbbbbppppppa  aaaaa  ","         aaapppppbbpppppaaa         ","           aaaaaaaaaaaaaa           ","                                    ","                                    "]}};
+const spriteEl=document.getElementById('gaSprite');
+const holder=document.getElementById('gaHolder');
+const bubble=document.getElementById('gaBubble');
+const chat=document.getElementById('gaChat');
+const logEl=document.getElementById('gaLog');
+const txtEl=document.getElementById('gaText');
+let bubbleTimer=null, greeted=false;
+const history=[];
+
+function build(st){
+  const S=DRAGON.states[st]||DRAGON.states.idle, P=DRAGON.palette; let r='';
+  for(let y=0;y<S.length;y++){const row=S[y];for(let x=0;x<row.length;x++){const c=row[x];if(c===' ')continue;r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+P[c]+'"/>';}}
+  spriteEl.innerHTML=r;
+}
+function setState(st){holder.className='ga-holder'+(st!=='idle'?' '+st:'');build(st);}
+function say(msg,keep){
+  bubble.textContent=msg;bubble.classList.add('show');
+  if(bubbleTimer)clearTimeout(bubbleTimer);
+  if(!keep)bubbleTimer=setTimeout(()=>bubble.classList.remove('show'),5200);
+}
+function addMsg(role,text){
+  const d=document.createElement('div');d.className='ga-msg '+role;d.textContent=text; // textContent＝XSS対策
+  logEl.appendChild(d);logEl.scrollTop=logEl.scrollHeight;return d;
+}
+function getKey(){try{return (safeLS.getItem('rw_apikey')||'').trim();}catch(e){try{return (localStorage.getItem('rw_apikey')||'').trim();}catch(_){return '';}}}
+function openChat(){
+  chat.classList.add('open');bubble.classList.remove('show');
+  if(!greeted){greeted=true;addMsg('bot','こんにちは！見積アシスタントの蒼龍アオイです🐉\n現場の内容を話しかけてください。「コンセント5個、VVF100m、2人で6時間」みたいにザックリでOK。');}
+  setTimeout(()=>{try{txtEl.focus();}catch(_){}} ,60);
+}
+function closeChat(){chat.classList.remove('open');}
+
+async function send(){
+  const t=txtEl.value.trim();if(!t)return;
+  addMsg('user',t);history.push({role:'user',text:t});txtEl.value='';
+  if(typeof aiText!=='function'){addMsg('bot','AI機能が読み込めていません。ページを再読み込みしてください。');return;}
+  const key=getKey();
+  if(!key){
+    addMsg('bot','AIキーが未設定です。「🔍 拾い出し」タブ下部の「画像認識オプション」でAPIキーを保存してから、もう一度話しかけてください🙏');
+    setState('error');setTimeout(()=>setState('idle'),1600);return;
+  }
+  setState('thinking');
+  const convo=history.map(m=>(m.role==='user'?'ユーザー: ':'アオイ: ')+m.text).join('\n');
+  const prompt='あなたはGENBAの見積アシスタント「蒼龍アオイ」。日本の電気・建築工事の積算担当として、ユーザーと会話しながら見積に必要な情報（材料・数量・仕様・人工）を聞き取ります。親しみやすく簡潔に。\n'+
+    'これまでの会話:\n'+convo+'\n\n'+
+    '次のJSON**だけ**を返答してください（前後に説明文やコードフェンスを付けない）:\n'+
+    '{"say":"アオイの返答。1〜2文。","done":false,"lines":[]}\n'+
+    'ルール:\n'+
+    '- 情報が不足しているうちは done=false, lines=[] とし、say で不足している点を1つだけ質問する\n'+
+    '- 材料・数量（必要なら人工）が十分に揃ったら done=true とし、lines に見積明細を1行1項目で入れる\n'+
+    '- lines の各行の形式は「名称 仕様 数量単位」。例:「コンセント取付 2P15A 5個」「VVFケーブル配線 2.0-2C 100m」「労務 2人×6時間 1式」';
+  let out;
+  try{ out=await aiText(prompt,key); }
+  catch(e){ addMsg('bot','通信でエラーが出ました…（localhostで開いているか、キーが正しいか確認してね）'); setState('error');setTimeout(()=>setState('idle'),1600);return; }
+  let obj=null;
+  try{
+    let s=(out||'').trim();
+    const i=s.indexOf('{'), j=s.lastIndexOf('}');
+    if(i>=0&&j>=0)s=s.slice(i,j+1);
+    obj=JSON.parse(s); // eval不使用・try/catchで安全に解析
+  }catch(e){ obj=null; }
+  if(!obj||typeof obj.say!=='string'){
+    addMsg('bot',(out&&out.slice(0,300))||'うまく解釈できませんでした。もう一度、言い方を変えて教えてください。');
+    setState('idle');history.push({role:'assistant',text:'(整形失敗)'});return;
+  }
+  addMsg('bot',obj.say);history.push({role:'assistant',text:obj.say});
+  if(obj.done && Array.isArray(obj.lines) && obj.lines.length){
+    setState('happy');
+    const ai=document.getElementById('aiInput');
+    if(ai){ ai.value=(ai.value?ai.value+'\n':'')+obj.lines.filter(x=>typeof x==='string').join('\n'); }
+    try{ if(typeof runDraft==='function')runDraft(); }catch(_){}
+    const navAi=document.querySelector('nav button[data-v="ai"]');if(navAi)navAi.click();
+    addMsg('bot','「🔍 拾い出し」タブに候補を出したよ！内容を確認してチェック→「見積に追加」でOK✨');
+    setTimeout(()=>setState('idle'),2600);
+  }else{
+    setState('idle');
+  }
+}
+
+document.getElementById('gaBtn').addEventListener('click',()=>{chat.classList.contains('open')?closeChat():openChat();});
+document.getElementById('gaClose').addEventListener('click',e=>{e.stopPropagation();closeChat();});
+document.getElementById('gaSend').addEventListener('click',send);
+txtEl.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+bubble.addEventListener('click',openChat);
+build('idle');
+setTimeout(()=>{ if(!chat.classList.contains('open')) say('見積、手伝おうか？🐉 タップして話しかけてね',false); },1800);
+})();
+</script>
 </body>
 </html>
